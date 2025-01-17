@@ -13,3 +13,5 @@ wheels/
 .env
 
 .vscode/
+
+*.db
