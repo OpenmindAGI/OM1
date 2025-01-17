@@ -1,6 +1,6 @@
 import typing as T
 
-from input.base import AgentInput
+from input.orchestrator import InputEvent
 from modules import describe_module
 from runtime.config import RuntimeConfig
 
@@ -14,12 +14,13 @@ class Fuser:
         self.config = config
 
     def fuse(
-        self, inputs: list[AgentInput], finished_promises: list[T.Any]
+        self, flushed_inputs: list[InputEvent], finished_promises: list[T.Any]
     ) -> str | None:
         """Combine all inputs, memories, and configurations into a single prompt"""
         system_prompt = self.config.system_prompt
-        input_strings = [input.formatted_latest_buffer() for input in inputs]
-        inputs_fused = " ".join([s for s in input_strings if s is not None])
+        inputs_fused = " ".join(
+            [s.text_prompt for s in flushed_inputs if s.text_prompt is not None]
+        )
         modules_fused = "\n\n\n".join(
             [describe_module(module.name) for module in self.config.modules]
         )

@@ -1,7 +1,13 @@
 import asyncio
-import typing as T
+from dataclasses import dataclass
 
 from input.base import AgentInput
+
+
+@dataclass
+class InputEvent:
+    input: AgentInput
+    text_prompt: str | None
 
 
 class InputOrchestrator:
@@ -19,6 +25,11 @@ class InputOrchestrator:
             asyncio.create_task(self._listen_to_input(input)) for input in self.inputs
         ]
         await asyncio.gather(*input_tasks)
+
+    async def flush(self) -> list[InputEvent]:
+        return [
+            InputEvent(input, input.formatted_latest_buffer()) for input in self.inputs
+        ]
 
     async def _listen_to_input(self, input: AgentInput) -> None:
         async for event in input.listen():
