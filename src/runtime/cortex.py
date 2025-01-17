@@ -45,15 +45,15 @@ class CortexRuntime:
         flushed_inputs = await self.input_orchestrator.flush()
         finished_promises, _ = await self.module_orchestrator.flush_promises()
         prompt = self.fuser.fuse(flushed_inputs, finished_promises)
-        self.diagnostic_logger.write_input_events(tick_id, flushed_inputs)
+        self.diagnostic_logger.log_input_events(tick_id, flushed_inputs)
         if prompt is None:
             logging.warning("No prompt to fuse")
             return
-        self.diagnostic_logger.write_fuser_prompt(tick_id, prompt)
+        self.diagnostic_logger.log_fuser_prompt(tick_id, prompt)
         output = await self.config.cortex_llm.ask(prompt)
         if output is None:
             logging.warning("No output from LLM")
             return
-        self.diagnostic_logger.write_llm_events(tick_id, output.commands)
+        self.diagnostic_logger.log_llm_events(tick_id, output.commands)
         logging.debug("I'm thinking... " + str(output))
         await self.module_orchestrator.promise(output.commands)

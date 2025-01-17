@@ -54,7 +54,7 @@ class DiagnosticLogger:
             cls._instance.__init__()
         return cls._instance
 
-    def write_input_events(self, tick_id: str, events: list[InputEvent]) -> None:
+    def log_input_events(self, tick_id: str, events: list[InputEvent]) -> None:
         if not self._enabled:
             return
         events_json = json.dumps(
@@ -72,7 +72,7 @@ class DiagnosticLogger:
         )
         self._db.commit()
 
-    def write_fuser_prompt(self, tick_id: str, prompt: str) -> None:
+    def log_fuser_prompt(self, tick_id: str, prompt: str) -> None:
         if not self._enabled:
             return
         self._db.execute(
@@ -81,7 +81,7 @@ class DiagnosticLogger:
         )
         self._db.commit()
 
-    def write_llm_events(self, tick_id: str, events: list[Command]) -> None:
+    def log_llm_events(self, tick_id: str, events: list[Command]) -> None:
         if not self._enabled:
             return
         events_json = json.dumps([event.dict() for event in events])
