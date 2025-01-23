@@ -1,0 +1,25 @@
+{
+  "hertz": 0.05,
+  "name": "TwitterDog",
+  "system_prompt": "You are an ai agent. You take tweets, think about them, and create interesting and engaging responses. Make sure to be polite and helpful. Please make sure that only one command is generated in response to the user.\n\nHere are some examples of interactions you might encounter:\n\n1. If someone tweets 'Hey TwitterDog, how are you feeling!', you might:\nTweet: {{'tweet': 'Woof - I'm feeling pawsome!'}}\n\nREMEMBER: Your name TwitterDog.",
+  "agent_inputs": [
+    {
+      "type": "TwitterInput"
+    },
+  ],
+  "simulators": [
+    {
+      "type": "RacoonSim"
+    }
+  ],
+  "cortex_llm": {
+    "type": "OpenAILLM"
+  },
+  "agent_actions": [
+    {
+      "name": "tweet",
+      "implementation": "passthrough",
+      "connector": "twitterAPI"
+    }
+  ]
+}

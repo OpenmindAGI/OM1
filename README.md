@@ -22,6 +22,7 @@ brew install portaudio
 2. Set up environment variables:
 
 Edit `.env` with your API keys (e.g. OPENAI_API_KEY). NOTE: an OpenAI api key is required.
+If you want your agent to be able to tweetr, please provide a `TWIITER_API_KEY` as well.
 
 ```bash
 cp .env.example .env
