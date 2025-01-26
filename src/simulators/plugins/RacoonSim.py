@@ -8,8 +8,11 @@ import pygame
 from llm.output_model import Command
 from providers.io_provider import IOProvider
 
+from threading import Event, Thread
+import logging
 
 class RacoonSim:
+
     def __init__(self):
         self.messages: list[str] = []
 
@@ -51,6 +54,25 @@ class RacoonSim:
 
         self.a_s = ""
 
+        self.cancel_future_calls = self.call_repeatedly()
+
+    def call_repeatedly(self):
+        stopped = Event()
+        interval_s = 0.05
+        def loop():
+            while not stopped.wait(interval_s):
+                # logging.info(f"Hello from the refresh timer")
+                self._tick()
+        Thread(target=loop).start()
+        return stopped.set
+        # to cancel call this
+        # cancel_future_calls() 
+
+    # async def _run_animation_loop(self) -> None:
+    #     while True:
+    #         await asyncio.sleep(0.1)
+    #         await self._tick()
+
     def _tick(self) -> None:
         self.surface_ani.fill(self.lightblue)
 
@@ -67,11 +89,6 @@ class RacoonSim:
 
         # this is what updates everything
         pygame.display.flip()
-
-    # async def _run_animation_loop(self) -> None:
-    #     while True:
-    #         await asyncio.sleep(0.1)
-    #         await self._tick()
 
     def input_clean(self, input, earliest_time) -> str:
         st = input
@@ -96,7 +113,10 @@ class RacoonSim:
                 earliest_time = timestamp
         return earliest_time
 
+    # this updates the state of the simulator, but does not refresh the display -
+    # that's done in call_repeatedly
     def run(self, commands: List[Command]) -> None:
+
         earliest_time = self.get_earliest_time()
 
         # make the background white
@@ -159,6 +179,3 @@ class RacoonSim:
             self.surface_text.blit(self.text, self.textRect)
 
         self.display.blit(self.surface_text, (0, 0))
-
-        # just for now - simple hack
-        self._tick()
