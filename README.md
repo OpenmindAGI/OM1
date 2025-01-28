@@ -21,7 +21,7 @@ brew install portaudio
 
 2. Set up environment variables:
 
-Edit `.env` with your API keys (e.g. OPENAI_API_KEY). NOTE: an OpenAI api key is required.
+Edit `.env` with your API keys (e.g. OPENMIND_API_KEY).
 
 ```bash
 cp .env.example .env
@@ -43,7 +43,10 @@ uv run src/run.py spot
 > If you are running complex models, or need to download dependencies, there may be a delay before the agent starts.
 
 > [!NOTE]
-> The OpenMind LLM endpoint is https://api.openmind.org/api/core/openai and includes a rate limiter. To use OpenAI’s LLM services without rate limiting, you must either set the OPENAI_API_KEY environment variable and remove the base_url configuration or use the API key provided by us.
+> The OpenMind LLM endpoints are:
+> * https://api.openmind.org/api/core/openai
+> * https://api.openmind.org/api/core/deepseek 
+> All LLM endpoints include a rate limiter to mitigate DDOS attacks. To use LLM services without rate limiting, please go to LINK LINK LINK to get your OPENMIND_API_KEY key.
 
 > [!NOTE]
 > There should be a `pygame` window that pops up when you run `uv run src/run.py spot`. Sometimes the `pygame` window is hidden behind all other open windows - use "show all windows" to find it.
@@ -123,7 +126,7 @@ The main entry point is `src/run.py` which provides the following commands:
 │   ├── llm/              # LLM integration
 │   ├── providers/        # ????
 │   ├── runtime/          # Core runtime system
-│   ├── simulators/       # Virtual endponits such as `RacoonSim`
+│   ├── simulators/       # Virtual endpoints such as `RacoonSim`
 │   └── run.py            # CLI entry point
 ```
 
