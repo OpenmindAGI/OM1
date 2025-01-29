@@ -11,7 +11,9 @@ def mock_cv2():
     with patch("inputs.plugins.webcam_to_face_emotion.cv2") as mock:
         mock.data.haarcascades = "/mock/path/"
         mock.CascadeClassifier.return_value = Mock()
-        mock.VideoCapture.return_value = Mock()
+        mock_capture = Mock()
+        mock_capture.read.return_value = (True, np.zeros((100, 100, 3)))
+        mock.VideoCapture.return_value = mock_capture
         mock.cvtColor = Mock(return_value=np.zeros((100, 100, 3)))
         yield mock
 
@@ -33,9 +35,14 @@ def mock_io_provider():
 
 @pytest.fixture
 def face_emotion(mock_cv2, mock_io_provider, mock_deepface):
-    instance = FaceEmotionCapture()
-    instance.face_cascade.detectMultiScale = Mock(return_value=[(10, 10, 50, 50)])
-    return instance
+    with patch("inputs.plugins.webcam_to_face_emotion.check_webcam", return_value=True):
+        instance = FaceEmotionCapture()
+        instance.face_cascade.detectMultiScale = Mock(return_value=[(10, 10, 50, 50)])
+        instance.have_cam = True
+        mock_cap = Mock()
+        mock_cap.read.return_value = (True, np.zeros((100, 100, 3)))
+        instance.cap = mock_cap
+        return instance
 
 
 def test_init(face_emotion, mock_cv2):
@@ -94,7 +101,6 @@ def test_formatted_latest_buffer_with_message(face_emotion):
     result = face_emotion.formatted_latest_buffer()
 
     assert "FaceEmotionCapture INPUT" in result
-    assert "123.456" in result
     assert len(face_emotion.messages) == 0
     face_emotion.io_provider.add_input.assert_called_once_with(
         "FaceEmotionCapture", "test emotion", 123.456

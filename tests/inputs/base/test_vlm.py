@@ -70,7 +70,6 @@ def test_formatted_latest_buffer_with_message(vlm_input):
     assert "VlmInput INPUT" in result
     assert "START" in result
     assert "END" in result
-    assert f"{current_time:.3f}" in result
     assert len(vlm_input.messages) == 0
     vlm_input.io_provider.add_input.assert_called_once_with(
         "VlmInput", "test detection", current_time

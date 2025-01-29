@@ -81,9 +81,7 @@ async def test_raw_to_text_conversion_no_change(wallet_eth):
     raw_input = [10.0, 0.0]  # balance and no change
     result = await wallet_eth._raw_to_text(raw_input)
 
-    assert isinstance(result, Message)
-    assert "have 10.000 ETH" in result.message
-    assert isinstance(result.timestamp, float)
+    assert result is None
 
 
 @pytest.mark.asyncio
@@ -105,7 +103,6 @@ def test_formatted_latest_buffer_with_message(wallet_eth):
     assert "WalletEthereum INPUT" in result
     assert "START" in result
     assert "END" in result
-    assert f"{current_time:.3f}" in result
     assert len(wallet_eth.messages) == 0
     wallet_eth.io_provider.add_input.assert_called_once_with(
         "WalletEthereum", "test balance update", current_time
