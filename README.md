@@ -59,7 +59,7 @@ Similar to the `Hello World (Spot)` example, except uses the Coinbase wallet rat
 uv run src/run.py coinbase
 ```
 
-The agent tracks the balance of ????? in a Coinbase wallet and sends a message when there is a new transaction. The agent can be instructed via the prompt to express appreciation for receiving tokens. Here is how this is done - see `/config/coinbase.json`:
+The agent tracks the balance of ETH in a Coinbase wallet and sends a message when there is a new transaction. The agent can be instructed via the prompt to express appreciation for receiving tokens. Here is how this is done - see `/config/coinbase.json`:
 
 ```bash
 "system_prompt": "
@@ -77,12 +77,14 @@ The Coinbase wallet currently supports Base Sepolia and Base Mainnet networks. T
 - `COINBASE_API_SECRET`: The API secret for the Coinbase Project API.
 
 
-You can get a Wallet ID from ???????. For new uswers, the procedure is_______. The API_KEY comes from __________. The API_SECRET is _________. These key are all strings and should looke like this:
+The API_KEY and API_SECRET are generated from the [Coinbase Developer Portal](https://portal.cdp.coinbase.com) by navigating to the "API Keys" tab and then clicking "Create API Key". If you don't already have a Developer-Managed Wallet, you can create one by following [this instruction](https://docs.cdp.coinbase.com/mpc-wallet/docs/quickstart#creating-a-wallet) with the API key and secret you just created. Then, you can get a Wallet ID from the created wallet.
+
+These key are all strings and should looke like this:
 
 ```bash
-COINBASE_WALLET_ID=???????????
-COINBASE_API_KEY=?????????
-COINBASE_API_SECRET=??????????
+COINBASE_WALLET_ID="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+COINBASE_API_KEY="organizations/your-org-id/apiKeys/your-api-key-id"
+COINBASE_API_SECRET="-----BEGIN EC PRIVATE KEY-----\nyour-api-key-private-key\n-----END EC PRIVATE KEY-----\n"
 ```
 
 For more details, please see the [Coinbase documentation](https://docs.cdp.coinbase.com/mpc-wallet/docs/wallets).
