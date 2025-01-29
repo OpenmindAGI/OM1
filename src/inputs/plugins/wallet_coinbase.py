@@ -16,7 +16,7 @@ class Message:
     timestamp: float
     message: str
 
-
+# TODO(Kyle): Support Cryptos other than ETH
 class WalletCoinbase(LoopInput[float]):
     """
     Queries current ETH balance and reports a balance increase
@@ -32,6 +32,8 @@ class WalletCoinbase(LoopInput[float]):
         logging.debug(f"Using {self.COINBASE_WALLET_ID} as the coinbase wallet id")
 
         # Initialize Wallet
+        # TODO(Kyle): Create Wallet if the wallet ID is not found
+        # TODO(Kyle): Support importing other wallets, following https://docs.cdp.coinbase.com/mpc-wallet/docs/wallets#importing-a-wallet
         API_KEY = os.environ.get("COINBASE_API_KEY")
         API_SECRET = os.environ.get("COINBASE_API_SECRET")
         Cdp.configure(API_KEY, API_SECRET)
