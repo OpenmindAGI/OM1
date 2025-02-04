@@ -6,7 +6,7 @@ OM1 enables the creation and execution of digital and physical embodied AI agent
 
 One benefit of using OM1 is the ease of deploying consistent digital personas across virtual and physical environments.
 
-The documentation for OM1 lives in `/documentation`, and covers
+The documentation for OM1 lives in `/docs`, and covers
 
 - [Core Architecture and Runtime Flow](./docs/development//architecture.mdx)
 - [Quick Start](./docs/quick_start.mdx)
