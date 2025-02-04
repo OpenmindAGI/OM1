@@ -83,6 +83,10 @@
     "light": "/assets/OpenMind_black.svg",
     "dark": "/assets/OpenMind_white.svg"
   },
+  "favicon": {
+    "light": "/assets/OpenMind_icon.svg",
+    "dark": "/assets/OpenMind_icon.svg"
+  },
   "navbar": {
     "links": [
       {
