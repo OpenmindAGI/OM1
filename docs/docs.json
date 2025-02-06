@@ -33,12 +33,14 @@
             "group": "Examples",
             "pages": [
               "examples/conversation",
-              "examples/llm_models"
+              "examples/llm_models",
+              "examples/smart_toy"
             ]
           },
           {
             "group": "Robotics",
             "pages": [
+              "robotics/asimov_governance",
               "robotics/unitree_robotics",
               "robotics/coinbase_hackathon"
             ]

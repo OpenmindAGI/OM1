@@ -146,7 +146,7 @@ class CortexRuntime:
         if self.config.name == "spot_speak":
             # spot, the speaking dog
             await self.action_orchestrator.promise(output.commands)
-        elif ("ASRInput" in prompt) or ("WalletCoinbase" in prompt):
+        elif ("Voice Input" in prompt) or ("WalletCoinbase" in prompt):
             # send speech data to loudspeaker
             await self.action_orchestrator.promise(output.commands)
         else:

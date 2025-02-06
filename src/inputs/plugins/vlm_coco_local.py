@@ -111,7 +111,7 @@ class VLM_COCO_Local(FuserInput[Image.Image]):
             ret, frame = self.cap.read()
             return frame
 
-    async def _raw_to_text(self, raw_input: Image.Image) -> Message:
+    async def _raw_to_text(self, raw_input: Image.Image) -> Optional[Message]:
         """
         Process raw image input to generate text description.
 
@@ -126,26 +126,29 @@ class VLM_COCO_Local(FuserInput[Image.Image]):
             Timestamped message containing description
         """
 
-        image = raw_input.copy().transpose((2, 0, 1))
-        batch_image = np.expand_dims(image, axis=0)
-        tensor_image = torch.tensor(
-            batch_image / 255.0, dtype=torch.float, device=self.device
-        )
-        mobilenet_detections = self.model(tensor_image)[
-            0
-        ]  # pylint: disable=E1102 disable not callable warning
-        filtered_detections = [
-            Detection(label_id, box, score)
-            for label_id, box, score in zip(
-                mobilenet_detections["labels"],
-                mobilenet_detections["boxes"],
-                mobilenet_detections["scores"],
-            )
-            if score >= self.detection_threshold
-        ]
-        logging.debug(f"filtered_detections {filtered_detections}")
+        filtered_detections = None
 
-        self.sentence = ""
+        if raw_input:
+            image = raw_input.copy().transpose((2, 0, 1))
+            batch_image = np.expand_dims(image, axis=0)
+            tensor_image = torch.tensor(
+                batch_image / 255.0, dtype=torch.float, device=self.device
+            )
+            mobilenet_detections = self.model(tensor_image)[
+                0
+            ]  # pylint: disable=E1102 disable not callable warning
+            filtered_detections = [
+                Detection(label_id, box, score)
+                for label_id, box, score in zip(
+                    mobilenet_detections["labels"],
+                    mobilenet_detections["boxes"],
+                    mobilenet_detections["scores"],
+                )
+                if score >= self.detection_threshold
+            ]
+            logging.debug(f"filtered_detections {filtered_detections}")
+
+        sentence = None
 
         if len(filtered_detections) > 0:
             pred_boxes = torch.stack(
@@ -170,12 +173,11 @@ class VLM_COCO_Local(FuserInput[Image.Image]):
             elif center_x > 960:
                 direction = "on your right."
 
-            self.sentence = f"You see a {thing} {direction}"
-            logging.info(f"VLM_COCO_Local: {self.sentence}")
+            sentence = f"You see a {thing} {direction}"
+            logging.info(f"VLM_COCO_Local: {sentence}")
 
-        message = self.sentence
-
-        return Message(timestamp=time.time(), message=message)
+        if sentence is not None:
+            return Message(timestamp=time.time(), message=sentence)
 
     async def raw_to_text(self, raw_input: Image.Image):
         """

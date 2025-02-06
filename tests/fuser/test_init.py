@@ -70,6 +70,6 @@ def test_fuser_with_inputs_and_actions(mock_describe):
             + "system prompt examples"
         )
 
-        expected = f"{system_prompt}\n\ntest input\n\nAVAILABLE MODULES:\naction description\n\n\naction description\n\nWhat will you do? Command: "
+        expected = f"{system_prompt}\n\ntest input\n\nAVAILABLE ACTIONS:\naction description\n\n\naction description\n\nWhat will you do? Command: "
         assert result == expected
         assert mock_describe.call_count == 2
