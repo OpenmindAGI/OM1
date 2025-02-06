@@ -25,9 +25,11 @@ def mock_requests_post():
     with patch("requests.post") as mock:
         yield mock
 
+
 # -------------------------------
 # TEST: Blockchain Rule Loading
 # -------------------------------
+
 
 def test_load_rules_from_blockchain_success(governance, mock_requests_post):
     """Test blockchain rule loading with a valid response."""
@@ -51,6 +53,7 @@ def test_load_rules_from_blockchain_failure(governance, mock_requests_post):
     rules = governance.load_rules_from_blockchain()
     assert rules is None
     logging.info("Test Blockchain Failure: No rules loaded")
+
 
 # ------------------------
 # TEST: Polling Behavior
