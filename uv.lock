@@ -1905,6 +1905,7 @@ dependencies = [
     { name = "opencv-python" },
     { name = "pillow" },
     { name = "pygame" },
+    { name = "pyglet" },
     { name = "python-dotenv" },
     { name = "tf-keras" },
     { name = "torch" },
@@ -1942,6 +1943,7 @@ requires-dist = [
     { name = "opencv-python" },
     { name = "pillow", specifier = ">=11.1.0" },
     { name = "pygame" },
+    { name = "pyglet", specifier = ">=2.1.2" },
     { name = "python-dotenv", specifier = ">=1.0.1" },
     { name = "tf-keras" },
     { name = "torch" },
@@ -2619,6 +2621,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/e3/0e/00f9a68d41aa78dff7d505d7acb8d0f4fea1e9ad5dba197db4dbc295f113/pygame_ce-2.5.2-pp310-pypy310_pp73-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:aa92c6cea0581ff1b15900c445a7c514f99c748e564c6b2de9d55ba697b58867", size = 13984533 },
     { url = "https://files.pythonhosted.org/packages/e5/58/c1529ee72921991b30b958ba84f055d7af4ea9920c0fdc9f613520dd3a94/pygame_ce-2.5.2-pp310-pypy310_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:18287dce6b56681b31f7ac4287a39c8b47c5ffea5f7c9b056781da268497fa61", size = 13616989 },
     { url = "https://files.pythonhosted.org/packages/26/6e/eaa6c73243aa3e71f6f616f04d20685c148d34a13aaf1e3f877358bc47f3/pygame_ce-2.5.2-pp310-pypy310_pp73-win_amd64.whl", hash = "sha256:33d12ccdf0cf6267206940edd19c9cbc540356c02dbb418393cdf1287306a1cd", size = 11608682 },
+]
+
+[[package]]
+name = "pyglet"
+version = "2.1.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/ea/4b/44b4dc01ffac9f8950d540c99159f83e2c398df2a600394feb6d2dbf7340/pyglet-2.1.2.tar.gz", hash = "sha256:6fc1fed55eb6dc80c87a7a45ac62c2a61be08cd31114b27abef8619959be7845", size = 6515611 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3c/aa/edc16d04f6de8e833b4cba3068185fd2aad9e6f3a22fbc89afec36414f12/pyglet-2.1.2-py3-none-any.whl", hash = "sha256:2819fa9d66ead4b1682d1b7fa7170692d46277e1a6661b329bdba3e65288c036", size = 961981 },
 ]
 
 [[package]]

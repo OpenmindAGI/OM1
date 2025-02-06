@@ -42,6 +42,7 @@ class SimulatorOrchestrator:
         """
         while True:
             try:
+                print(f"Running simulator {simulator.name}")
                 simulator.tick()
             except Exception as e:
                 logging.error(f"Error in simulator {simulator.name}: {e}")
