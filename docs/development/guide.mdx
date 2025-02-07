@@ -155,6 +155,8 @@ Defines the agent's available capabilities, including action names, their implem
 5. Use type hints and docstrings for better code maintainability
 6. Run `uv run ruff check . --fix && uv run black . && uv run isort .` to check/format your code.
 
+<Tip>To automatically run the lint check before committing, install [pre-commit](https://pre-commit.com/) and execute `pre-commit install`. This ensures that pre-commit checks run before each commit. Additionally, you can manually trigger all checks by running `pre-commit run --all-files`.</Tip>
+
 ## Optional Environment Variables
 
 - `ETH_ADDRESS`: The Ethereum address of agent, prefixed with `Ox`. Example: `0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045`. Only relevant if your agent has a wallet.

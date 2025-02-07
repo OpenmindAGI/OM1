@@ -1,0 +1,26 @@
+---
+title: Cubly, the Smart and Friendly Toy
+description: "Combining Inputs, an LLM, and Outputs to create a smart, engaging toy"
+---
+
+This example takes two inputs, emotional state and voice inputs, sends them to an LLM, and produces speech outputs and physical movements. 
+
+```bash LLM Models
+uv run src/run.py cubly
+```
+
+You should see your webcam light turn on and Cubly should speak to you from your default laptop speaker. You can see what is happening in the `RacoonSim` simulator window. 
+
+**NOTE**. There will be an initial delay for your system to doawload various packages and AI/ML models. 
+
+**NOTE**. This only works if you actually have a serial port connected to your computer, such as, via a USB serial dongle. On Mac, you can determine the correct name to use via `ls /dev/cu.usb*`. If you do not specify your computer's serial port, the example will provide logging data that simulates what it would send.
+
+* The **emotion estimation input** is provided by webcam data feeding into `cv2.CascadeClassifier(haarcascade_frontalface_default)`. See `/inputs/plugins/webcam_to_face_emotion`.
+
+* The **voice input** originates from the default microphone, which sends to data to cloud instance of Nvidia's RIVA. See `/inputs/plugins/asr`.
+
+* The **voice output** uses a cloud text to speech endpoint, which sends audio data to the default speaker. See `/actions/speak/connector/tts`.
+
+* The **Arduino serial movement actions** are sent to serial com port `COM1`, flowing to a connected Arduino, which can then generate servo commands. See `/actions/move_serial_arduino/connector/serial_arduino`.
+
+The overall behavior of the system is configured in `/config/cubly.json`

@@ -3,9 +3,8 @@ name = "om1"
 version = "0.1.0"
 description = "OM1 - a modern agent and robotics runtime system"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.10"
 dependencies = [
-    "om1-modules",
     "openai>=1.59.5",
     "pillow>=11.1.0",
     "python-dotenv>=1.0.1",
@@ -21,16 +20,15 @@ dependencies = [
     "hid",
     "cv_bridge",
     "torch",
-    "torchvision"
+    "torchvision",
+    "pyserial",
+    "om1-modules @ git+https://github.com/OpenmindAGI/om1-modules.git@6fd381b1f57a8c8a95aaaa59c189e62759203d1c"
 ]
 
 [project.optional-dependencies]
 dds = [
     "cyclonedds==0.10.2"
 ]
-
-[tool.uv.sources]
-om1-modules = { git = "https://github.com/OpenmindAGI/om1-modules", rev = "8b494791f2ab8b37d63f3a6bf07b6d8a449c3c29" }
 
 [dependency-groups]
 dev = [
