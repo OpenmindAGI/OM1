@@ -1,0 +1,111 @@
+openapi: '3.0.3'
+info:
+  title: OpenMind Core API
+  version: '1.0'
+servers:
+  - url: https://api.openmind.org/api/core
+    description: OpenMind Core API
+paths:
+  /{provider}/chat/completions:
+    post:
+      summary: Get completions for a chat message
+      description: Get completions for a chat message
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          description: The provider of the LLM (openai, deepseek, gemini)
+          schema:
+            type: string
+            enum:
+              - openai
+              - deepseek
+              - gemini
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                messages:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      role:
+                        type: string
+                        enum: [system, user, assistant]
+                        description: The role of the message sender.
+                      content:
+                        type: string
+                        description: The text content of the message.
+              required:
+                - messages
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  completion:
+                    type: string
+                    description: The generated completion text.
+        '500':
+          description: Internal server error.
+        '503':
+          description: Failed to forward the request to the provider.
+      security:
+        - apiKeyAuth: []
+        - bearerAuth: []
+
+  /tts:
+    post:
+      summary: Get a text-to-speech audio data (Riva model)
+      description: Get a text-to-speech audio data (Riva model)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text:
+                  type: string
+                  description: The text to convert to speech.
+              required:
+                - text
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    type: string
+                    format: byte
+                    description: The base64 encoded audio data.
+        '400':
+          description: Invalid JSON input.
+        '500':
+          description: Internal server error.
+        '503':
+          description: Failed to forward the request to the provider.
+      security:
+        - apiKeyAuth: []
+        - bearerAuth: []
+
+components:
+  securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

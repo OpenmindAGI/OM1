@@ -62,6 +62,9 @@ class Fuser:
         # Record the timestamp of the input
         self.io_provider.fuser_start_time = time.time()
 
+        input_strings = [input.formatted_latest_buffer() for input in inputs]
+        logging.debug(f"InputMessageArray: {input_strings}")
+
         # Combine all inputs, memories, and configurations into a single prompt
         system_prompt = (
             self.config.system_prompt_base
@@ -71,9 +74,17 @@ class Fuser:
             + self.config.system_prompt_examples
         )
 
-        input_strings = [input.formatted_latest_buffer() for input in inputs]
-        logging.debug(f"InputMessageArray: {input_strings}")
         inputs_fused = " ".join([s for s in input_strings if s is not None])
+
+        # if we provide laws from blockchain, these override the locally stored rules
+        # the rules are not provided in the system prompt, but as a separate INPUT,
+        # since they are flowing from the outside world
+        if "Universal Laws" in inputs_fused:
+            system_prompt = (
+                self.config.system_prompt_base
+                + "\n"
+                + self.config.system_prompt_examples
+            )
 
         # descriptions of various possible actions
         actions_fused = "\n\n\n".join(
@@ -87,7 +98,9 @@ class Fuser:
         # (2) all the inputs (vision, sound, etc.)
         # (3) a (typically) fixed list of available actions
         # (4) a (typically) fixed system prompt requesting commands to be generated
-        fused_prompt = f"{system_prompt}\n\n{inputs_fused}\n\nAVAILABLE MODULES:\n{actions_fused}\n\n{question_prompt}"
+        fused_prompt = f"{system_prompt}\n\n{inputs_fused}\n\nAVAILABLE ACTIONS:\n{actions_fused}\n\n{question_prompt}"
+
+        logging.debug(f"FINAL PROMPT: {fused_prompt}")
 
         # Record the timestamp of the output
         self.io_provider.fuser_end_time = time.time()

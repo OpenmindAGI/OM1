@@ -27,6 +27,8 @@ class ASRInput(FuserInput[str]):
         # Buffer for storing the final output
         self.messages: List[str] = []
 
+        self.descriptor_for_LLM = "Voice Input"
+
         # Buffer for storing messages
         self.message_buffer: Queue[str] = Queue()
 
@@ -128,7 +130,7 @@ class ASRInput(FuserInput[str]):
             return None
 
         result = f"""
-{self.__class__.__name__} INPUT
+{self.descriptor_for_LLM} INPUT
 // START
 {self.messages[-1]}
 // END

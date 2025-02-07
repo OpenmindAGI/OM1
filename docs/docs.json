@@ -33,12 +33,14 @@
             "group": "Examples",
             "pages": [
               "examples/conversation",
-              "examples/llm_models"
+              "examples/llm_models",
+              "examples/smart_toy"
             ]
           },
           {
             "group": "Robotics",
             "pages": [
+              "robotics/asimov_governance",
               "robotics/unitree_robotics",
               "robotics/coinbase_hackathon"
             ]
@@ -49,17 +51,24 @@
         "tab": "API Reference",
         "groups": [
           {
-            "group": "API Documentation",
+            "group": "API Reference",
             "pages": [
-              "api-reference/introduction"
+              "api-reference/introduction",
+              "api-reference/authentication"
             ]
           },
           {
-            "group": "Endpoint Examples",
+            "group": "Core Endpoints",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete"
+              "api-reference/endpoints/llm",
+              "api-reference/endpoints/riva_tts"
+            ]
+          },
+          {
+            "group": "Core Websocket Endpoints",
+            "pages": [
+              "api-reference/endpoints/vila_vlm",
+              "api-reference/endpoints/riva_asr"
             ]
           }
         ]
@@ -90,7 +99,12 @@
         "label": "Support",
         "href": "mailto:hello@openmind.org"
       }
-    ]
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Sign Up",
+      "href": "https://portal.openmind.org"
+    }
   },
   "footer": {
     "socials": {

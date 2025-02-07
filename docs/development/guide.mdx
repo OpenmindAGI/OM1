@@ -28,7 +28,7 @@ The main entry point is `src/run.py` which provides the following commands:
 │   ├── llm/              # LLM integration
 │   ├── providers/        # Providers
 │   ├── runtime/          # Core runtime system
-│   ├── simulators/       # Virtual endpoints such as `RacoonSim`
+│   ├── simulators/       # Virtual endpoints such as `WebSim`
 │   └── run.py            # CLI entry point
 ```
 
@@ -81,7 +81,7 @@ Agents are configured via JSON files in the `config/` directory. Key configurati
   },
   "simulators": [
     {
-      "type": "RacoonSim"
+      "type": "WebSim"
     }
   ],
   "agent_actions": [
@@ -127,7 +127,7 @@ Lists the simulation modules used by the agent. These define the simulated envir
 ```json Simulators Configuration
 "simulators": [
   {
-    "type": "RacoonSim"
+    "type": "WebSim"
   }
 ]
 ```
@@ -154,6 +154,8 @@ Defines the agent's available capabilities, including action names, their implem
 4. Test actions with the `passthrough` implementation first
 5. Use type hints and docstrings for better code maintainability
 6. Run `uv run ruff check . --fix && uv run black . && uv run isort .` to check/format your code.
+
+<Tip>To automatically run the lint check before committing, install [pre-commit](https://pre-commit.com/) and execute `pre-commit install`. This ensures that pre-commit checks run before each commit. Additionally, you can manually trigger all checks by running `pre-commit run --all-files`.</Tip>
 
 ## Optional Environment Variables
 
