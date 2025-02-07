@@ -59,18 +59,20 @@ class SimulatorOrchestrator:
         self.promise_queue = [p for p in self.promise_queue if p not in done_promises]
         return done_promises, self.promise_queue
 
-    async def promise(self, commands: T.List[Command]) -> None:
+    async def promise(self, inputs, commands: T.List[Command]) -> None:
         # loop through simulators and send each one of them
         # the current LLM_full
         for simulator in self._config.simulators:
             simulator_response = asyncio.create_task(
-                self._promise_simulator(simulator, commands)
+                self._promise_simulator(simulator, inputs, commands)
             )
             self.promise_queue.append(simulator_response)
 
     async def _promise_simulator(
-        self, simulator: Simulator, commands: T.List[Command]
+        self, simulator: Simulator, inputs, commands: T.List[Command]
     ) -> T.Any:
-        logging.debug(f"Calling simulator {simulator.name} with commands {commands}")
-        simulator.sim(commands)
+        logging.debug(
+            f"Calling simulator {simulator.name} with inputs {inputs} commands {commands}"
+        )
+        simulator.sim(inputs, commands)
         return None

@@ -150,7 +150,7 @@ class VLM_COCO_Local(FuserInput[Image.Image]):
 
         sentence = None
 
-        if len(filtered_detections) > 0:
+        if filtered_detections and len(filtered_detections) > 0:
             pred_boxes = torch.stack(
                 [detection.bbox for detection in filtered_detections]
             )
@@ -174,7 +174,6 @@ class VLM_COCO_Local(FuserInput[Image.Image]):
                 direction = "on your right."
 
             sentence = f"You see a {thing} {direction}"
-            logging.info(f"VLM_COCO_Local: {sentence}")
 
         if sentence is not None:
             return Message(timestamp=time.time(), message=sentence)
@@ -209,6 +208,8 @@ class VLM_COCO_Local(FuserInput[Image.Image]):
             return None
 
         latest_message = self.messages[-1]
+
+        logging.info(f"VLM_COCO_Local: {latest_message.message}")
 
         result = f"""
 {self.descriptor_for_LLM} INPUT

@@ -22,7 +22,13 @@ dependencies = [
     "torch",
     "torchvision",
     "pyserial",
-    "om1-modules @ git+https://github.com/OpenmindAGI/om1-modules.git@6fd381b1f57a8c8a95aaaa59c189e62759203d1c"
+    "fastapi>=0.110.0",
+    "uvicorn>=0.27.1",
+    "websockets>=12.0",
+    "om1-modules @ git+https://github.com/OpenmindAGI/om1-modules.git@6fd381b1f57a8c8a95aaaa59c189e62759203d1c",
+    "aiohttp>=3.9.3",
+    "python-multipart>=0.0.9",
+    "jinja2>=3.1.3"
 ]
 
 [project.optional-dependencies]

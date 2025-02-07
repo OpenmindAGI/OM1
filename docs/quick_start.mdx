@@ -1,25 +1,13 @@
 ---
 title: Quick Start
-description: "Get started with OpenMind OS (OM1)"
+description: "Get started with Openmind OS (OM1)"
 ---
 
-This basic agent uses webcam data to estimate your emotion, generates a dummy VLM caption (*DUMMY VLM - FAKE DATA - I see {random_int_num} people. Also, I see a rocket.*), looks up an Ethereum wallet balance, and sends those inputs to a central LLM `OpenAI 4o`. The LLM then returns `movement`, `speech`, and `face` commands, which are displayed in `RacoonSim`, a small `pygame` window. `RacooonSim` also shows basic timing and other debug information.
+## Hello World
 
-**NOTE**: The simulator shows you generated speech, but does not send anything to your computer's audio hardware, reducing the need for you to install audio drivers.
+The `Spot` agent uses your webcam to label objects and sends those captions to `OpenAI 4o`. The LLM then returns `movement`, `speech`, and `face` commands, which are displayed in `WebSim`. `WebSim` also shows basic timing and other debug information.
 
-## Installation
-
-1. Install the Rust python package manager `uv`:
-
-```bash install uv
-# for linux
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# for mac
-brew install uv
-```
-
-2. Clone the repo
+1. Clone the repo
 
 ```bash clone repo
 git clone https://github.com/OpenmindAGI/OM1.git
@@ -28,25 +16,41 @@ git submodule update --init
 uv venv
 ```
 
-3. Set up environment and configuration variables
+Note: If you don't have the Rust python package manager `uv`, please install it via `brew install uv` (for Mac) and `curl -LsSf https://astral.sh/uv/install.sh | sh` for Linux.
 
-Add your Openmind API key in `/config/spot.json`. You can obtain an free Openmind access key at http://openmind.org/free. If you leave the placeholder, `openmind-free`, you may be rate limited.
+2. Set configuration variables
+
+Add your Openmind API key in `/config/spot.json`. You can obtain a free access key at https://portal.openmind.org/. If you use the placeholder, `openmind-free`, you may be rate limited.
 
 ```bash set api key
 # /config/spot.json`
 ...
-"api_key": "openmind-free"
+"api_key": "openmind_om1_pat_2f1cf005af........."
 ...
 ```
 
-4. Run Spot, a `Hello World` agent
+3. Run Spot, a `Hello World` agent
 
 ```bash run spot
 uv run src/run.py spot
+
+...
+
+INFO:root:SendThisToROS2: {'move': 'dance'}
+INFO:root:SendThisToROS2: {'speak': "Hello, it's so nice to see you! Let's dance together!"}
+INFO:root:SendThisToROS2: {'face': 'joy'}
+INFO:root:VLM_COCO_Local: You see a person in front of you.
+INFO:httpx:HTTP Request: POST https://api.openmind.org/api/core/openai/chat/completions "HTTP/1.1 200 OK"
+INFO:root:Inputs and LLM Outputs: {'current_action': 'wag tail', 'last_speech': "Hello, new friend! I'm so happy to see you!", 'current_emotion': 'joy', 'system_latency': {'fuse_time': 0.2420651912689209, 'llm_start': 0.24208617210388184, 'processing': 1.4561660289764404, 'complete': 1.6982522010803223}, 'inputs': [{'input_type': 'VLM_COCO_Local', 'timestamp': 0.0, 'input': 'You see a person in front of you.'}]}
 ```
 
-Add ` --debug` to see more logging information.
+You will see logging information in the terminal, and you can see real time inputs and outputs in a web debug page at http://localhost:8000. 
+
+Add `--debug` to see more logging information.
+
+
+<Note>The simulator shows you generated speech, but does not send anything to your computer's audio hardware, reducing the need for you to install audio drivers.</Note>
 
 <Tip>`uv` does many things in the background, such as setting up a `venv` and downloading any dependencies if needed. Please add new dependencies to `pyproject.toml`.</Tip>
+
 <Note>If you are running complex models, or need to download dependencies, there may be a delay before the agent starts.</Note>
-<Note>There should be a `pygame` window that pops up when you run `uv run src/run.py spot`. If you do not see `RacoonSim`, the window might be hidden behind all your other open windows - use "show all windows" (or equivalent) to find it.</Note>

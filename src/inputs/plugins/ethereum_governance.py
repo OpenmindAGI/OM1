@@ -73,17 +73,17 @@ class GovernanceEthereum(FuserInput[float]):
             response = requests.post(
                 self.rpc_url, json=payload, headers={"Content-Type": "application/json"}
             )
-            logging.info(f"Blockchain response status: {response.status_code}")
+            logging.debug(f"Blockchain response status: {response.status_code}")
 
             if response.status_code == 200:
                 result = response.json()
                 if "result" in result and result["result"]:
                     hex_response = result["result"]
-                    logging.info(f"Raw blockchain response: {hex_response}")
+                    logging.debug(f"Raw blockchain response: {hex_response}")
 
                     # Decode the response using Web3.py
                     decoded_data = self.decode_eth_response(hex_response)
-                    logging.info(f"Decoded blockchain data: {decoded_data}")
+                    logging.debug(f"Decoded blockchain data: {decoded_data}")
                     return decoded_data
                 else:
                     logging.error("Error: No valid result in blockchain response")
