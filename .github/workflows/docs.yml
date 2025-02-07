@@ -24,20 +24,25 @@ jobs:
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "actions@github.com"
 
-      - name: Create docs branch if it doesn't exist
-        run: |
-          if ! git ls-remote --heads origin docs; then
-            git checkout -b docs
+        - name: Fetch all branches
+          run: |
+            git fetch origin
+            git branch -r
+
+        - name: Create docs branch if it doesn't exist
+          run: |
+            if ! git ls-remote --heads origin docs; then
+              git checkout -b docs
+              git push origin docs
+            fi
+
+        - name: Merge main into docs
+          run: |
+            # Checkout docs branch
+            git checkout docs || git checkout -b docs origin/docs
+
+            # Merge all changes from origin/main
+            git merge origin/main -m "Merge main into docs branch"
+
+            # Push changes
             git push origin docs
-          fi
-
-      - name: Merge main into docs
-        run: |
-          # Checkout docs branch
-          git checkout docs
-
-          # Merge all changes from main
-          git merge main -m "Merge main into docs branch"
-
-          # Push changes
-          git push origin docs
