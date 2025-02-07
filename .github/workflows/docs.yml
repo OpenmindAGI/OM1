@@ -5,8 +5,8 @@ on:
   push:
     branches:
       - add-docs-workflow
-    paths:
-      - 'docs/**'
+    # paths:
+    #   - 'docs/**'
 
 jobs:
   sync-branches:
