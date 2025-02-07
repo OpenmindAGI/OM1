@@ -8,11 +8,11 @@ For example, an AI agent built on OM1 can ingest data from multiple sources (the
 
 Capabilities of OM1:
 
-* Simple, Modular architecture
+* Simple, modular architecture
 * All python 
 * Easy to add new data inputs
-* Easy to support new hardware, such as API endpoints and robots
-* Can be connected to ROS2, Zenoh, and CycloneDDS
+* Easy to support new hardware via plugins for API endpoints and specific robot hardware
+* Can be connected to `ROS2`, `Zenoh`, and `CycloneDDS`
 * Includes a simple web-based debug display to watch the system work (`WebSim` at http://localhost:8000)
 * Preconfigured endpoints for Voice-to-Speech, OpenAI's `gpt-4o`, DeepSeek, and multiple VLMs
 
@@ -33,10 +33,10 @@ Note: If you don't have the Rust python package manager `uv`, please install it 
 
 2. Set configuration variables
 
-Add your Openmind API key in `/config/spot.json`. You can obtain a free access key at https://portal.openmind.org/. If you use the placeholder, `openmind-free`, you may be rate limited.
+Add your Openmind API key in `/config/spot.json`. You can obtain a free access key at https://portal.openmind.org/. If you use the placeholder key, `openmind-free`, you may be rate limited.
 
 ```bash set api key
-# /config/spot.json`
+# /config/spot.json
 ...
 "api_key": "openmind_om1_pat_2f1cf005af........."
 ...
@@ -46,7 +46,6 @@ Add your Openmind API key in `/config/spot.json`. You can obtain a free access k
 
 ```bash run spot
 uv run src/run.py spot
-
 ...
 
 INFO:root:SendThisToROS2: {'move': 'dance'}
@@ -54,10 +53,23 @@ INFO:root:SendThisToROS2: {'speak': "Hello, it's so nice to see you! Let's dance
 INFO:root:SendThisToROS2: {'face': 'joy'}
 INFO:root:VLM_COCO_Local: You see a person in front of you.
 INFO:httpx:HTTP Request: POST https://api.openmind.org/api/core/openai/chat/completions "HTTP/1.1 200 OK"
-INFO:root:Inputs and LLM Outputs: {'current_action': 'wag tail', 'last_speech': "Hello, new friend! I'm so happy to see you!", 'current_emotion': 'joy', 'system_latency': {'fuse_time': 0.2420651912689209, 'llm_start': 0.24208617210388184, 'processing': 1.4561660289764404, 'complete': 1.6982522010803223}, 'inputs': [{'input_type': 'VLM_COCO_Local', 'timestamp': 0.0, 'input': 'You see a person in front of you.'}]}
+INFO:root:Inputs and LLM Outputs: {
+	'current_action': 'wag tail', 
+	'last_speech': "Hello, new friend! I'm so happy to see you!", 
+	'current_emotion': 'joy', 
+	'system_latency': {
+		'fuse_time': 0.2420651912689209, 
+		'llm_start': 0.24208617210388184, 
+		'processing': 1.4561660289764404, 
+		'complete': 1.6982522010803223}, 
+	'inputs': [{
+		'input_type': 'VLM_COCO_Local', 
+		'timestamp': 0.0, 
+		'input': 'You see a person in front of you.'}]
+	}
 ```
 
-You will see logging information in the terminal, and you can see real time inputs and outputs in a web debug page at http://localhost:8000. 
+You will see logging information in the terminal and you can see real time inputs and outputs in a web debug page at http://localhost:8000. 
 
 Add `--debug` to see more logging information.
 

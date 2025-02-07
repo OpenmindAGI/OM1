@@ -20,7 +20,7 @@ Note: If you don't have the Rust python package manager `uv`, please install it 
 
 2. Set configuration variables
 
-Add your Openmind API key in `/config/spot.json`. You can obtain a free access key at https://portal.openmind.org/. If you use the placeholder, `openmind-free`, you may be rate limited.
+Add your Openmind API key in `/config/spot.json`. You can obtain a free access key at https://portal.openmind.org/. If you use the placeholder key, `openmind-free`, you may be rate limited.
 
 ```bash set api key
 # /config/spot.json`
@@ -33,7 +33,6 @@ Add your Openmind API key in `/config/spot.json`. You can obtain a free access k
 
 ```bash run spot
 uv run src/run.py spot
-
 ...
 
 INFO:root:SendThisToROS2: {'move': 'dance'}
@@ -41,13 +40,25 @@ INFO:root:SendThisToROS2: {'speak': "Hello, it's so nice to see you! Let's dance
 INFO:root:SendThisToROS2: {'face': 'joy'}
 INFO:root:VLM_COCO_Local: You see a person in front of you.
 INFO:httpx:HTTP Request: POST https://api.openmind.org/api/core/openai/chat/completions "HTTP/1.1 200 OK"
-INFO:root:Inputs and LLM Outputs: {'current_action': 'wag tail', 'last_speech': "Hello, new friend! I'm so happy to see you!", 'current_emotion': 'joy', 'system_latency': {'fuse_time': 0.2420651912689209, 'llm_start': 0.24208617210388184, 'processing': 1.4561660289764404, 'complete': 1.6982522010803223}, 'inputs': [{'input_type': 'VLM_COCO_Local', 'timestamp': 0.0, 'input': 'You see a person in front of you.'}]}
+INFO:root:Inputs and LLM Outputs: {
+	'current_action': 'wag tail', 
+	'last_speech': "Hello, new friend! I'm so happy to see you!", 
+	'current_emotion': 'joy', 
+	'system_latency': {
+		'fuse_time': 0.2420651912689209, 
+		'llm_start': 0.24208617210388184, 
+		'processing': 1.4561660289764404, 
+		'complete': 1.6982522010803223}, 
+	'inputs': [{
+		'input_type': 'VLM_COCO_Local', 
+		'timestamp': 0.0, 
+		'input': 'You see a person in front of you.'}]
+	}
 ```
 
-You will see logging information in the terminal, and you can see real time inputs and outputs in a web debug page at http://localhost:8000. 
+You will see logging information in the terminal and you can see real time inputs and outputs in a web debug page at http://localhost:8000. 
 
 Add `--debug` to see more logging information.
-
 
 <Note>The simulator shows you generated speech, but does not send anything to your computer's audio hardware, reducing the need for you to install audio drivers.</Note>
 

@@ -127,19 +127,6 @@ class CortexRuntime:
             logging.warning("No prompt to fuse")
             return
 
-        # Process inputs directly from IOProvider
-        processed_inputs = []
-        for key, input_obj in self.io_provider.inputs.items():
-            if input_obj and input_obj.input and input_obj.timestamp is not None:
-                processed_inputs.append(
-                    {
-                        "input_type": key,
-                        "timestamp": input_obj.timestamp,
-                        "input": input_obj.input,
-                    }
-                )
-        logging.debug(f"inputs: {processed_inputs}")
-
         # if there is a prompt, send to the AIs
         output = await self.config.cortex_llm.ask(prompt)
         if output is None:
@@ -147,12 +134,11 @@ class CortexRuntime:
             return
 
         # Trigger the simulators
-        await self.simulator_orchestrator.promise(processed_inputs, output.commands)
+        await self.simulator_orchestrator.promise(output.commands)
 
         commands_silent = []
         for command in output.commands:
             action_type = command.name
-            # action_spec = command.arguments[0].value
             if action_type != "speak":
                 commands_silent.append(command)
                 logging.debug(f"appended: {action_type}")

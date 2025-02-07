@@ -4,7 +4,7 @@ import os
 import threading
 import time
 from dataclasses import asdict, dataclass
-from typing import List
+from typing import Dict, List
 
 import uvicorn
 from fastapi import FastAPI, WebSocket
@@ -12,7 +12,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
 from llm.output_model import Command
-from providers.io_provider import IOProvider
+from providers.io_provider import Input, IOProvider
 from simulators.base import Simulator
 
 
@@ -256,7 +256,7 @@ class WebSim(Simulator):
 
                             React.useEffect(() => {
                                 const ws = new WebSocket(`ws://${window.location.host}/ws`);
-                                
+
                                 ws.onopen = () => {
                                     console.log('Connected to WebSocket');
                                     setConnected(true);
@@ -340,7 +340,7 @@ class WebSim(Simulator):
                                                                         .sort((a, b) => b.timestamp - a.timestamp)
                                                                         .map((message) => (
                                                                             <div key={message.id} className="mb-2">
-                                                                                <div 
+                                                                                <div
                                                                                     className="message-header"
                                                                                     onClick={() => setExpandedMessages(prev => ({
                                                                                         ...prev,
@@ -359,7 +359,7 @@ class WebSim(Simulator):
                                                                                     </span>
                                                                                 </div>
                                                                                 {expandedMessages[message.id] && (
-                                                                                    <div 
+                                                                                    <div
                                                                                         className="message-content"
                                                                                         ref={isResizing === message.id ? resizeRef : null}
                                                                                         style={{ height: messageHeights[message.id] || 'auto', minHeight: '100px' }}
@@ -367,7 +367,7 @@ class WebSim(Simulator):
                                                                                         <div className="message-text">
                                                                                             {message.input}
                                                                                         </div>
-                                                                                        <div 
+                                                                                        <div
                                                                                             className="content-resize-handle"
                                                                                             onMouseDown={(e) => startResizing(message.id, e)}
                                                                                         />
@@ -420,16 +420,16 @@ class WebSim(Simulator):
                                         </div>
                                     </div>
                                     <div className="footer">
-                                        <img 
-                                            src="/assets/OM_Logo_b_transparent.png" 
-                                            alt="OpenMind Logo" 
+                                        <img
+                                            src="/assets/OM_Logo_b_transparent.png"
+                                            alt="OpenMind Logo"
                                             className="footer-logo"
                                         />
                                         <div className="footer-links">
-                                            <a 
-                                                href="https://github.com/OpenmindAGI/OM1" 
-                                                target="_blank" 
-                                                rel="noopener noreferrer" 
+                                            <a
+                                                href="https://github.com/OpenmindAGI/OM1"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
                                                 className="footer-link"
                                             >
                                                 <svg className="github-icon" viewBox="0 0 24 24" fill="currentColor">
@@ -437,10 +437,10 @@ class WebSim(Simulator):
                                                 </svg>
                                                 GitHub
                                             </a>
-                                            <a 
-                                                href="https://docs.openmind.org/introduction" 
-                                                target="_blank" 
-                                                rel="noopener noreferrer" 
+                                            <a
+                                                href="https://docs.openmind.org/introduction"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
                                                 className="footer-link"
                                             >
                                                 Documentation
@@ -548,16 +548,16 @@ class WebSim(Simulator):
         except Exception as e:
             logging.error(f"Error in broadcast_state: {e}")
 
-    def get_earliest_time(self, inputs) -> float:
+    def get_earliest_time(self, inputs: Dict[str, Input]) -> float:
         """Get earliest timestamp from inputs"""
         earliest_time = float("inf")
-        for input in inputs:
-            logging.debug(f"GET {input}")
-            if input and input["input_type"] == "GovernanceEthereum":
+        for input_type, input_info in inputs.items():
+            logging.debug(f"GET {input_info}")
+            if input_type == "GovernanceEthereum":
                 continue
-            if input and input["timestamp"] is not None:
-                if input["timestamp"] < earliest_time:
-                    earliest_time = float(input["timestamp"])
+            if input_info.timestamp is not None:
+                if input_info.timestamp < earliest_time:
+                    earliest_time = float(input_info.timestamp)
         return earliest_time if earliest_time != float("inf") else 0.0
 
     def tick(self) -> None:
@@ -571,17 +571,18 @@ class WebSim(Simulator):
                     loop = asyncio.new_event_loop()
                     asyncio.set_event_loop(loop)
 
-                # Broadcast state
-                loop.run_until_complete(self.broadcast_state())
-
-                # Sleep to maintain tick rate
-                time.sleep(0.1)  # 100ms tick rate
+                try:
+                    loop.run_until_complete(self.broadcast_state())
+                except Exception:
+                    loop = asyncio.get_event_loop()
+                    loop.create_task(self.broadcast_state())
 
             except Exception as e:
                 logging.error(f"Error in tick: {e}")
-                time.sleep(0.1)  # Sleep even on error to maintain tick rate
 
-    def sim(self, inputs, commands: List[Command]) -> None:
+            time.sleep(0.5)
+
+    def sim(self, commands: List[Command]) -> None:
         """Handle simulation updates from commands"""
         if not self._initialized:
             logging.warning("WebSim not initialized, skipping sim update")
@@ -590,19 +591,21 @@ class WebSim(Simulator):
         try:
             updated = False
             with self._lock:
-                logging.debug(f"SIM inputs: {inputs}")
-
-                earliest_time = self.get_earliest_time(inputs)
+                earliest_time = self.get_earliest_time(self.io_provider.inputs)
                 logging.debug(f"earliest_time: {earliest_time}")
 
                 input_rezeroed = []
-                for input in inputs:
-                    input_zero = input
-                    input_zero["timestamp"] = input_zero["timestamp"] - earliest_time
-                    if input_zero["input_type"] == "GovernanceEthereum":
-                        input_zero["timestamp"] = 0.0
-                    input_rezeroed.append(input_zero)
-                logging.debug(f"SIM inputs zeroed: {input_rezeroed}")
+                for input_type, input_info in self.io_provider.inputs.items():
+                    timestamp = 0
+                    if input_type != "GovernanceEthereum":
+                        timestamp = input_info.timestamp - earliest_time
+                    input_rezeroed.append(
+                        {
+                            "input_type": input_type,
+                            "timestamp": timestamp,
+                            "input": input_info.input,
+                        }
+                    )
 
                 # Process system latency relative to earliest time
                 system_latency = {
