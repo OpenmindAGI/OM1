@@ -32,6 +32,11 @@ The main entry point is `src/run.py` which provides the following commands:
 │   └── run.py            # CLI entry point
 ```
 
+## Lint and Unittesting
+
+* To unittest the system, run `uv run pytest --log-cli-level=DEBUG -s`
+* To lint the code, run `uv run ruff check . --fix && uv run black . && uv run isort .` 
+
 ## Adding New Actions
 
 Actions are the core capabilities of an agent. For example, for a robot, these capabilities are actions such as movement and speech. Each action consists of:

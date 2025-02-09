@@ -4,7 +4,7 @@ import time
 from dataclasses import dataclass
 from typing import List, Optional
 
-from inputs.base import SensorOutputConfig
+from inputs.base import SensorConfig
 from inputs.base.loop import FuserInput
 from providers.io_provider import IOProvider
 
@@ -37,7 +37,7 @@ class UnitreeGo2Lowstate(FuserInput[str]):
     Maintains a buffer of processed messages.
     """
 
-    def __init__(self, config: SensorOutputConfig = SensorOutputConfig()):
+    def __init__(self, config: SensorConfig = SensorConfig()):
         """
         Initialize Unitree bridge with empty message buffer.
         """

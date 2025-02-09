@@ -8,7 +8,7 @@ from typing import List, Optional
 
 from web3 import Web3
 
-from inputs.base import SensorOutputConfig
+from inputs.base import SensorConfig
 from inputs.base.loop import FuserInput
 from providers.io_provider import IOProvider
 
@@ -43,7 +43,7 @@ class WalletEthereum(FuserInput[float]):
         If connection to Ethereum network fails
     """
 
-    def __init__(self, config: SensorOutputConfig = SensorOutputConfig()):
+    def __init__(self, config: SensorConfig = SensorConfig()):
         """
         Initialize WalletEthereum instance.
         """

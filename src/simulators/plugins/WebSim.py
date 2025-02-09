@@ -29,12 +29,15 @@ class SimulatorState:
 
 
 class WebSim(Simulator):
-    def __init__(self):
-        super().__init__(name="WebSim")
+    """
+    WebSim simulator class for visualizing simulation data in a web interface.
+    """
+
+    def __init__(self, name: str = "WebSim"):
+        super().__init__(name)
         self.messages: list[str] = []
         self.io_provider = IOProvider()
 
-        self.name = __class__
         self._initialized = False
         self._lock = threading.Lock()
         self._last_tick = time.time()

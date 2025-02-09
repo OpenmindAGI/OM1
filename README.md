@@ -1,12 +1,16 @@
-# Openmind OS (OM1)
 
-Openmind's OM1 is a modular AI runtime for agents and robots with capabilities including movement and speech.
+![OM_Banner_X2 (1)](https://github.com/user-attachments/assets/853153b7-351a-433d-9e1a-d257b781f93c)
+
+<p align="center">  <a href="https://arxiv.org/abs/2412.18588">Technical Paper</a> |  <a href="https://docs.openmind.org/examples/conversation">Documentation</a> |  <a href="https://x.com/openmind_agi">X</a> </p>
+
+**Openmind's OM1 is a modular AI runtime for agents and robots with capabilities including movement and speech.**
 
 OM1 allows AI agents to be configured and then deployed in both the digital and physical world. You can create *one* AI agent and run it in the cloud but also on physical robot hardware such as Quadrupeds, and, soon, TurtleBot 3 and Humanoids. 
 
 For example, an AI agent built on OM1 can ingest data from multiple sources (the web, X/Twitter, cameras, and LIDAR) and can then Tweet and explore your house, shake your hand, or talk to you. In another example, with OM1, you can talk with OpenAI's `gpt-4o` and literally shake hands with it.
 
-Capabilities of OM1:
+
+## Capabilities of OM1
 
 * Simple, modular architecture
 * All python 
@@ -15,6 +19,10 @@ Capabilities of OM1:
 * Can be connected to `ROS2`, `Zenoh`, and `CycloneDDS`
 * Includes a simple web-based debug display to watch the system work (`WebSim` at http://localhost:8000)
 * Preconfigured endpoints for Voice-to-Speech, OpenAI's `gpt-4o`, DeepSeek, and multiple VLMs
+
+## Architecture Overview
+  ![Artboard 1@4x 1 (1)](https://github.com/user-attachments/assets/14e9b916-4df7-4700-9336-2983c85be311)
+
 
 ## Hello World
 

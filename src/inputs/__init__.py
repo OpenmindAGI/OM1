@@ -3,10 +3,10 @@ import inspect
 import os
 import typing as T
 
-from inputs.base import SensorOutput
+from inputs.base import Sensor
 
 
-def load_input(input_name: str) -> T.Type[SensorOutput]:
+def load_input(input_name: str) -> T.Type[Sensor]:
     """
     Load an input plugin from the plugins directory.
 
@@ -20,16 +20,12 @@ def load_input(input_name: str) -> T.Type[SensorOutput]:
     plugins_dir = os.path.join(os.path.dirname(__file__), "plugins")
     plugin_files = [f[:-3] for f in os.listdir(plugins_dir) if f.endswith(".py")]
 
-    # Import all plugin actions and find SensorOutput subclasses
+    # Import all plugin actions and find Sensor subclasses
     input_classes = {}
     for plugin in plugin_files:
         action = importlib.import_module(f"inputs.plugins.{plugin}")
         for name, obj in inspect.getmembers(action):
-            if (
-                inspect.isclass(obj)
-                and issubclass(obj, SensorOutput)
-                and obj != SensorOutput
-            ):
+            if inspect.isclass(obj) and issubclass(obj, Sensor) and obj != Sensor:
                 input_classes[name] = obj
 
     # Find requested input class

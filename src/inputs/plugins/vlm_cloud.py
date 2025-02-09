@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from queue import Empty, Queue
 from typing import Dict, List, Optional
 
-from inputs.base import SensorOutputConfig
+from inputs.base import SensorConfig
 from inputs.base.loop import FuserInput
 from providers.io_provider import IOProvider
 from providers.vlm_provider import VLMProvider
@@ -41,7 +41,7 @@ class VLMCloud(FuserInput[str]):
     and provides formatted output of the latest processed messages.
     """
 
-    def __init__(self, config: SensorOutputConfig = SensorOutputConfig()):
+    def __init__(self, config: SensorConfig = SensorConfig()):
         """
         Initialize VLM input handler.
 
@@ -60,11 +60,10 @@ class VLMCloud(FuserInput[str]):
         self.message_buffer: Queue[str] = Queue()
 
         # Initialize VLM provider
-        base_url = (
-            self.config.base_url
-            if self.config.base_url
-            else "wss://api-vila.openmind.org"
-        )
+        base_url = "wss://api-vila.openmind.org"
+
+        if hasattr(self.config, "base_url"):
+            base_url = self.config.base_url
 
         self.vlm: VLMProvider = VLMProvider(ws_url=base_url)
         self.vlm.start()

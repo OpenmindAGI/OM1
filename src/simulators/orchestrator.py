@@ -39,6 +39,11 @@ class SimulatorOrchestrator:
     def _run_simulator_loop(self, simulator: Simulator):
         """
         Thread-based simulator loop
+
+        Parameters
+        ----------
+        simulator : Simulator
+            The simulator to run
         """
         while True:
             try:
@@ -50,6 +55,11 @@ class SimulatorOrchestrator:
         """
         Flushes the promise queue and returns the completed promises
         and the pending promises.
+
+        Returns
+        -------
+        tuple[list[Any], list[asyncio.Task[Any]]]
+            A tuple containing the completed promises and the pending promises
         """
         done_promises = []
         for promise in self.promise_queue:
@@ -60,8 +70,14 @@ class SimulatorOrchestrator:
         return done_promises, self.promise_queue
 
     async def promise(self, commands: T.List[Command]) -> None:
-        # loop through simulators and send each one of them
-        # the current LLM_full
+        """
+        Send commands to all simulators
+
+        Parameters
+        ----------
+        commands : list[Command]
+            List of commands to send to the simulators
+        """
         for simulator in self._config.simulators:
             simulator_response = asyncio.create_task(
                 self._promise_simulator(simulator, commands)
@@ -71,6 +87,21 @@ class SimulatorOrchestrator:
     async def _promise_simulator(
         self, simulator: Simulator, commands: T.List[Command]
     ) -> T.Any:
+        """
+        Send commands to a single simulator
+
+        Parameters
+        ----------
+        simulator : Simulator
+            The simulator to send commands to
+        commands : list[Command]
+            List of commands to send to the simulator
+
+        Returns
+        -------
+        Any
+            The result of the simulator's response
+        """
         logging.debug(f"Calling simulator {simulator.name} with commands {commands}")
         simulator.sim(commands)
         return None
