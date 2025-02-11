@@ -2,69 +2,66 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from inputs import load_input
-from inputs.base import Sensor
+from simulators import load_simulator
+from simulators.base import Simulator
 
 
-class MockInput(Sensor):
-    async def raw_to_text(self, raw_input):
+class MockSimulator(Simulator):
+    def process_data(self):
         pass
 
-    def formatted_latest_buffer(self):
-        return None
 
-
-def test_load_input_success():
+def test_load_simulator_success():
     with (
         patch("os.path.dirname") as mock_dirname,
         patch("os.listdir") as mock_listdir,
         patch("importlib.import_module") as mock_import,
     ):
         mock_dirname.return_value = "/test/dir"
-        mock_listdir.return_value = ["mock_input.py"]
+        mock_listdir.return_value = ["mock_simulator.py"]
         mock_module = Mock()
-        mock_module.MockInput = MockInput
+        mock_module.MockSimulator = MockSimulator
         mock_import.return_value = mock_module
 
-        result = load_input("MockInput")
+        result = load_simulator("MockSimulator")
 
-        mock_import.assert_called_once_with("inputs.plugins.mock_input")
-        assert result == MockInput
+        mock_import.assert_called_once_with("simulators.plugins.mock_simulator")
+        assert result == MockSimulator
 
 
-def test_load_input_not_found():
+def test_load_simulator_not_found():
     with patch("os.path.dirname") as mock_dirname, patch("os.listdir") as mock_listdir:
         mock_dirname.return_value = "/test/dir"
         mock_listdir.return_value = []
 
-        with pytest.raises(ValueError, match="Input type NonexistentInput not found"):
-            load_input("NonexistentInput")
+        with pytest.raises(
+            ValueError, match="Simulator NonexistentSimulator not found"
+        ):
+            load_simulator("NonexistentSimulator")
 
 
-def test_load_input_multiple_plugins():
+def test_load_simulator_multiple_plugins():
     with (
         patch("os.path.dirname") as mock_dirname,
         patch("os.listdir") as mock_listdir,
         patch("importlib.import_module") as mock_import,
     ):
         mock_dirname.return_value = "/test/dir"
-        mock_listdir.return_value = ["input1.py", "input2.py"]
+        mock_listdir.return_value = ["sim1.py", "sim2.py"]
 
         mock_module1 = Mock()
-        mock_module1.Input1 = type("Input1", (Sensor,), {})
-
+        mock_module1.Simulator1 = type("Simulator1", (Simulator,), {})
         mock_module2 = Mock()
-        mock_module2.Input2 = type("Input2", (Sensor,), {})
-
+        mock_module2.Simulator2 = type("Simulator2", (Simulator,), {})
         mock_import.side_effect = [mock_module1, mock_module2]
 
-        result = load_input("Input2")
+        result = load_simulator("Simulator2")
 
         assert mock_import.call_count == 2
-        assert result == mock_module2.Input2
+        assert result == mock_module2.Simulator2
 
 
-def test_load_input_non_input_class():
+def test_load_simulator_non_simulator_class():
     with (
         patch("os.path.dirname") as mock_dirname,
         patch("os.listdir") as mock_listdir,
@@ -73,12 +70,12 @@ def test_load_input_non_input_class():
         mock_dirname.return_value = "/test/dir"
         mock_listdir.return_value = ["mock.py"]
 
-        class NonInput:
+        class NonSimulator:
             pass
 
         mock_module = Mock()
-        mock_module.NonInput = NonInput
+        mock_module.NonSimulator = NonSimulator
         mock_import.return_value = mock_module
 
-        with pytest.raises(ValueError, match="Input type NonInput not found"):
-            load_input("NonInput")
+        with pytest.raises(ValueError, match="Simulator NonSimulator not found"):
+            load_simulator("NonSimulator")

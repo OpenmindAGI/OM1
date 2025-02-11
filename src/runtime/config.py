@@ -6,7 +6,7 @@ from typing import List, Optional
 from actions import load_action
 from actions.base import AgentAction
 from inputs import load_input
-from inputs.base import SensorOutput, SensorOutputConfig
+from inputs.base import Sensor, SensorConfig
 from llm import LLM, LLMConfig, load_llm
 from llm.output_model import CortexOutputModel
 from runtime.robotics import load_unitree
@@ -27,7 +27,7 @@ class RuntimeConfig:
         Unique identifier for this configuration
     system_prompt : str
         System prompt used for LLM initialization
-    agent_inputs : List[SensorOutput]
+    agent_inputs : List[Sensor]
         List of input components for gathering agent data
     cortex_llm : LLM[CortexOutputModel]
         Language model configuration for the agent's cognitive processing
@@ -44,7 +44,7 @@ class RuntimeConfig:
     system_prompt_base: str
     system_governance: str
     system_prompt_examples: str
-    agent_inputs: List[SensorOutput]
+    agent_inputs: List[Sensor]
     cortex_llm: LLM[CortexOutputModel]
     agent_actions: List[AgentAction]
     simulators: List[Simulator]
@@ -93,9 +93,7 @@ def load_config(config_name: str) -> RuntimeConfig:
     parsed_config = {
         **raw_config,
         "agent_inputs": [
-            load_input(input["type"])(
-                config=SensorOutputConfig(**input.get("config", {}))
-            )
+            load_input(input["type"])(config=SensorConfig(**input.get("config", {})))
             for input in raw_config.get("agent_inputs", [])
         ],
         "cortex_llm": load_llm(raw_config["cortex_llm"]["type"])(

@@ -9,7 +9,10 @@
       "type": "GovernanceEthereum"
     },
     {
-      "type": "VLM_COCO_Local"
+      "type": "VLM_COCO_Local",
+      "config": {
+        "camera_index": 0
+      }
     }
   ],
   "simulators": [

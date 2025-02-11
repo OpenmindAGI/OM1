@@ -18,7 +18,7 @@ class MockLLM(LLM[BaseModel]):
 
 @pytest.fixture
 def config():
-    return LLMConfig(base_url="test_url", api_key="test_key")
+    return LLMConfig(base_url="test_url", api_key="test_key", model="test_model")
 
 
 @pytest.fixture

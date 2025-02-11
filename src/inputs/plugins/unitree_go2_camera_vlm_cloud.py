@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from queue import Empty, Queue
 from typing import Dict, List, Optional
 
-from inputs.base import SensorOutputConfig
+from inputs.base import SensorConfig
 from inputs.base.loop import FuserInput
 from providers.io_provider import IOProvider
 from providers.unitree_camera_vlm_provider import UnitreeCameraVLMProvider
@@ -26,7 +26,7 @@ class UnitreeGo2CameraVLMCloud(FuserInput[str]):
     converts the responses to text strings, and sends them to the fuser.
     """
 
-    def __init__(self, config: SensorOutputConfig = SensorOutputConfig()):
+    def __init__(self, config: SensorConfig = SensorConfig()):
         """
         Initialize VLM input handler.
 

@@ -81,7 +81,11 @@ class DeepSeekLLM(LLM[R]):
             ]
 
             parsed_response = self._client.chat.completions.create(
-                model="deepseek-chat",
+                model=(
+                    "deepseek-chat"
+                    if self._config.model is None
+                    else self._config.model
+                ),
                 messages=messages,
                 response_format={"type": "json_object"},
             )

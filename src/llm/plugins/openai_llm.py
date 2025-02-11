@@ -74,7 +74,9 @@ class OpenAILLM(LLM[R]):
             self.io_provider.set_llm_prompt(prompt)
 
             parsed_response = await self._client.beta.chat.completions.parse(
-                model="gpt-4o",
+                model=(
+                    "gpt-4o-mini" if self._config.model is None else self._config.model
+                ),
                 messages=[{"role": "user", "content": prompt}],
                 response_format=self._output_model,
             )

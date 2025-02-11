@@ -14,7 +14,7 @@ class DummyOutputModel(BaseModel):
 
 @pytest.fixture
 def config():
-    return LLMConfig(base_url="test_url/", api_key="test_key")
+    return LLMConfig(base_url="test_url/", api_key="test_key", model="test_model")
 
 
 @pytest.fixture
@@ -35,6 +35,7 @@ def llm(config):
 async def test_init_with_config(llm, config):
     assert llm._client.base_url == config.base_url
     assert llm._client.api_key == config.api_key
+    assert llm._config.model == config.model
 
 
 @pytest.mark.asyncio

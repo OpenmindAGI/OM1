@@ -11,10 +11,14 @@ def load_simulator(sim_name: str) -> T.Type[Simulator]:
     """
     Load a simulator from the simulators directory.
 
-    Args:
-        name: The name of the simulator class to load.
+    Parameters
+    ----------
+    sim_name : str
+        The name of the simulator to load.
 
     Returns:
+    ---------
+    T.Type[Simulator]
         An instance of the simulator.
     """
     # Get all files in plugins directory
@@ -26,13 +30,13 @@ def load_simulator(sim_name: str) -> T.Type[Simulator]:
     for plugin in plugin_files:
         simulator = importlib.import_module(f"simulators.plugins.{plugin}")
         for name, obj in inspect.getmembers(simulator):
-            if inspect.isclass(obj) and obj != Simulator:
+            if inspect.isclass(obj) and issubclass(obj, Simulator) and obj != Simulator:
                 simulator_classes[name] = obj
 
     logging.debug(f"Simulator classes: {simulator_classes}")
 
     # Find requested simulator class
     if sim_name not in simulator_classes:
-        raise ValueError(f"Simulator {name} not found")
+        raise ValueError(f"Simulator {sim_name} not found")
 
     return simulator_classes[sim_name]
