@@ -4,17 +4,19 @@ import logging
 import os
 import typing as T
 
-from simulators.base import Simulator
+from simulators.base import Simulator, SimulatorConfig
+
+__all__ = ["Simulator", "SimulatorConfig", "load_simulator"]
 
 
-def load_simulator(sim_name: str) -> T.Type[Simulator]:
+def load_simulator(sim_type: str) -> T.Type[Simulator]:
     """
     Load a simulator from the simulators directory.
 
     Parameters
     ----------
-    sim_name : str
-        The name of the simulator to load.
+    sim_type : str
+        The type/name of the simulator to load.
 
     Returns:
     ---------
@@ -36,7 +38,7 @@ def load_simulator(sim_name: str) -> T.Type[Simulator]:
     logging.debug(f"Simulator classes: {simulator_classes}")
 
     # Find requested simulator class
-    if sim_name not in simulator_classes:
-        raise ValueError(f"Simulator {sim_name} not found")
+    if sim_type not in simulator_classes:
+        raise ValueError(f"Simulator {sim_type} not found")
 
-    return simulator_classes[sim_name]
+    return simulator_classes[sim_type]

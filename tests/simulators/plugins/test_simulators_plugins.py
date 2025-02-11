@@ -5,7 +5,7 @@ from typing import Type
 
 import pytest
 
-from simulators.base import Simulator
+from simulators.base import Simulator, SimulatorConfig
 
 
 def get_all_simulator_classes():
@@ -87,3 +87,12 @@ def test_docstring_exists(simulator_class: Type[Simulator]):
         assert (
             method.__doc__ is not None
         ), f"{simulator_class.__name__}.{method_name} missing docstring"
+
+
+@pytest.mark.parametrize("simulator_class", get_all_simulator_classes())
+def test_simulator_instantiation(simulator_class: Type[Simulator]):
+    """Test that each simulator can be instantiated with config"""
+    config = SimulatorConfig(name=simulator_class.__name__)
+    simulator = simulator_class(config)
+    assert simulator.name == simulator_class.__name__
+    assert simulator.config == config

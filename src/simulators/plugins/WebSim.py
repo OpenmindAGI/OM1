@@ -13,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 
 from llm.output_model import Command
 from providers.io_provider import Input, IOProvider
-from simulators.base import Simulator
+from simulators.base import Simulator, SimulatorConfig
 
 
 @dataclass
@@ -33,8 +33,8 @@ class WebSim(Simulator):
     WebSim simulator class for visualizing simulation data in a web interface.
     """
 
-    def __init__(self, name: str = "WebSim"):
-        super().__init__(name)
+    def __init__(self, config: SimulatorConfig):
+        super().__init__(config)
         self.messages: list[str] = []
         self.io_provider = IOProvider()
 

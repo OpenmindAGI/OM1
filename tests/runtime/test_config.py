@@ -8,7 +8,7 @@ from inputs.base import Sensor, SensorConfig
 from llm import LLM
 from llm.output_model import CortexOutputModel
 from runtime.config import RuntimeConfig, load_config
-from simulators.base import Simulator
+from simulators.base import Simulator, SimulatorConfig
 
 
 @pytest.fixture
@@ -48,8 +48,8 @@ def mock_dependencies():
             )
 
     class MockSimulator(Simulator):
-        def __init__(self):
-            super().__init__(name="mock_simulator")
+        def __init__(self, config: SimulatorConfig):
+            super().__init__(config)
 
     class MockLLM(LLM[CortexOutputModel]):
         pass

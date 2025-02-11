@@ -6,13 +6,13 @@ import pytest
 
 from llm.output_model import Command, CommandArgument
 from runtime.config import RuntimeConfig
-from simulators.base import Simulator
+from simulators.base import Simulator, SimulatorConfig
 from simulators.orchestrator import SimulatorOrchestrator
 
 
 class MockSimulator(Simulator):
-    def __init__(self, name: str):
-        self.name = name
+    def __init__(self, config: SimulatorConfig):
+        super().__init__(config)
         self.tick_count = 0
         self.commands_received: List[Command] = []
 
@@ -26,8 +26,8 @@ class MockSimulator(Simulator):
 @pytest.fixture
 def mock_config():
     config = Mock(spec=RuntimeConfig)
-    simulator1 = MockSimulator("sim1")
-    simulator2 = MockSimulator("sim2")
+    simulator1 = MockSimulator(config=SimulatorConfig(name="sim1"))
+    simulator2 = MockSimulator(config=SimulatorConfig(name="sim2"))
     config.simulators = [simulator1, simulator2]
     return config
 

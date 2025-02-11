@@ -6,15 +6,38 @@ from llm.output_model import Command
 
 
 @dataclass
+class SimulatorConfig:
+    """
+    Configuration class for Simulator implementations.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Additional configuration parameters
+    """
+
+    def __init__(self, **kwargs):
+        # Store any config parameters
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+
 class Simulator:
     """
     Base class for simulation components
     """
 
-    name: str
+    def __init__(self, config: SimulatorConfig):
+        """
+        Initialize simulator with configuration
 
-    def __init__(self, name: str):
-        self.name = name
+        Parameters
+        ----------
+        config : SimulatorConfig
+            Configuration object for the simulator
+        """
+        self.config = config
+        self.name = getattr(config, "name", "Simulator")
 
     def sim(self, commands: List[Command]) -> None:
         """
