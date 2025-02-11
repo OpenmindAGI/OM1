@@ -1,152 +1,258 @@
-# Input Plugins
+---
+title: 'Input Plugins'
+description: 'Build and configure input sources for your OM1 agent'
+---
 
-## Overview
-Input plugins (sensors) are responsible for gathering data from various sources and converting it into a format that can be processed by the agent system.
+<Note>
+  Input plugins (sensors) gather data from various sources and convert it into a format that can be processed by the OM1 agent system.
+</Note>
 
-## Available Input Plugins
+## Available Plugins
 
-### 1. ASRInput (Automatic Speech Recognition)
-```python
-class ASRInput(FuserInput[str]):
-    """
-    Handles real-time speech-to-text conversion.
-    
-    Configuration:
-    {
-        "type": "ASRInput"
+<CardGroup cols={2}>
+  <Card title="ASR Input" icon="microphone">
+    Real-time speech recognition and transcription
+  </Card>
+  
+  <Card title="Ethereum Wallet" icon="wallet">
+    Blockchain transaction and balance monitoring
+  </Card>
+  
+  <Card title="Face Emotion" icon="face-smile">
+    Real-time emotion detection via webcam
+  </Card>
+  
+  <Card title="Twitter Stream" icon="twitter">
+    Social media monitoring and analysis
+  </Card>
+</CardGroup>
+
+## Plugin Details
+
+### ASR Input
+
+<CodeGroup>
+  ```python Configuration
+  {
+    "type": "ASRInput",
+    "config": {
+      "endpoint": "wss://api.openmind.org/v1/asr",
+      "language": "en-US",
+      "buffer_size": 1024
     }
-    
-    Features:
-    - Real-time audio processing
-    - Message buffering
-    - Configurable ASR service URL
-    - Automatic speech detection
-    
-    Output Format:
-    {
-        "text": "transcribed speech content"
+  }
+  ```
+
+  ```python Implementation
+  class ASRInput(FuserInput[str]):
+      """Handles real-time speech-to-text conversion."""
+      
+      async def listen(self) -> AsyncIterator[str]:
+          """Process audio stream and yield text."""
+          async for text in self._stream():
+              yield text
+  ```
+
+  ```python Output
+  {
+    "text": "transcribed speech content",
+    "confidence": 0.95,
+    "language": "en-US"
+  }
+  ```
+</CodeGroup>
+
+### Ethereum Wallet
+
+<CodeGroup>
+  ```python Configuration
+  {
+    "type": "WalletEthereum",
+    "config": {
+      "address": "0x...",
+      "network": "mainnet",
+      "poll_interval": 60
     }
-    """
-```
+  }
+  ```
 
-### 2. WalletEthereum
-```python
-class WalletEthereum(FuserInput[float]):
-    """
-    Monitors Ethereum wallet for transactions and balance changes.
-    
-    Configuration:
-    {
-        "type": "WalletEthereum"
+  ```python Implementation
+  class WalletEthereum(FuserInput[float]):
+      """Monitors Ethereum wallet activity."""
+      
+      async def listen(self) -> AsyncIterator[float]:
+          """Monitor wallet and yield updates."""
+          async for balance in self._monitor():
+              yield balance
+  ```
+
+  ```python Output
+  {
+    "balance": 1.5,
+    "transactions": [
+      {
+        "hash": "0x...",
+        "value": 0.1,
+        "timestamp": 1677721600
+      }
+    ]
+  }
+  ```
+</CodeGroup>
+
+### Face Emotion
+
+<CodeGroup>
+  ```python Configuration
+  {
+    "type": "FaceEmotionCapture",
+    "config": {
+      "camera_id": 0,
+      "min_confidence": 0.7,
+      "frame_interval": 100
     }
-    
-    Features:
-    - Real-time balance monitoring
-    - Transaction detection
-    - ETH value tracking
-    - Web3 integration
-    
-    Output Format:
-    {
-        "balance": "current_balance",
-        "transaction": "latest_transaction_details"
-    }
-    """
-```
+  }
+  ```
 
-### 3. FaceEmotionCapture
-```python
-class FaceEmotionCapture(FuserInput[str]):
-    """
-    Captures and analyzes facial emotions using webcam.
+  ```python Implementation
+  class FaceEmotionCapture(FuserInput[str]):
+      """Captures and analyzes facial emotions."""
+      
+      async def listen(self) -> AsyncIterator[str]:
+          """Process video frames and yield emotions."""
+          async for emotion in self._analyze_frames():
+              yield emotion
+  ```
+
+  ```python Output
+  {
+    "emotion": "happy",
+    "confidence": 0.85,
+    "face_location": [100, 200, 300, 400]
+  }
+  ```
+</CodeGroup>
+
+## Creating Custom Plugins
+
+<Steps>
+  <Step title="Create Plugin Class">
+    ```python
+    from typing import AsyncIterator, Optional, TypeVar
     
-    Configuration:
-    {
-        "type": "FaceEmotionCapture"
-    }
+    T = TypeVar('T')
     
-    Features:
-    - Real-time emotion detection
-    - DeepFace integration
-    - Multiple face tracking
-    - Emotion confidence scores
-    
-    Output Format:
-    {
-        "emotion": "detected_emotion",
-        "confidence": "confidence_score"
-    }
-    """
-```
-
-## Development Guide
-
-### Creating a New Input Plugin
-
-1. **Basic Structure**:
-```python
-class CustomInput(FuserInput[DataType]):
-    async def listen(self) -> AsyncIterator[DataType]:
-        await self.start()
-        while True:
-            data = await self._poll()
-            if data:
-                yield data
-            await asyncio.sleep(0.1)
-
-    async def _raw_to_text(self, raw_input: DataType) -> Optional[str]:
-        # Convert raw input to text format
-        pass
+    class CustomInput(FuserInput[T]):
+        async def listen(self) -> AsyncIterator[T]:
+            await self.start()
+            while True:
+                data = await self._poll()
+                if data:
+                    yield data
+                await asyncio.sleep(0.1)
+    ```
+  </Step>
+  
+  <Step title="Implement Required Methods">
+    ```python
+    async def _raw_to_text(self, raw_input: T) -> Optional[str]:
+        """Convert raw input to text format."""
+        return str(raw_input)
 
     def formatted_latest_buffer(self) -> Optional[str]:
-        # Format and return latest buffer contents
-        pass
-```
+        """Format and return latest buffer contents."""
+        return self._format_buffer(self._buffer)
+    ```
+  </Step>
+  
+  <Step title="Add Configuration">
+    ```python
+    @dataclass
+    class CustomInputConfig:
+        poll_interval: float = 1.0
+        buffer_size: int = 1000
+        
+        def validate(self):
+            assert self.poll_interval > 0
+            assert self.buffer_size > 0
+    ```
+  </Step>
+</Steps>
 
-2. **Required Methods**:
-   - `listen()`: Main input loop
-   - `_raw_to_text()`: Convert raw input to text
-   - `formatted_latest_buffer()`: Format buffer contents
+## Best Practices
 
-3. **Best Practices**:
-   - Use proper error handling
-   - Implement rate limiting
-   - Add comprehensive logging
-   - Document configuration options
-   - Follow async/await patterns
+<Accordion title="Error Handling">
+  ```python
+  async def _poll(self) -> Optional[T]:
+      try:
+          return await self._fetch_data()
+      except ConnectionError:
+          logging.error("Connection failed")
+          await asyncio.sleep(self.retry_delay)
+      except Exception as e:
+          logging.exception(f"Unexpected error: {e}")
+      return None
+  ```
+</Accordion>
 
-## Configuration Examples
-
-```json
-{
-    "agent_inputs": [
-        {
-            "type": "ASRInput"
-        },
-        {
-            "type": "FaceEmotionCapture"
-        },
-        {
-            "type": "WalletEthereum"
-        }
-    ]
-}
-```
+<Accordion title="Rate Limiting">
+  ```python
+  from asyncio import Lock
+  
+  class RateLimitedInput(FuserInput[T]):
+      def __init__(self):
+          self._lock = Lock()
+          self._last_poll = 0
+          
+      async def _poll(self):
+          async with self._lock:
+              now = time.time()
+              if now - self._last_poll < self.min_interval:
+                  return None
+              self._last_poll = now
+              return await self._fetch_data()
+  ```
+</Accordion>
 
 ## Troubleshooting
 
-Common issues and solutions for input plugins:
-1. **Connection Issues**:
-   - Check network connectivity
-   - Verify service URLs
-   - Confirm credentials
+<ResponseField name="Connection Issues">
+  - Check network connectivity
+  - Verify service endpoints
+  - Validate credentials
+  - Monitor timeout settings
+</ResponseField>
 
-2. **Performance Issues**:
-   - Adjust polling intervals
-   - Check resource usage
-   - Monitor buffer sizes
+<ResponseField name="Performance Issues">
+  - Adjust polling intervals
+  - Optimize buffer sizes
+  - Monitor memory usage
+  - Profile CPU utilization
+</ResponseField>
 
-3. **Data Quality**:
-   - Validate input formats
-   - Check conversion logic
-   - Monitor error rates 
+<ResponseField name="Data Quality">
+  - Validate input formats
+  - Check conversion logic
+  - Monitor error rates
+  - Log data anomalies
+</ResponseField>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Custom Plugins"
+    icon="puzzle-piece"
+    href="/docs/development/custom-plugins"
+  >
+    Create your own input plugins
+  </Card>
+  
+  <Card
+    title="Configuration"
+    icon="gear"
+    href="/docs/development/configuration"
+  >
+    Advanced plugin configuration
+  </Card>
+</CardGroup> 

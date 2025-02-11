@@ -1,17 +1,150 @@
 ---
-title: Architecture
-description: "Core architecture and runtime flow"
+title: 'System Architecture'
+description: 'Core architecture and runtime flow of OM1'
 ---
 
-The system is based on a loop that runs at a fixed frequency of `self.config.hertz`. This loop looks for the most recent data from various sources, fuses the data into a prompt, sends that prompt to one or more LLMs, and then sends the LLM responses to virtual agents or physical robots.
+<Note>
+  This document outlines the high-level architecture and data flow of the OM1 system.
+</Note>
 
-Specific runtime flow:
+## Overview
 
-1. Input plugins collect data (vision, audio, etc.)
-2. The Fuser combines inputs into a prompt
-3. The LLM generates commands based on the prompt
-4. The ActionOrchestrator executes commands through actions
-5. Connectors map OM1 data/commands to external data buses and data distribution systems such as custom APIs, `ROS2`, `Zenoh`, or `CycloneDDS`.
+OM1 implements a high-performance event loop architecture operating at a configurable frequency (`self.config.hertz`). The system processes data through a pipeline of collection, fusion, reasoning, and action execution.
+
+```mermaid
+flowchart TB
+    subgraph Inputs
+        A1[ASR Input] --> F
+        A2[Vision Input] --> F
+        A3[Twitter Input] --> F
+        A4[Wallet Input] --> F
+    end
+
+    subgraph Core
+        F[Fuser] --> L[LLM Engine]
+        L --> AO[Action Orchestrator]
+    end
+
+    subgraph Actions
+        AO --> M[Move]
+        AO --> S[Speak]
+        AO --> T[Tweet]
+        AO --> E[Face Expression]
+    end
+
+    subgraph Outputs
+        M --> R[ROS2]
+        S --> R
+        E --> R
+        T --> W[Web APIs]
+    end
+
+    style Inputs fill:#e1f5fe
+    style Core fill:#fff3e0
+    style Actions fill:#f9fbe7
+    style Outputs fill:#efebe9
+```
+
+## Core Components
+
+<CardGroup cols={2}>
+  <Card title="Input Collection" icon="arrow-down-to-bracket">
+    Input plugins gather data from various sources including vision systems, audio processing, network APIs, blockchain events, and hardware sensors.
+  </Card>
+  
+  <Card title="Data Fusion" icon="layer-group">
+    The Fuser component aggregates multi-modal inputs and constructs coherent prompts for LLM processing.
+  </Card>
+
+  <Card title="Reasoning Engine" icon="brain">
+    Processes fused inputs through configured LLM and generates structured command outputs.
+  </Card>
+
+  <Card title="Action Execution" icon="play">
+    The ActionOrchestrator validates commands and routes them to appropriate handlers.
+  </Card>
+</CardGroup>
+
+## Runtime Flow
+
+```mermaid
+graph LR
+    A[Input Plugins] --> B[Fuser]
+    B --> C[LLM]
+    C --> D[Action Orchestrator]
+    D --> E[Connectors]
+    E --> F[External Systems]
+```
+
+## Code Example
+
+Here's a simple example of configuring an agent:
+
+```json
+{
+  "hertz": 1,
+  "name": "example_agent",
+  "system_prompt_base": "You are a helpful AI assistant...",
+  "agent_inputs": [
+    {
+      "type": "ASRInput"
+    }
+  ],
+  "cortex_llm": {
+    "type": "OpenAILLM",
+    "config": {
+      "api_key": "your_key_here"
+    }
+  }
+}
+```
+
+## Performance Considerations
+
+<Accordion title="Asynchronous Operations">
+  The system uses async/await throughout the pipeline for non-blocking operations.
+</Accordion>
+
+<Accordion title="Thread Safety">
+  State management is handled through thread-safe singletons and locks.
+</Accordion>
+
+<Accordion title="Error Handling">
+  Comprehensive error handling and recovery mechanisms are implemented at each stage.
+</Accordion>
+
+## API Reference
+
+<ResponseField name="hertz" type="number">
+  The frequency at which the main loop operates (Hz)
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Unique identifier for the agent instance
+</ResponseField>
+
+<ResponseField name="system_prompt_base" type="string">
+  Base prompt that defines agent behavior
+</ResponseField>
+
+## External Integrations
+
+The system connects to various external systems through standardized connectors:
+
+<Steps>
+  <Step title="ROS2">
+    Integration with the Robot Operating System 2 framework
+  </Step>
+  <Step title="Zenoh">
+    High-performance pub/sub and data distribution
+  </Step>
+  <Step title="CycloneDDS">
+    Industrial-grade data distribution service
+  </Step>
+  <Step title="Custom APIs">
+    Support for custom API endpoints and protocols
+  </Step>
+</Steps>
 
 ```python Core Runtime System
 # /src/runtime/cortex.py

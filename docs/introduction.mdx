@@ -1,44 +1,229 @@
 ---
-title: Introduction
-description: "Welcome to Openmind (OM1)"
+title: 'Introduction'
+description: 'Welcome to OpenMind (OM1)'
 ---
 
-Openmind's OM1 is a modular AI runtime for agents and robots with capabilities including movement and speech.
+<Note>
+  OpenMind's OM1 is a modular AI runtime that bridges the gap between AI models and real-world interactions, enabling seamless deployment across both digital and physical environments.
+</Note>
 
-OM1 allows AI agents to be configured and then deployed in both the digital and physical world. You can create *one* AI agent and run it in the cloud but also on physical robot hardware such as Quadrupeds, and, soon, TurtleBot 3 and Humanoids. 
+## What is OM1?
 
-For example, an AI agent built on OM1 can ingest data from multiple sources (the web, X/Twitter, cameras, and LIDAR) and can then Tweet and explore your house, shake your hand, or talk to you. In another example, with OM1, you can talk with OpenAI's `gpt-4o` and literally shake hands with it.
+OM1 is a powerful runtime system that allows AI agents to:
+- Process multi-modal inputs (speech, vision, sensors)
+- Make decisions using state-of-the-art LLMs
+- Control physical robots and digital interfaces
+- Interact naturally with humans and environments
 
-Capabilities of OM1:
+```mermaid
+flowchart TD
+    subgraph InputSources[Input Sources]
+        A1[Speech]
+        A2[Vision]
+        A3[Sensors]
+        A4[Social Media]
+    end
+    
+    subgraph Processing[OM1 Processing]
+        P[Input Processing]
+        F[Fusion Layer]
+        L[LLM Reasoning]
+        O[Action Orchestration]
+    end
+    
+    subgraph Outputs[Outputs]
+        R1[Robot Movement]
+        R2[Speech]
+        R3[Digital Actions]
+        R4[Social Posts]
+    end
 
-* Simple, Modular architecture
-* All python 
-* Easy to add new data inputs
-* Easy to support new hardware, such as API endpoints and robots
-* Can be connected to ROS2, Zenoh, and CycloneDDS
-* Includes a simple web-based debug display to watch the system work (`WebSim` at http://localhost:8000)
-* Preconfigured endpoints for Voice-to-Speech, OpenAI's `gpt-4o`, DeepSeek, and multiple VLMs
+    A1 --> P
+    A2 --> P
+    A3 --> P
+    A4 --> P
+    
+    P --> F
+    F --> L
+    L --> O
+    
+    O --> R1
+    O --> R2
+    O --> R3
+    O --> R4
+
+    style InputSources fill:#e1f5fe
+    style Processing fill:#fff3e0
+    style Outputs fill:#f9fbe7
+```
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Modular Architecture" icon="puzzle-piece">
+    Easily extend functionality with new inputs, actions, and integrations
+  </Card>
+  
+  <Card title="Python-First" icon="python">
+    Built entirely in Python for accessibility and rapid development
+  </Card>
+  
+  <Card title="Multi-Modal" icon="layer-group">
+    Process diverse input types: speech, vision, sensors, and APIs
+  </Card>
+  
+  <Card title="Hardware Ready" icon="robot">
+    Deploy to real robots with pre-built hardware support
+  </Card>
+</CardGroup>
+
+## Supported Platforms
+
+<Tabs>
+  <Tab title="Robots">
+    - Unitree Quadrupeds (Go1, A1)
+    - TurtleBot 3 (Coming Soon)
+    - Humanoid Robots (Coming Soon)
+  </Tab>
+  <Tab title="Digital">
+    - Cloud Deployment
+    - Social Media Integration
+    - Web APIs
+    - Custom Endpoints
+  </Tab>
+  <Tab title="Protocols">
+    - ROS2
+    - Zenoh
+    - CycloneDDS
+    - WebSocket
+  </Tab>
+</Tabs>
+
+## Quick Example
+
+Here's a simple example of an OM1 agent that can speak and move:
+
+```python
+# Configure your agent
+config = {
+    "name": "interactive_agent",
+    "agent_inputs": [
+        {"type": "ASRInput"}  # Speech recognition
+    ],
+    "agent_actions": [
+        {
+            "name": "speak",
+            "implementation": "passthrough",
+            "connector": "tts"
+        },
+        {
+            "name": "move",
+            "implementation": "passthrough",
+            "connector": "ros2"
+        }
+    ]
+}
+
+# Run your agent
+python src/run.py start interactive_agent
+```
+
+## Real-World Applications
+
+<CardGroup cols={3}>
+  <Card title="Social Robots" icon="robot">
+    Create interactive robots for education, healthcare, and entertainment
+  </Card>
+  
+  <Card title="Digital Assistants" icon="computer">
+    Build AI agents that operate across digital platforms
+  </Card>
+  
+  <Card title="Research" icon="flask">
+    Prototype and test AI behaviors in controlled environments
+  </Card>
+</CardGroup>
+
+## Getting Started
+
+<Steps>
+  <Step title="Installation">
+    ```bash
+    git clone https://github.com/openmind/om1.git
+    cd om1
+    python -m venv .venv
+    source .venv/bin/activate
+    pip install -r requirements.txt
+    ```
+  </Step>
+  
+  <Step title="Configuration">
+    Create a `.env` file with your API keys:
+    ```bash
+    OPENAI_API_KEY=your_key_here
+    ```
+  </Step>
+  
+  <Step title="Run">
+    Start with a basic conversation agent:
+    ```bash
+    python src/run.py start conversation
+    ```
+  </Step>
+</Steps>
+
+## Next Steps
 
 <CardGroup cols={2}>
   <Card
     title="Quick Start"
-    icon="check"
+    icon="play"
     href="./quick_start"
   >
-    Get started with Openmind OS (OM1)
+    Get started with your first OM1 agent
   </Card>
+  
   <Card
     title="Developer Guide"
     icon="code"
     href="./development/guide"
   >
-    Developer Guide for Openmind OS (OM1)
+    Learn how to build with OM1
   </Card>
+  
   <Card
-    title="Unitree Robotics"
-    icon="dog"
+    title="Robotics"
+    icon="robot"
     href="./robotics/unitree_robotics"
   >
-    Run OM1 on a Unitree Dog
+    Deploy to physical robots
+  </Card>
+  
+  <Card
+    title="Examples"
+    icon="lightbulb"
+    href="./examples"
+  >
+    Explore example applications
+  </Card>
+</CardGroup>
+
+## Community and Support
+
+<CardGroup cols={2}>
+  <Card
+    title="GitHub"
+    icon="github"
+    href="https://github.com/openmind/om1"
+  >
+    Star us on GitHub
+  </Card>
+  
+  <Card
+    title="Discord"
+    icon="discord"
+    href="https://discord.gg/openmind"
+  >
+    Join our community
   </Card>
 </CardGroup>

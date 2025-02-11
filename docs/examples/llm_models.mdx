@@ -1,9 +1,212 @@
 ---
-title: LLM Models
-description: "Using Gemini and other models as the Core LLM"
+title: 'LLM Models'
+description: 'Configure different Language Models for your OM1 agent'
 ---
 
-These examples are similar to the `Hello World (Spot)` example, except they use `DeepSeek` or `Gemini` rather than `OpenAI 4o`.
+<Note>
+  OM1 supports multiple LLM providers, allowing you to choose the best model for your use case. This guide shows how to configure and use different LLM backends.
+</Note>
+
+## Supported Models
+
+<CardGroup cols={3}>
+  <Card title="OpenAI" icon="openai">
+    GPT-4 and GPT-3.5 models
+  </Card>
+  <Card title="DeepSeek" icon="brain">
+    DeepSeek-Chat models
+  </Card>
+  <Card title="Gemini" icon="google">
+    Google's Gemini Pro
+  </Card>
+</CardGroup>
+
+## Quick Start
+
+Run the example configurations:
+
+```bash
+# Try different models
+uv run src/run.py deepseek
+uv run src/run.py gemini
+```
+
+## Configuration
+
+<CodeGroup>
+```json OpenAI
+{
+  "cortex_llm": {
+    "type": "OpenAILLM",
+    "config": {
+      "base_url": "https://api.openai.com/v1",
+      "api_key": "your_openai_key",
+      "model": "gpt-4-turbo-preview"
+    }
+  }
+}
+```
+
+```json DeepSeek
+{
+  "cortex_llm": {
+    "type": "DeepSeekLLM",
+    "config": {
+      "base_url": "https://api.deepseek.com/v1",
+      "api_key": "your_deepseek_key",
+      "model": "deepseek-chat"
+    }
+  }
+}
+```
+
+```json Gemini
+{
+  "cortex_llm": {
+    "type": "GeminiLLM",
+    "config": {
+      "base_url": "https://generativelanguage.googleapis.com/v1beta/openai",
+      "api_key": "your_gemini_key",
+      "model": "gemini-pro"
+    }
+  }
+}
+```
+</CodeGroup>
+
+## Supported Endpoints
+
+<Accordion title="OpenAI Compatible">
+  - OpenAI: `https://api.openai.com/v1`
+  - Azure OpenAI: `https://{resource}.openai.azure.com`
+  - OpenMind Proxy: `https://api.openmind.org/v1/openai`
+</Accordion>
+
+<Accordion title="Alternative Providers">
+  - DeepSeek: `https://api.deepseek.com/v1`
+  - Gemini: `https://generativelanguage.googleapis.com/v1beta/openai`
+  - Anthropic: `https://api.anthropic.com/v1`
+  - Custom: Any OpenAI-compatible endpoint
+</Accordion>
+
+## Model Selection Guide
+
+<Steps>
+  <Step title="Consider Your Needs">
+    - Task complexity
+    - Response speed requirements
+    - Cost constraints
+    - Multi-modal capabilities
+  </Step>
+  
+  <Step title="Choose Provider">
+    Based on:
+    - API availability in your region
+    - Pricing structure
+    - Model performance
+    - Integration requirements
+  </Step>
+  
+  <Step title="Configure">
+    Update your config file with:
+    - Appropriate base URL
+    - Valid API key
+    - Selected model name
+  </Step>
+</Steps>
+
+## Performance Comparison
+
+<CardGroup cols={2}>
+  <Card title="GPT-4 Turbo" icon="bolt">
+    - Best reasoning capabilities
+    - Highest cost
+    - Longer latency
+    - Multi-modal support
+  </Card>
+  
+  <Card title="DeepSeek" icon="gauge-high">
+    - Fast responses
+    - Cost-effective
+    - Good reasoning
+    - Limited multi-modal
+  </Card>
+  
+  <Card title="Gemini Pro" icon="google">
+    - Strong performance
+    - Competitive pricing
+    - Multi-modal support
+    - Region restrictions
+  </Card>
+  
+  <Card title="GPT-3.5 Turbo" icon="rocket">
+    - Fast responses
+    - Cost-effective
+    - Wide availability
+    - Good for simple tasks
+  </Card>
+</CardGroup>
+
+## Environment Setup
+
+Set your API keys in `.env`:
+
+```bash
+# OpenAI
+OPENAI_API_KEY=sk-...
+
+# DeepSeek
+DEEPSEEK_API_KEY=ds-...
+
+# Gemini
+GOOGLE_API_KEY=AIza...
+```
+
+## Error Handling
+
+<Accordion title="Common Issues">
+  - Invalid API keys
+  - Rate limiting
+  - Network connectivity
+  - Model availability
+</Accordion>
+
+## Best Practices
+
+1. **API Keys**
+   - Never commit API keys
+   - Use environment variables
+   - Rotate keys regularly
+
+2. **Model Selection**
+   - Start with simpler models
+   - Upgrade based on needs
+   - Monitor usage and costs
+
+3. **Error Handling**
+   - Implement fallback options
+   - Monitor response times
+   - Log errors appropriately
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Custom Integration"
+    icon="plug"
+    href="/docs/development/llm-integration"
+  >
+    Add your own LLM provider
+  </Card>
+  
+  <Card
+    title="Advanced Config"
+    icon="sliders"
+    href="/docs/development/configuration"
+  >
+    Fine-tune LLM settings
+  </Card>
+</CardGroup>
 
 ```bash LLM Models
 uv run src/run.py deepseek

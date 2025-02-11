@@ -1,185 +1,295 @@
-# Output Plugins (Action Connectors)
+---
+title: 'Output Plugins'
+description: 'Action connectors for executing agent decisions in the real world'
+---
 
-## Overview
-Output plugins (action connectors) handle the execution of actions in response to agent decisions. They translate agent commands into actual system actions.
+<Note>
+  Output plugins (action connectors) translate agent decisions into real-world actions, whether that's speaking, moving, or interacting with external services.
+</Note>
 
-## Available Output Plugins
+## Available Connectors
 
-### 1. TTS (Text-to-Speech)
-```python
-class TTSConnector(ActionConnector[SpeakInput]):
-    """
-    Converts text to speech output.
-    
-    Configuration:
-    {
-        "name": "speak",
-        "implementation": "passthrough",
-        "connector": "tts"
+<CardGroup cols={2}>
+  <Card title="Text-to-Speech" icon="volume-high">
+    Convert text to natural speech output
+  </Card>
+  
+  <Card title="ROS2 Face" icon="face-smile">
+    Control robot facial expressions
+  </Card>
+  
+  <Card title="Movement" icon="person-walking">
+    Physical robot movement control
+  </Card>
+  
+  <Card title="Twitter API" icon="twitter">
+    Social media interaction
+  </Card>
+</CardGroup>
+
+## Connector Details
+
+### Text-to-Speech (TTS)
+
+<CodeGroup>
+  ```python Configuration
+  {
+    "name": "speak",
+    "implementation": "passthrough",
+    "connector": "tts",
+    "config": {
+      "voice_id": "en-US-Neural2-F",
+      "sample_rate": 22050,
+      "volume": 1.0
     }
-    
-    Features:
-    - Audio stream management
-    - Multiple voice support
-    - Real-time synthesis
-    - Volume control
-    
-    Input Format:
-    {
-        "sentence": "text to speak",
-        "voice": "voice_id"  # optional
+  }
+  ```
+
+  ```python Implementation
+  class TTSConnector(ActionConnector[SpeakInput]):
+      """Converts text to speech output."""
+      
+      async def connect(self, output: SpeakInput) -> None:
+          """Generate and play audio from text."""
+          audio = await self._synthesize(output.sentence)
+          await self._play_audio(audio)
+  ```
+
+  ```python Input Format
+  {
+    "sentence": "Hello, how can I help you today?",
+    "voice": "en-US-Neural2-F",  # optional
+    "speed": 1.0  # optional
+  }
+  ```
+</CodeGroup>
+
+### ROS2 Face Expression
+
+<CodeGroup>
+  ```python Configuration
+  {
+    "name": "face",
+    "implementation": "passthrough",
+    "connector": "ros2",
+    "config": {
+      "topic": "/robot/face/expression",
+      "qos_profile": "reliable"
     }
-    """
-```
+  }
+  ```
 
-### 2. ROS2 Face Expression
-```python
-class FaceRos2Connector(ActionConnector[FaceInput]):
-    """
-    Controls robot facial expressions via ROS2.
-    
-    Configuration:
-    {
-        "name": "face",
-        "implementation": "passthrough",
-        "connector": "ros2"
+  ```python Implementation
+  class FaceRos2Connector(ActionConnector[FaceInput]):
+      """Controls robot facial expressions."""
+      
+      async def connect(self, output: FaceInput) -> None:
+          """Publish expression command to ROS2."""
+          msg = self._create_expression_msg(output.action)
+          await self._publish(msg)
+  ```
+
+  ```python Input Format
+  {
+    "action": "smile",  # One of: smile, frown, cry, think, joy
+    "intensity": 0.8,   # optional: 0.0 to 1.0
+    "duration": 2.0     # optional: seconds
+  }
+  ```
+</CodeGroup>
+
+### Movement Control
+
+<CodeGroup>
+  ```python Configuration
+  {
+    "name": "move",
+    "implementation": "passthrough",
+    "connector": "ros2",
+    "config": {
+      "topic": "/robot/cmd_vel",
+      "safety_limits": {
+        "max_velocity": 1.0,
+        "max_acceleration": 0.5
+      }
     }
-    
-    Features:
-    - Multiple expression support
-    - ROS2 integration
-    - Real-time control
-    
-    Input Format:
-    {
-        "action": "smile|frown|cry|think|joy"
+  }
+  ```
+
+  ```python Implementation
+  class MoveRos2Connector(ActionConnector[MoveInput]):
+      """Controls physical movement."""
+      
+      async def connect(self, output: MoveInput) -> None:
+          """Execute movement command."""
+          cmd = self._create_movement_cmd(output.action)
+          await self._execute_safely(cmd)
+  ```
+
+  ```python Input Format
+  {
+    "action": "walk",  # One of: stand_still, sit, dance, walk, run
+    "direction": [1.0, 0.0, 0.0],  # [x, y, theta]
+    "speed": 0.5  # optional: 0.0 to 1.0
+  }
+  ```
+</CodeGroup>
+
+### Twitter API
+
+<CodeGroup>
+  ```python Configuration
+  {
+    "name": "tweet",
+    "implementation": "passthrough",
+    "connector": "twitterAPI",
+    "config": {
+      "rate_limit": 200,  # tweets per hour
+      "min_delay": 3      # seconds between tweets
     }
-    """
-```
+  }
+  ```
 
-### 3. Movement Control
-```python
-class MoveRos2Connector(ActionConnector[MoveInput]):
-    """
-    Controls physical movement through ROS2.
+  ```python Implementation
+  class TweetAPIConnector(ActionConnector[TweetInput]):
+      """Posts content to Twitter."""
+      
+      async def connect(self, output: TweetInput) -> None:
+          """Post tweet and verify status."""
+          await self._check_rate_limit()
+          tweet_id = await self._post_tweet(output.tweet)
+          await self._verify_posted(tweet_id)
+  ```
+
+  ```python Environment
+  TWITTER_API_KEY=your_api_key
+  TWITTER_API_SECRET=your_api_secret
+  TWITTER_ACCESS_TOKEN=your_access_token
+  TWITTER_ACCESS_TOKEN_SECRET=your_token_secret
+  TWITTER_BEARER_TOKEN=your_bearer_token
+  ```
+</CodeGroup>
+
+## Creating Custom Connectors
+
+<Steps>
+  <Step title="Define Input Type">
+    ```python
+    from dataclasses import dataclass
+    from typing import Optional
     
-    Configuration:
-    {
-        "name": "move",
-        "implementation": "passthrough",
-        "connector": "ros2"
-    }
-    
-    Features:
-    - Multiple movement types
-    - Safety constraints
-    - Position control
-    
-    Input Format:
-    {
-        "action": "stand_still|sit|dance|shake_paw|walk|run"
-    }
-    """
-```
+    @dataclass
+    class CustomOutput:
+        action: str
+        parameters: dict
+        metadata: Optional[dict] = None
+    ```
+  </Step>
+  
+  <Step title="Create Connector Class">
+    ```python
+    class CustomConnector(ActionConnector[CustomOutput]):
+        async def connect(self, output: CustomOutput) -> None:
+            try:
+                await self._validate(output)
+                result = await self._execute(output)
+                await self._verify(result)
+            except Exception as e:
+                logging.error(f"Output failed: {e}")
+                raise
+    ```
+  </Step>
+  
+  <Step title="Add Configuration">
+    ```python
+    @dataclass
+    class CustomConnectorConfig:
+        endpoint: str
+        timeout: float = 30.0
+        retry_count: int = 3
+        
+        def validate(self):
+            assert self.timeout > 0
+            assert self.retry_count >= 0
+    ```
+  </Step>
+</Steps>
 
-### 4. Twitter API
-```python
-class TweetAPIConnector(ActionConnector[TweetInput]):
-    """
-    Posts content to Twitter via the Twitter API.
-    
-    Configuration:
-    {
-        "name": "tweet",
-        "implementation": "passthrough",
-        "connector": "twitterAPI"
-    }
-    
-    Features:
-    - Twitter API v2 integration
-    - Rate limiting handling
-    - Tweet status verification
-    - URL generation for posted tweets
-    
-    Input Format:
-    {
-        "tweet": "content to be tweeted"  # Must be <= 280 characters
-    }
-    
-    Required Environment Variables:
-    - TWITTER_API_KEY
-    - TWITTER_API_SECRET
-    - TWITTER_ACCESS_TOKEN
-    - TWITTER_ACCESS_TOKEN_SECRET
-    - TWITTER_BEARER_TOKEN
-    """
-```
+## Best Practices
 
-## Development Guide
+<Accordion title="Error Handling">
+  ```python
+  async def _execute_safely(self, cmd: Any) -> None:
+      try:
+          async with self._lock:
+              if not self._check_safety(cmd):
+                  raise SafetyViolation("Command exceeds safety limits")
+              await self._execute(cmd)
+      except Exception as e:
+          self._emergency_stop()
+          raise ExecutionError(f"Failed to execute: {e}")
+  ```
+</Accordion>
 
-### Creating a New Output Plugin
-
-1. **Basic Structure**:
-```python
-class CustomConnector(ActionConnector[OutputType]):
-    async def connect(self, output_interface: OutputType) -> None:
-        try:
-            # Process output_interface and send to target system
-            await self._send_output(output_interface)
-        except Exception as e:
-            logging.error(f"Output error: {str(e)}")
-            raise
-```
-
-2. **Required Methods**:
-   - `connect()`: Main output handling
-   - `tick()`: Optional periodic updates
-
-3. **Best Practices**:
-   - Implement proper error handling
-   - Add rate limiting where needed
-   - Use comprehensive logging
-   - Document required credentials
-   - Follow async patterns
-
-## Configuration Examples
-
-```json
-{
-    "agent_actions": [
-        {
-            "name": "speak",
-            "implementation": "passthrough",
-            "connector": "tts"
-        },
-        {
-            "name": "face",
-            "implementation": "passthrough",
-            "connector": "ros2"
-        },
-        {
-            "name": "move",
-            "implementation": "passthrough",
-            "connector": "ros2"
-        }
-    ]
-}
-```
+<Accordion title="Rate Limiting">
+  ```python
+  from asyncio import Lock
+  from time import time
+  
+  class RateLimitedConnector(ActionConnector[T]):
+      def __init__(self):
+          self._lock = Lock()
+          self._last_execution = 0
+          
+      async def connect(self, output: T) -> None:
+          async with self._lock:
+              now = time()
+              if now - self._last_execution < self.min_delay:
+                  await asyncio.sleep(self.min_delay)
+              self._last_execution = now
+              await self._execute(output)
+  ```
+</Accordion>
 
 ## Troubleshooting
 
-Common issues and solutions for output plugins:
-1. **Connection Issues**:
-   - Check system connectivity
-   - Verify service status
-   - Confirm permissions
+<ResponseField name="Connection Issues">
+  - Check network connectivity
+  - Verify service status
+  - Validate credentials
+  - Monitor timeouts
+</ResponseField>
 
-2. **Performance Issues**:
-   - Monitor response times
-   - Check resource usage
-   - Verify rate limits
+<ResponseField name="Performance Issues">
+  - Monitor latency
+  - Check resource usage
+  - Verify rate limits
+  - Profile execution time
+</ResponseField>
 
-3. **Integration Issues**:
-   - Validate interface formats
-   - Check system compatibility
-   - Monitor error logs 
+<ResponseField name="Integration Issues">
+  - Validate data formats
+  - Check compatibility
+  - Monitor error logs
+  - Test end-to-end flow
+</ResponseField>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Custom Connectors"
+    icon="puzzle-piece"
+    href="/docs/development/custom-connectors"
+  >
+    Build your own output plugins
+  </Card>
+  
+  <Card
+    title="Advanced Config"
+    icon="sliders"
+    href="/docs/development/advanced-config"
+  >
+    Fine-tune connector settings
+  </Card>
+</CardGroup> 

@@ -1,56 +1,191 @@
 ---
-title: Quick Start
-description: "Get started with Openmind OS (OM1)"
+title: 'Quick Start'
+description: 'Get started with OpenMind OS (OM1) in minutes'
 ---
 
-## Hello World
+<Note>
+  This guide will help you set up and run your first OM1 agent. We'll use the `Spot` agent, which demonstrates basic vision, speech, and movement capabilities.
+</Note>
 
-The `Spot` agent uses your webcam to label objects and sends those captions to `OpenAI 4o`. The LLM then returns `movement`, `speech`, and `face` commands, which are displayed in `WebSim`. `WebSim` also shows basic timing and other debug information.
+## Prerequisites
 
-1. Clone the repo
+<CardGroup cols={2}>
+  <Card title="Python 3.10+" icon="python">
+    OM1 requires Python 3.10 or newer
+  </Card>
+  <Card title="Git" icon="git-alt">
+    For cloning the repository and managing updates
+  </Card>
+</CardGroup>
 
-```bash clone repo
-git clone https://github.com/OpenmindAGI/OM1.git
-cd OM1
-git submodule update --init
-uv venv
-```
+## Installation
 
-Note: If you don't have the Rust python package manager `uv`, please install it via `brew install uv` (for Mac) and `curl -LsSf https://astral.sh/uv/install.sh | sh` for Linux.
+<Steps>
+  <Step title="Clone the Repository">
+    ```bash
+    git clone https://github.com/OpenmindAGI/OM1.git
+    cd OM1
+    git submodule update --init
+    ```
+  </Step>
 
-2. Set configuration variables
+  <Step title="Set Up Python Environment">
+    Install the UV package manager:
+    <CodeGroup>
+      ```bash Mac
+      brew install uv
+      ```
+      ```bash Linux
+      curl -LsSf https://astral.sh/uv/install.sh | sh
+      ```
+    </CodeGroup>
 
-Add your Openmind API key in `/config/spot.json`. You can obtain a free access key at https://portal.openmind.org/. If you use the placeholder, `openmind-free`, you may be rate limited.
+    Then create a virtual environment:
+    ```bash
+    uv venv
+    ```
+  </Step>
 
-```bash set api key
-# /config/spot.json`
-...
-"api_key": "openmind_om1_pat_2f1cf005af........."
-...
-```
+  <Step title="Configure API Keys">
+    Add your OpenMind API key in `/config/spot.json`:
+    ```json
+    {
+      "api_key": "openmind_om1_pat_2f1cf005af........."
+    }
+    ```
+    <Note>
+      Get your free access key at [portal.openmind.org](https://portal.openmind.org/). 
+      Using the placeholder `openmind-free` may result in rate limiting.
+    </Note>
+  </Step>
+</Steps>
 
-3. Run Spot, a `Hello World` agent
+## Running Your First Agent
 
-```bash run spot
-uv run src/run.py spot
+<Steps>
+  <Step title="Start the Spot Agent">
+    ```bash
+    uv run src/run.py spot
+    ```
+  </Step>
 
-...
+  <Step title="Check the Output">
+    You should see logging information like:
+    ```bash
+    INFO:root:SendThisToROS2: {'move': 'dance'}
+    INFO:root:SendThisToROS2: {'speak': "Hello, it's so nice to see you! Let's dance together!"}
+    INFO:root:SendThisToROS2: {'face': 'joy'}
+    INFO:root:VLM_COCO_Local: You see a person in front of you.
+    ```
+  </Step>
 
-INFO:root:SendThisToROS2: {'move': 'dance'}
-INFO:root:SendThisToROS2: {'speak': "Hello, it's so nice to see you! Let's dance together!"}
-INFO:root:SendThisToROS2: {'face': 'joy'}
-INFO:root:VLM_COCO_Local: You see a person in front of you.
-INFO:httpx:HTTP Request: POST https://api.openmind.org/api/core/openai/chat/completions "HTTP/1.1 200 OK"
-INFO:root:Inputs and LLM Outputs: {'current_action': 'wag tail', 'last_speech': "Hello, new friend! I'm so happy to see you!", 'current_emotion': 'joy', 'system_latency': {'fuse_time': 0.2420651912689209, 'llm_start': 0.24208617210388184, 'processing': 1.4561660289764404, 'complete': 1.6982522010803223}, 'inputs': [{'input_type': 'VLM_COCO_Local', 'timestamp': 0.0, 'input': 'You see a person in front of you.'}]}
-```
+  <Step title="View Debug Interface">
+    Open [http://localhost:8000](http://localhost:8000) to see:
+    - Real-time inputs and outputs
+    - System latency metrics
+    - Agent state information
+  </Step>
+</Steps>
 
-You will see logging information in the terminal, and you can see real time inputs and outputs in a web debug page at http://localhost:8000. 
+## Understanding the Output
 
-Add `--debug` to see more logging information.
+<CodeGroup>
+  ```json Movement
+  {
+    "move": "dance"
+  }
+  ```
+  ```json Speech
+  {
+    "speak": "Hello, it's so nice to see you! Let's dance together!"
+  }
+  ```
+  ```json Expression
+  {
+    "face": "joy"
+  }
+  ```
+</CodeGroup>
 
+The agent processes inputs and generates three types of outputs:
+- Movement commands
+- Speech responses
+- Facial expressions
 
-<Note>The simulator shows you generated speech, but does not send anything to your computer's audio hardware, reducing the need for you to install audio drivers.</Note>
+## Advanced Usage
 
-<Tip>`uv` does many things in the background, such as setting up a `venv` and downloading any dependencies if needed. Please add new dependencies to `pyproject.toml`.</Tip>
+<Accordion title="Debug Mode">
+  Add `--debug` for detailed logging:
+  ```bash
+  uv run src/run.py spot --debug
+  ```
+</Accordion>
 
-<Note>If you are running complex models, or need to download dependencies, there may be a delay before the agent starts.</Note>
+<Accordion title="Custom Configuration">
+  Modify `config/spot.json` to:
+  - Adjust response frequency (`hertz`)
+  - Change system prompts
+  - Configure input sources
+  - Add new actions
+</Accordion>
+
+<Accordion title="Dependencies">
+  `uv` handles:
+  - Virtual environment creation
+  - Package installation
+  - Dependency resolution
+  
+  Add new packages to `pyproject.toml`
+</Accordion>
+
+## Common Issues
+
+<CardGroup cols={2}>
+  <Card title="Audio Setup" icon="volume-high">
+    The simulator shows generated speech but doesn't play audio by default, reducing audio driver requirements.
+  </Card>
+  
+  <Card title="Model Loading" icon="spinner">
+    Complex models or first-time dependency downloads may cause initial delays.
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Developer Guide"
+    icon="code"
+    href="/docs/development/guide"
+  >
+    Learn how to build custom agents
+  </Card>
+  
+  <Card
+    title="Configuration"
+    icon="gear"
+    href="/docs/development/configuration"
+  >
+    Explore configuration options
+  </Card>
+  
+  <Card
+    title="Examples"
+    icon="lightbulb"
+    href="/docs/examples"
+  >
+    See more agent examples
+  </Card>
+  
+  <Card
+    title="Robotics"
+    icon="robot"
+    href="/docs/robotics"
+  >
+    Deploy to physical robots
+  </Card>
+</CardGroup>
+
+<Note>
+  Need help? Join our [Discord community](https://discord.gg/openmind) or check out our [GitHub discussions](https://github.com/OpenmindAGI/OM1/discussions).
+</Note>
