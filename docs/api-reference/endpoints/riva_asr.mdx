@@ -1,57 +1,67 @@
 ---
 title: Riva Speech Recognition
-description: "Riva Speech Recognition (ASR) API Reference"
+description: "Real-time Speech Recognition API Reference"
 ---
 
-OpenMind self-hosted Riva ASR API Reference. To streamline integration with the Riva ASR API, we offer a simple package for seamless interaction within OM1.
+# Riva Speech Recognition API
 
-To minimize latency, the API endpoint utilizes WebSockets for efficient real-time communication.
+OpenMind's self-hosted Riva ASR (Automatic Speech Recognition) service provides real-time speech-to-text capabilities. The API utilizes WebSocket connections for minimal latency and efficient streaming.
 
+## Base URL
 ```
-wss://api-asr.openmind.org?api_key=<YOUR_API_KEY>
+wss://api-asr.openmind.org
+```
+
+## Authentication
+Authentication is performed via API key as a query parameter:
+```
+?api_key=<YOUR_API_KEY>
 ```
 
 ## Installation
 
-Install the `OM1` package:
+The `OM1` package provides a convenient client for interacting with the ASR API. Install using either of these methods:
 
-```bash install OM1
+Using `uv` (recommended):
+```bash
 uv pip3 install git+https://github.com/OpenmindAGI/OM1.git
 ```
 
-If you don't have `uv` installed, you can install it using the following command:
-
-```bash install OM1
+Using pip:
+```bash
 pip3 install git+https://github.com/OpenmindAGI/OM1.git
 ```
 
-## Usage
+## Quick Start
 
-The following example demonstrates how to interact with the Riva ASR API using the `OM1` package:
+Here's a minimal example demonstrating real-time speech recognition:
 
-```python usage
+```python
 import time
 from om1_utils import ws
 from om1_speech import AudioInputStream
 
-# Initialize the Riva ASR API
+# Initialize WebSocket client with authentication
 ws_client = ws.Client(url="wss://api-asr.openmind.org?api_key=<YOUR_API_KEY>")
 audio_stream_input = AudioInputStream(audio_data_callback=ws_client.send_message)
 
-# Start the Riva ASR API
+# Start streaming
 ws_client.start()
 audio_stream_input.start()
 
-# Retrieve the Riva ASR API response
+# Handle transcription results
 ws_client.register_message_callback(lambda msg: print(msg))
 
+# Keep the connection alive
 while True:
-  time.sleep(1)
+    time.sleep(1)
 ```
 
-The expected response from the Riva ASR API will be in the following format:
+## Response Format
 
-```json response
+The API returns transcription results in JSON format:
+
+```json
 {
   "asr_reply": "hello world"
 }

@@ -38,11 +38,24 @@
             ]
           },
           {
+            "group": "plugins",
+            "pages": [
+              "plugins/inputs",
+              "plugins/outputs"
+            ]
+          },
+          {
             "group": "Robotics",
             "pages": [
               "robotics/asimov_governance",
               "robotics/unitree_robotics",
               "robotics/coinbase_hackathon"
+            ]
+          },
+          {
+            "group": "Tweet",
+            "pages": [
+              "tweet/tweet_agent"
             ]
           }
         ]
