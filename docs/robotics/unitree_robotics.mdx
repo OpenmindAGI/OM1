@@ -3,83 +3,119 @@ title: Unitree Robotics
 description: "Unitree Go2 Air Quadruped (dog)"
 ---
 
-OM1 can control a Unitree Go2 Air. This has been tested on a Mac laptop running Seqoia 15.2.
+OM1 can control a Unitree Go2 Air. This has been tested on macOS Sonoma 15.2.
 
-### Step 1 - Game controller
+### Step 1 - Game Controller Setup
 
-Connect an `XBOX` controller to your computer.
+Connect an Xbox controller to your computer.
 
-On Mac, you may need to install `hidapi` (`brew install hidapi`). NOTE: There is a bug on Mac when installing packages with `brew` - some libraries cannot be found by `uv`. If you get errors such as
-`Unable to load any of the following libraries:libhidapi-hidraw.so`, try setting `export DYLD_FALLBACK_LIBRARY_PATH="$HOMEBREW_PREFIX/lib"` in your `.zshenv` or equivalent.
+<Tabs>
+  <TabItem value="mac" label="macOS">
+    Install `hidapi`:
+    ```bash
+    brew install hidapi
+    ```
+    
+    **Note:** Due to a known bug with `brew` and `uv`, if you encounter errors like `Unable to load any of the following libraries:libhidapi-hidraw.so`, add this to your `.zshrc`:
+    ```bash
+    export DYLD_FALLBACK_LIBRARY_PATH="$HOMEBREW_PREFIX/lib"
+    ```
+  </TabItem>
+  
+  <TabItem value="linux" label="Linux">
+    ```bash
+    sudo apt-get update
+    sudo apt-get install python-dev libusb-1.0-0-dev libudev-dev libhidapi-dev
+    
+    # If needed:
+    sudo pip install --upgrade setuptools
+    sudo pip install hidapi
+    ```
+  </TabItem>
+</Tabs>
 
-Note: On Linux, install `hidapi` like this:
+### Step 2 - Network Configuration
 
-```bash Linux hidapi
-# Linux
-sudo apt-get update
-sudo apt-get install python-dev libusb-1.0-0-dev libudev-dev libhidapi-dev
+1. Connect the Unitree Go2 Air to your computer via Ethernet
+2. Configure the network adapter:
+   - Open network settings
+   - Locate the interface connected to Go2 Air
+   - Set IPv4 mode to `Manual`
+   - IP Address: `192.168.123.99`
+   - Subnet Mask: `255.255.255.0`
+   - Apply changes and wait for reconnection
+3. Add to your `.env` file:
+   ```
+   UNITREE_WIRED_ETHERNET=eno0  # Replace with your adapter name
+   ```
+   For simulation mode, use: `UNITREE_WIRED_ETHERNET=SIM`
 
-# possibly also
-sudo pip install --upgrade setuptools
-sudo pip install hidapi
-```
+### Step 3 - CycloneDDS Setup
 
-### Step 2 - Establishing Ethernet and DDS Connectivity
-
-Connect the Unitree Go2 Air to your development machine with an Ethernet cable. Then, set the network adapter setting. Open the network settings and find the network interface that is connected to the Go2 Air. In IPv4 setting, change the IPv4 mode to `manual`, set the address to `192.168.123.99`, and set the mask to `255.255.255.0`. After completion, click `apply` (or equivalent) and wait for the network to reconnect. Finally provide the name of the network adapter in the `.env`, such as `UNITREE_WIRED_ETHERNET=eno0`. If you do not have a Unitree dog connected, you can still test parts of the code in sim mode by setting `UNITREE_WIRED_ETHERNET=SIM` in your `.env` file.
-
-Then, install [`CycloneDDS`](https://index.ros.org/p/cyclonedds/). `CycloneDDS` works on Mac, Linux, and PC. Run:
-```bash CycloneDDS
+Install CycloneDDS:
+```bash
 git clone https://github.com/eclipse-cyclonedds/cyclonedds -b releases/0.10.x
 cd cyclonedds && mkdir build install && cd build
 cmake .. -DCMAKE_INSTALL_PREFIX=../install -DBUILD_EXAMPLES=ON
 cmake --build . --target install
 ```
-Set `CYCLONEDDS_HOME`, for example via `export CYCLONEDDS_HOME="$HOME/cyclonedds/install"`. You should add this path to your environment via your `.zshrc` or equivalent.
 
-### Step 3 - Adding the DDS module
+Add to your `.zshrc` or equivalent:
+```bash
+export CYCLONEDDS_HOME="$HOME/cyclonedds/install"
+```
 
-Add the `dds` python module to your codebase: `uv pip install -r pyproject.toml --extra dds`.
+### Step 4 - Python Dependencies
 
-### Step 4 - Controlling the Robot
+Install the DDS module:
+```bash
+uv pip install -r pyproject.toml --extra dds
+```
 
-Run
-```bash Run Robot
+### Step 5 - Robot Control
+
+Launch the robot controller:
+```bash
 uv run src/run.py robot_wallet_safe
 ```
 
-OM1 will control a safe and limited subset of motions (such as `stretch` and `sit down`). You can also manually control the dog via the game controller. Press:
+#### Controller Commands
+| Button | Action |
+|--------|--------|
+| A | Stand up |
+| B | Sit down |
+| X | Shake paw |
+| Y | Stretch |
 
-* A to stand up
-* B to sit down
-* X to shake paw
-* Y to stretch
+<Warning>
+Advanced movements like `move`, `pounce`, and `run` require additional implementation. Exercise caution when testing these features, especially around animals or children.
+</Warning>
 
-Allowing the dog to `move`, `pounce`, and `run` requires **you** to add this functionality. **Warning: If you add additional movement capabilities, this is at your own risk. Due to the autonomous nature of the system, we recommend to perform such testing in the absence of squirrels, cats, rabbits, or small children (assuming you are providing a `dog` prompt)**.
+### Troubleshooting
 
-### Unitree Go2 Air Common Problems
+#### Channel Factory Init Error
+Verify your network interface adapter name in `.env`. This should be the adapter on your development machine that connects to the Unitree.
 
-*channel factory init error*: If you see a `channel factory init error`, then you have not set the correct network interface adapter - the one you want to use is the network interface adapter *on your development machine - the computer you are currently sitting in front of* that is plugged into the Unitree quadruped (which has its own internal RockChip computer and network interface, which is *not* relevant to you right now). The ethernet adapter - such as `eno0` or `en0` - needs to be set in the `.env`, for example, `UNITREE_WIRED_ETHERNET=en0`.
+#### CycloneDDS Library Not Found
+- Ensure CycloneDDS is installed
+- Verify `CYCLONEDDS_HOME` is set correctly
 
-*The CycloneDDS library could not be located*: You forgot to install cycloneDDS (see above), or, you did not provide a path to the `/install`, via `export CYCLONEDDS_HOME="$HOME/Documents/GitHub/cyclonedds/install"` or equivalent.
-
-*"nothing is working"* There are dozens of potential reasons "nothing is working". The first step is to test your ability to `ping` the quadruped:
-```bash ping
+#### Connectivity Issues
+Test basic connectivity:
+```bash
+# Test network connection
 ping 192.168.123.99
-```
 
-Assuming you can `ping` the robot, then test the `cycloneDDS` middleware. From `cycloneDDS/build`:
-```bash ping
-# send some pings
+# Test CycloneDDS (from cycloneDDS/build)
+# Terminal 1:
 ./bin/RoundtripPing 0 0 0
-```
 
-In another terminal, receive those pings and send them right back:
-```bash ping
+# Terminal 2:
 ./bin/RoundtripPong
 ```
 
+<Tip>
+macOS users will need to allow incoming connections for RoundtripPing and RoundtripPong in the security settings.
+</Tip>
 
-<Tip> On Mac, you will need to `allow incoming connections` for the applications (RoundtripPing and RoundtripPong) - just "allow" the functionality in the security popup at first use.</Tip>
-
-You should see roundtrip timing data. If all of that works, then open an issue in the repo and we will help you to work though the fault tree to get you started.
+If these tests pass but issues persist, please open a GitHub issue for support.
