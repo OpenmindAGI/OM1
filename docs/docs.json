@@ -30,11 +30,24 @@
             ]
           },
           {
+            "group": "Development",
+            "pages": [
+              "development/guide",
+              "development/architecture"
+            ]
+          },
+          {
             "group": "Examples",
             "pages": [
               "examples/conversation",
               "examples/llm_models",
               "examples/smart_toy"
+            ]
+          },
+          {
+            "group": "Plugins",
+            "pages": [
+              "plugins/add_inputs"
             ]
           },
           {

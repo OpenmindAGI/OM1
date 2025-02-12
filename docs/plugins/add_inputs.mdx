@@ -1,0 +1,367 @@
+---
+
+title: 'Adding New Inputs'
+description: 'Learn how to create and integrate custom input plugins to extend your agents sensing capabilities'
+
+---
+
+<Note>
+  This guide explains how to create input plugins that enable your agent to process new types of data sources.
+</Note>
+
+## Overview
+
+Input plugins (also called sensors) are components that gather data from external sources and transform it into a format that OM1 agents can understand. Common examples include:
+
+- Speech recognition
+- Computer vision
+- Blockchain monitoring
+- Social media feeds
+- IoT sensor data
+
+## Implementation Guide
+
+<Steps>
+
+  <Step title="Create the Input Class">
+    Start by creating a new file in `src/inputs/plugins/` that inherits from `FuserInput`:
+
+    ```python
+    from inputs.base.loop import FuserInput
+    from dataclasses import dataclass
+    from typing import Optional
+    import time
+
+    @dataclass 
+    class Message:
+        timestamp: float
+        message: str
+
+    class MyNewInput(FuserInput[str]):
+        """Your input plugin implementation"""
+        
+        def __init__(self, config: SensorConfig = SensorConfig()):
+            super().__init__(config)
+            self.messages = []
+            # This appears in agent prompts
+            self.descriptor_for_LLM = "My Input"
+    ```
+  </Step>
+
+  <Step title="Implement Core Methods">
+    Add these three required methods to your input class:
+
+    ```python
+    async def _raw_to_text(self, raw_input: str) -> Optional[Message]:
+        """Transform raw input into text"""
+        message = f"Processed: {raw_input}"
+        return Message(
+            timestamp=time.time(),
+            message=message
+        )
+
+    async def raw_to_text(self, raw_input: str):
+        """Handle input processing and message buffering"""
+        message = await self._raw_to_text(raw_input)
+        if message:
+            self.messages.append(message)
+
+    def formatted_latest_buffer(self) -> Optional[str]:
+        """Format and return latest messages"""
+        if not self.messages:
+            return None
+
+        latest = self.messages[-1]
+        formatted = f"""
+    {self.descriptor_for_LLM} INPUT
+    // START
+    {latest.message}
+    // END
+    """
+        # Log the input
+        self.io_provider.add_input(
+            self.__class__.__name__,
+            latest.message,
+            latest.timestamp
+        )
+        self.messages.clear()
+        return formatted
+    ```
+  </Step>
+
+  <Step title="Configure Your Input">
+    Define a configuration class with type-safe settings:
+
+    ```python
+    @dataclass
+    class MyInputConfig(SensorConfig):
+        # How often to poll for new data (in seconds)
+        poll_interval: float = 1.0
+        
+        # Maximum number of messages to buffer
+        buffer_size: int = 1000
+        
+        def validate(self):
+            """Validate configuration values"""
+            assert self.poll_interval > 0, "Poll interval must be positive"
+            assert self.buffer_size > 0, "Buffer size must be positive"
+    ```
+  </Step>
+
+  <Step title="Set Up External Services">
+    Add service connection handling:
+
+    ```python
+    def __init__(self, config: MyInputConfig = MyInputConfig()):
+        super().__init__(config)
+        
+        # Load endpoint from config or environment
+        self.endpoint = (
+            config.get('endpoint') or 
+            os.getenv('SERVICE_ENDPOINT')
+        )
+        if not self.endpoint:
+            raise ValueError("Missing service endpoint configuration")
+        
+        # Load authentication
+        self.api_key = os.getenv('SERVICE_API_KEY')
+        if not self.api_key:
+            raise ValueError("Missing API key")
+    ```
+  </Step>
+
+  <Step title="Write Tests">
+    Create tests in `tests/inputs/plugins/test_my_new_input.py`:
+
+    ```python
+    import pytest
+    from inputs.plugins.my_new_input import MyNewInput, MyInputConfig
+
+    @pytest.mark.asyncio
+    async def test_input_processing():
+        config = MyInputConfig(poll_interval=0.5)
+        input = MyNewInput(config)
+        
+        # Test basic processing
+        message = await input._raw_to_text("test data")
+        assert message is not None
+        assert "test data" in message.message
+        
+        # Test buffer handling
+        await input.raw_to_text("test data")
+        result = input.formatted_latest_buffer()
+        assert result is not None
+        assert "My Input INPUT" in result
+    ```
+  </Step>
+
+  <Step title="Create Provider Class (Optional)">
+    If your input requires complex data processing or shared functionality, create a provider class in `src/inputs/providers/`:
+
+    ```python:src/inputs/providers/my_provider.py
+    from dataclasses import dataclass
+    from typing import Optional
+    import time
+    import logging
+
+    @dataclass
+    class ProcessedResult:
+        """Data structure for processed results."""
+        timestamp: float
+        message: str
+
+    class MyProvider:
+        """
+        Provider class for handling complex processing logic.
+        """
+        def __init__(self, config: Optional[dict] = None):
+            self.config = config or {}
+            self._last_process_time = 0
+            self.min_interval = self.config.get('min_interval', 0.1)
+
+        async def process_data(self, raw_data: str) -> Optional[ProcessedResult]:
+            """Process raw input data."""
+            current_time = time.time()
+            if current_time - self._last_process_time < self.min_interval:
+                return None
+
+            try:
+                # Your processing logic here
+                processed_message = f"Processed: {raw_data}"
+                self._last_process_time = current_time
+                return ProcessedResult(
+                    timestamp=current_time,
+                    message=processed_message
+                )
+            except Exception as e:
+                logging.error(f"Error processing data: {e}")
+                return None
+
+        async def cleanup(self):
+            """Cleanup any resources."""
+            pass
+    ```
+
+    Then, use the provider in your input class:
+
+    ```python:src/inputs/plugins/my_new_input.py
+    from inputs.providers.my_provider import MyProvider
+
+    class MyNewInput(FuserInput[str]):
+        def __init__(self, config: SensorConfig = SensorConfig()):
+            super().__init__(config)
+            self.provider = MyProvider(config.get('provider_config', {}))
+            self.messages = []
+            self.descriptor_for_LLM = "My Input"
+
+        async def _raw_to_text(self, raw_input: str) -> Optional[Message]:
+            result = await self.provider.process_data(raw_input)
+            if result is not None:
+                return Message(
+                    timestamp=result.timestamp,
+                    message=result.message
+                )
+            return None
+
+        async def cleanup(self):
+            await self.provider.cleanup()
+    ```
+  </Step>
+
+</Steps>
+
+## Using Your Input
+
+Add your input to your agent's configuration:
+
+```json
+{
+  "agent_inputs": [
+    {
+      "type": "MyNewInput",
+      "config": {
+        "poll_interval": 0.5,
+        "buffer_size": 500
+      }
+    }
+  ]
+}
+```
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Error Handling" icon="shield-check">
+    Implement comprehensive error handling:
+    ```python
+    async def _raw_to_text(self, raw_input: str) -> Optional[Message]:
+        try:
+            result = await self._process_input(raw_input)
+            return Message(
+                timestamp=time.time(),
+                message=result
+            )
+        except ConnectionError:
+            logging.error("Service connection failed")
+            return None
+        except Exception as e:
+            logging.error(f"Unexpected error: {e}")
+            return None
+    ```
+  </Card>
+  
+  <Card title="Resource Management" icon="gauge">
+    Implement proper resource cleanup:
+    ```python
+    async def cleanup(self):
+        """Release resources when input is stopped"""
+        try:
+            await self.client.close()
+            self.messages.clear()
+        except Exception as e:
+            logging.error(f"Cleanup error: {e}")
+    ```
+  </Card>
+</CardGroup>
+
+## Reference Implementations
+
+Learn from these built-in inputs:
+
+<CardGroup cols={2}>
+  <Card title="Speech Recognition" icon="microphone">
+    Real-time audio processing and transcription
+    
+    [`src/inputs/plugins/asr.py`](https://github.com/your-repo/om1/blob/main/src/inputs/plugins/asr.py)
+  </Card>
+  
+  <Card title="Computer Vision" icon="camera">
+    Image and video analysis
+    
+    [`src/inputs/plugins/vlm_cloud.py`](https://github.com/your-repo/om1/blob/main/src/inputs/plugins/vlm_cloud.py)
+  </Card>
+</CardGroup>
+
+## Advanced: Using Providers
+
+For complex inputs, create a provider class to handle the heavy lifting:
+
+```python
+from dataclasses import dataclass
+from typing import Optional
+import logging
+
+@dataclass
+class ProcessedData:
+    """Structured data from provider"""
+    timestamp: float
+    content: str
+    metadata: dict
+
+class MyProvider:
+    """Handles complex processing logic"""
+    
+    def __init__(self, config: dict):
+        self.config = config
+        self._initialize_resources()
+    
+    async def process(self, data: str) -> Optional[ProcessedData]:
+        """Process raw input data"""
+        try:
+            # Your processing logic here
+            return ProcessedData(...)
+        except Exception as e:
+            logging.error(f"Processing failed: {e}")
+            return None
+            
+    async def cleanup(self):
+        """Release provider resources"""
+        await self._cleanup_resources()
+```
+
+## Contributing
+
+1. **Fork & Clone:**
+   ```bash
+   git clone https://github.com/your-username/om1.git
+   cd om1
+   ```
+
+2. **Create Branch:**
+   ```bash
+   git checkout -b feature/my-new-input
+   ```
+
+3. **Implement & Test:**
+   - Add your input implementation
+   - Write comprehensive tests
+   - Update documentation
+
+4. **Submit PR:**
+   - Push your changes
+   - Open a PR with a clear description
+   - Respond to review feedback
+
+<Note>
+  Remember to update the changelog and add your input to the documentation index.
+</Note>
