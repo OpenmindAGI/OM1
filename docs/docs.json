@@ -41,7 +41,8 @@
             "group": "plugins",
             "pages": [
               "plugins/inputs",
-              "plugins/outputs"
+              "plugins/outputs",
+              "plugins/add_inputs"
             ]
           },
           {
