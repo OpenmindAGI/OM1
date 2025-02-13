@@ -26,7 +26,7 @@ Input plugins (also called sensors) are components that gather data from externa
   <Step title="Create the Input Class">
     Start by creating a new file in `src/inputs/plugins/` that inherits from `FuserInput`:
 
-    ```python
+    ```python New Input Class
     from inputs.base.loop import FuserInput
     from dataclasses import dataclass
     from typing import Optional
@@ -51,7 +51,7 @@ Input plugins (also called sensors) are components that gather data from externa
   <Step title="Implement Core Methods">
     Add these three required methods to your input class:
 
-    ```python
+    ```python Core input processing methods
     async def _raw_to_text(self, raw_input: str) -> Optional[Message]:
         """Transform raw input into text"""
         message = f"Processed: {raw_input}"
@@ -92,7 +92,7 @@ Input plugins (also called sensors) are components that gather data from externa
   <Step title="Configure Your Input">
     Define a configuration class with type-safe settings:
 
-    ```python
+    ```python Input configuration class
     @dataclass
     class MyInputConfig(SensorConfig):
         # How often to poll for new data (in seconds)
@@ -111,7 +111,7 @@ Input plugins (also called sensors) are components that gather data from externa
   <Step title="Set Up External Services">
     Add service connection handling:
 
-    ```python
+    ```python Service initialization and configuration
     def __init__(self, config: MyInputConfig = MyInputConfig()):
         super().__init__(config)
         
@@ -133,7 +133,7 @@ Input plugins (also called sensors) are components that gather data from externa
   <Step title="Write Tests">
     Create tests in `tests/inputs/plugins/test_my_new_input.py`:
 
-    ```python
+    ```python Unit tests for input plugin
     import pytest
     from inputs.plugins.my_new_input import MyNewInput, MyInputConfig
 
@@ -158,7 +158,7 @@ Input plugins (also called sensors) are components that gather data from externa
   <Step title="Create Provider Class (Optional)">
     If your input requires complex data processing or shared functionality, create a provider class in `src/inputs/providers/`:
 
-    ```python:src/inputs/providers/my_provider.py
+    ```python Provider class implementation
     from dataclasses import dataclass
     from typing import Optional
     import time
@@ -250,7 +250,7 @@ Add your input to your agent's configuration:
 
 ## Best Practices
 
-<CardGroup cols={2}>
+<CardGroup cols={1}>
   <Card title="Error Handling" icon="shield-check">
     Implement comprehensive error handling:
     ```python
@@ -288,17 +288,19 @@ Add your input to your agent's configuration:
 
 Learn from these built-in inputs:
 
-<CardGroup cols={2}>
-  <Card title="Speech Recognition" icon="microphone">
+<CardGroup cols={1}>
+  <Card 
+    title="Speech Recognition" 
+    icon="microphone"
+    href="https://github.com/your-repo/om1/blob/main/src/inputs/plugins/asr.py">
     Real-time audio processing and transcription
-    
-    [`src/inputs/plugins/asr.py`](https://github.com/your-repo/om1/blob/main/src/inputs/plugins/asr.py)
   </Card>
   
-  <Card title="Computer Vision" icon="camera">
+  <Card 
+    title="Computer Vision" 
+    icon="camera"
+    href="https://github.com/your-repo/om1/blob/main/src/inputs/plugins/vlm_cloud.py">
     Image and video analysis
-    
-    [`src/inputs/plugins/vlm_cloud.py`](https://github.com/your-repo/om1/blob/main/src/inputs/plugins/vlm_cloud.py)
   </Card>
 </CardGroup>
 

@@ -30,13 +30,6 @@
             ]
           },
           {
-            "group": "Development",
-            "pages": [
-              "development/guide",
-              "development/architecture"
-            ]
-          },
-          {
             "group": "Examples",
             "pages": [
               "examples/conversation",
