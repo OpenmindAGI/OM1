@@ -20,3 +20,6 @@ wheels/
 
 # Mac specific lint
 .DS_Store
+
+m
+m.pub
