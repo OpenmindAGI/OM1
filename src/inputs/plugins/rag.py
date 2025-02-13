@@ -34,7 +34,6 @@ class PDFRAGInput(FuserInput[str]):
         self.chunk_overlap = getattr(config, "chunk_overlap", 200)
 
         # Initialize components
-        self.llm = ChatOpenAI(model=self.llm_model, api_key=self.api_key)
         self.embeddings = OpenAIEmbeddings(model=self.embedding_model, api_key=self.api_key)
         self.vector_store = self._initialize_vector_store()
         self.prompt = hub.pull("rlm/rag-prompt")
