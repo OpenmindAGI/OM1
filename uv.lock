@@ -1921,6 +1921,7 @@ dependencies = [
     { name = "openai" },
     { name = "opencv-python" },
     { name = "pillow" },
+    { name = "pydub" },
     { name = "pygame" },
     { name = "pyserial" },
     { name = "python-dotenv" },
@@ -1961,10 +1962,11 @@ requires-dist = [
     { name = "hid" },
     { name = "jinja2", specifier = ">=3.1.3" },
     { name = "numpy" },
-    { name = "om1-modules", git = "https://github.com/OpenmindAGI/om1-modules.git?rev=a31b230cf0bd1bf5e1d55fb7896acc6e3df445dd#a31b230cf0bd1bf5e1d55fb7896acc6e3df445dd" },
+    { name = "om1-modules", git = "https://github.com/OpenmindAGI/om1-modules.git?rev=4d0c6c98319b1d655d36cb25a7e3ae8ad2dac826#4d0c6c98319b1d655d36cb25a7e3ae8ad2dac826" },
     { name = "openai", specifier = ">=1.59.5" },
     { name = "opencv-python" },
     { name = "pillow", specifier = ">=11.1.0" },
+    { name = "pydub", specifier = ">=0.25.1" },
     { name = "pygame" },
     { name = "pyserial" },
     { name = "python-dotenv", specifier = ">=1.0.1" },
@@ -1991,7 +1993,7 @@ dev = [
 [[package]]
 name = "om1-modules"
 version = "0.1.0"
-source = { git = "https://github.com/OpenmindAGI/om1-modules.git?rev=a31b230cf0bd1bf5e1d55fb7896acc6e3df445dd#a31b230cf0bd1bf5e1d55fb7896acc6e3df445dd" }
+source = { git = "https://github.com/OpenmindAGI/om1-modules.git?rev=4d0c6c98319b1d655d36cb25a7e3ae8ad2dac826#4d0c6c98319b1d655d36cb25a7e3ae8ad2dac826" }
 dependencies = [
     { name = "numpy" },
     { name = "opencv-python" },
@@ -2569,6 +2571,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/86/aa/837821ecf0c022bbb74ca132e117c358321e72e7f9702d1b6a03758545e2/pydantic_core-2.27.2-pp310-pypy310_pp73-musllinux_1_1_armv7l.whl", hash = "sha256:0296abcb83a797db256b773f45773da397da75a08f5fcaef41f2044adec05f50", size = 2116582 },
     { url = "https://files.pythonhosted.org/packages/81/b0/5e74656e95623cbaa0a6278d16cf15e10a51f6002e3ec126541e95c29ea3/pydantic_core-2.27.2-pp310-pypy310_pp73-musllinux_1_1_x86_64.whl", hash = "sha256:0d75070718e369e452075a6017fbf187f788e17ed67a3abd47fa934d001863d9", size = 2151985 },
     { url = "https://files.pythonhosted.org/packages/63/37/3e32eeb2a451fddaa3898e2163746b0cffbbdbb4740d38372db0490d67f3/pydantic_core-2.27.2-pp310-pypy310_pp73-win_amd64.whl", hash = "sha256:7e17b560be3c98a8e3aa66ce828bdebb9e9ac6ad5466fba92eb74c4c95cb1151", size = 2004715 },
+]
+
+[[package]]
+name = "pydub"
+version = "0.25.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/fe/9a/e6bca0eed82db26562c73b5076539a4a08d3cffd19c3cc5913a3e61145fd/pydub-0.25.1.tar.gz", hash = "sha256:980a33ce9949cab2a569606b65674d748ecbca4f0796887fd6f46173a7b0d30f", size = 38326 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a6/53/d78dc063216e62fc55f6b2eebb447f6a4b0a59f55c8406376f76bf959b08/pydub-0.25.1-py2.py3-none-any.whl", hash = "sha256:65617e33033874b59d87db603aa1ed450633288aefead953b30bded59cb599a6", size = 32327 },
 ]
 
 [[package]]
