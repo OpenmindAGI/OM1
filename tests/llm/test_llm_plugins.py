@@ -13,7 +13,7 @@ class DummyOutputModel(BaseModel):
 
 @pytest.fixture
 def config():
-    return LLMConfig(base_url="http://test.com", api_key="test-key")
+    return LLMConfig(base_url="http://test.com", api_key="test-key", model="test-model")
 
 
 def get_all_llm_classes():

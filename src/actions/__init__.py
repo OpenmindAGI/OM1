@@ -2,7 +2,13 @@ import importlib
 import typing as T
 from enum import Enum
 
-from actions.base import ActionConnector, ActionImplementation, AgentAction, Interface
+from actions.base import (
+    ActionConfig,
+    ActionConnector,
+    ActionImplementation,
+    AgentAction,
+    Interface,
+)
 
 
 def describe_action(action_name: str) -> str:
@@ -39,7 +45,9 @@ def describe_action(action_name: str) -> str:
     return f"command: {action_name}\n{doc}\nArguments:\n{type_hints}"
 
 
-def load_action(action_config: dict[str, str]) -> AgentAction:
+def load_action(
+    action_config: T.Dict[str, T.Union[str, T.Dict[str, str]]],
+) -> AgentAction:
     interface = None
     action = importlib.import_module(f"actions.{action_config['name']}.interface")
     for _, obj in action.__dict__.items():
@@ -47,9 +55,12 @@ def load_action(action_config: dict[str, str]) -> AgentAction:
             interface = obj
     if interface is None:
         raise ValueError(f"No interface found for action {action_config['name']}")
-    implementation = importlib.import_module(
-        f"actions.{action_config['name']}.implementation.{action_config['implementation']}"
-    )
+    if action_config["implementation"] == "passthrough":
+        implementation = importlib.import_module("actions.passthrough")
+    else:
+        implementation = importlib.import_module(
+            f"actions.{action_config['name']}.implementation.{action_config['implementation']}"
+        )
     connector = importlib.import_module(
         f"actions.{action_config['name']}.connector.{action_config['connector']}"
     )
@@ -69,9 +80,10 @@ def load_action(action_config: dict[str, str]) -> AgentAction:
         raise ValueError(
             f"No connector found for action {action_config['name']} connector {action_config['connector']}"
         )
+    config = ActionConfig(**action_config.get("config", {}))
     return AgentAction(
         name=action_config["name"],
         interface=interface,
-        implementation=implementation_class(),
-        connector=connector_class(),
+        implementation=implementation_class(config),
+        connector=connector_class(config),
     )

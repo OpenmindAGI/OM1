@@ -3,7 +3,6 @@ import threading
 import time
 from typing import Callable, Optional
 
-import pyaudio
 from om1_speech import AudioOutputStream
 
 from .singleton import singleton
@@ -21,9 +20,18 @@ class TTSProvider:
     ----------
     url : str
         The URL endpoint for the TTS service
+    device : int, optional
+        The audio device index for audio output (default is None)
+    speaker_name : str, optional
+        The name of the speaker for audio output (default is None)
     """
 
-    def __init__(self, url: str):
+    def __init__(
+        self,
+        url: str,
+        device_id: Optional[int] = None,
+        speaker_name: Optional[str] = None,
+    ):
         """
         Initialize the TTS provider with given URL.
 
@@ -33,17 +41,10 @@ class TTSProvider:
             The URL endpoint for the TTS service
         """
         self.running: bool = False
-
-        p = pyaudio.PyAudio()
-        SPEAKER = p.get_default_output_device_info()
-        logging.info(
-            f"SYSTEM DEFAULT SPEAKER: idx:{SPEAKER["index"]} name:{SPEAKER["name"]}"
-        )
-
-        self.audio_stream: AudioOutputStream = AudioOutputStream(
-            url=url, device=int(SPEAKER["index"])
-        )
         self._thread: Optional[threading.Thread] = None
+        self._audio_stream: AudioOutputStream = AudioOutputStream(
+            url=url, device=device_id, device_name=speaker_name
+        )
 
     def register_tts_state_callback(self, tts_state_callback: Optional[Callable]):
         """
@@ -54,7 +55,7 @@ class TTSProvider:
         tts_state_callback : callable
             The callback function to receive TTS state changes.
         """
-        self.audio_stream.set_tts_state_callback(tts_state_callback)
+        self._audio_stream.set_tts_state_callback(tts_state_callback)
 
     def add_pending_message(self, text: str):
         """
@@ -66,7 +67,7 @@ class TTSProvider:
             Text to be converted to speech
         """
         logging.info(f"audio_stream: {text}")
-        self.audio_stream.add(text)
+        self._audio_stream.add(text)
 
     def start(self):
         """
@@ -76,7 +77,7 @@ class TTSProvider:
             return
 
         self.running = True
-        self.audio_stream.start()
+        self._audio_stream.start()
         self._thread = threading.Thread(target=self._run, daemon=True)
         self._thread.start()
 
@@ -96,5 +97,5 @@ class TTSProvider:
         """
         self.running = False
         if self._thread:
-            self.audio_stream.stop()
+            self._audio_stream.stop()
             self._thread.join(timeout=5)

@@ -965,6 +965,20 @@ wheels = [
 ]
 
 [[package]]
+name = "fastapi"
+version = "0.115.8"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pydantic" },
+    { name = "starlette" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/a2/b2/5a5dc4affdb6661dea100324e19a7721d5dc524b464fe8e366c093fd7d87/fastapi-0.115.8.tar.gz", hash = "sha256:0ce9111231720190473e222cdf0f07f7206ad7e53ea02beb1d2dc36e2f0741e9", size = 295403 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/8f/7d/2d6ce181d7a5f51dedb8c06206cbf0ec026a99bf145edd309f9e17c3282f/fastapi-0.115.8-py3-none-any.whl", hash = "sha256:753a96dd7e036b34eeef8babdfcfe3f28ff79648f86551eb36bfc1b0bf4a8cbf", size = 94814 },
+]
+
+[[package]]
 name = "filelock"
 version = "3.17.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1894,11 +1908,14 @@ name = "om1"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "aiohttp" },
     { name = "cdp-sdk" },
     { name = "cv-bridge" },
     { name = "deepface" },
+    { name = "fastapi" },
     { name = "gif-pygame" },
     { name = "hid" },
+    { name = "jinja2" },
     { name = "numpy" },
     { name = "om1-modules" },
     { name = "openai" },
@@ -1907,11 +1924,14 @@ dependencies = [
     { name = "pygame" },
     { name = "pyserial" },
     { name = "python-dotenv" },
+    { name = "python-multipart" },
     { name = "tf-keras" },
     { name = "torch" },
     { name = "torchvision" },
     { name = "typer" },
+    { name = "uvicorn" },
     { name = "web3" },
+    { name = "websockets" },
 ]
 
 [package.optional-dependencies]
@@ -1931,25 +1951,31 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "aiohttp", specifier = ">=3.9.3" },
     { name = "cdp-sdk", specifier = ">=0.15.0" },
     { name = "cv-bridge" },
     { name = "cyclonedds", marker = "extra == 'dds'", specifier = "==0.10.2" },
     { name = "deepface" },
+    { name = "fastapi", specifier = ">=0.110.0" },
     { name = "gif-pygame" },
     { name = "hid" },
+    { name = "jinja2", specifier = ">=3.1.3" },
     { name = "numpy" },
-    { name = "om1-modules", git = "https://github.com/OpenmindAGI/om1-modules.git?rev=6fd381b1f57a8c8a95aaaa59c189e62759203d1c#6fd381b1f57a8c8a95aaaa59c189e62759203d1c" },
+    { name = "om1-modules", git = "https://github.com/OpenmindAGI/om1-modules.git?rev=a31b230cf0bd1bf5e1d55fb7896acc6e3df445dd#a31b230cf0bd1bf5e1d55fb7896acc6e3df445dd" },
     { name = "openai", specifier = ">=1.59.5" },
     { name = "opencv-python" },
     { name = "pillow", specifier = ">=11.1.0" },
     { name = "pygame" },
     { name = "pyserial" },
     { name = "python-dotenv", specifier = ">=1.0.1" },
+    { name = "python-multipart", specifier = ">=0.0.9" },
     { name = "tf-keras" },
     { name = "torch" },
     { name = "torchvision" },
     { name = "typer", specifier = ">=0.15.1" },
+    { name = "uvicorn", specifier = ">=0.27.1" },
     { name = "web3" },
+    { name = "websockets", specifier = ">=12.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -1965,7 +1991,7 @@ dev = [
 [[package]]
 name = "om1-modules"
 version = "0.1.0"
-source = { git = "https://github.com/OpenmindAGI/om1-modules.git?rev=6fd381b1f57a8c8a95aaaa59c189e62759203d1c#6fd381b1f57a8c8a95aaaa59c189e62759203d1c" }
+source = { git = "https://github.com/OpenmindAGI/om1-modules.git?rev=a31b230cf0bd1bf5e1d55fb7896acc6e3df445dd#a31b230cf0bd1bf5e1d55fb7896acc6e3df445dd" }
 dependencies = [
     { name = "numpy" },
     { name = "opencv-python" },
@@ -2730,6 +2756,15 @@ wheels = [
 ]
 
 [[package]]
+name = "python-multipart"
+version = "0.0.20"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/f3/87/f44d7c9f274c7ee665a29b885ec97089ec5dc034c7f3fafa03da9e39a09e/python_multipart-0.0.20.tar.gz", hash = "sha256:8dd0cab45b8e23064ae09147625994d090fa46f5b0d1e13af944c331a7fa9d13", size = 37158 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/45/58/38b5afbc1a800eeea951b9285d3912613f2603bdf897a4ab0f4bd7f405fc/python_multipart-0.0.20-py3-none-any.whl", hash = "sha256:8a62d3a8335e06589fe01f2a3e178cdcc632f3fbe0d492ad9ee0ec35aab1f104", size = 24546 },
+]
+
+[[package]]
 name = "pytz"
 version = "2024.2"
 source = { registry = "https://pypi.org/simple" }
@@ -3023,6 +3058,18 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/d7/ce/fbaeed4f9fb8b2daa961f90591662df6a86c1abf25c548329a86920aedfb/soupsieve-2.6.tar.gz", hash = "sha256:e2e68417777af359ec65daac1057404a3c8a5455bb8abc36f1a9866ab1a51abb", size = 101569 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d1/c2/fe97d779f3ef3b15f05c94a2f1e3d21732574ed441687474db9d342a7315/soupsieve-2.6-py3-none-any.whl", hash = "sha256:e72c4ff06e4fb6e4b5a9f0f55fe6e81514581fca1515028625d0f299c602ccc9", size = 36186 },
+]
+
+[[package]]
+name = "starlette"
+version = "0.45.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "anyio" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ff/fb/2984a686808b89a6781526129a4b51266f678b2d2b97ab2d325e56116df8/starlette-0.45.3.tar.gz", hash = "sha256:2cbcba2a75806f8a41c722141486f37c28e30a0921c5f6fe4346cb0dcee1302f", size = 2574076 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d9/61/f2b52e107b1fc8944b33ef56bf6ac4ebbe16d91b94d2b87ce013bf63fb84/starlette-0.45.3-py3-none-any.whl", hash = "sha256:dfb6d332576f136ec740296c7e8bb8c8a7125044e7c6da30744718880cdd059d", size = 71507 },
 ]
 
 [[package]]
@@ -3347,6 +3394,20 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/aa/63/e53da845320b757bf29ef6a9062f5c669fe997973f966045cb019c3f4b66/urllib3-2.3.0.tar.gz", hash = "sha256:f8c5449b3cf0861679ce7e0503c7b44b5ec981bec0d1d3795a07f1ba96f0204d", size = 307268 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c8/19/4ec628951a74043532ca2cf5d97b7b14863931476d117c471e8e2b1eb39f/urllib3-2.3.0-py3-none-any.whl", hash = "sha256:1cee9ad369867bfdbbb48b7dd50374c0967a0bb7710050facf0dd6911440e3df", size = 128369 },
+]
+
+[[package]]
+name = "uvicorn"
+version = "0.34.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "click" },
+    { name = "h11" },
+    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/4b/4d/938bd85e5bf2edeec766267a5015ad969730bb91e31b44021dfe8b22df6c/uvicorn-0.34.0.tar.gz", hash = "sha256:404051050cd7e905de2c9a7e61790943440b3416f49cb409f965d9dcd0fa73e9", size = 76568 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/61/14/33a3a1352cfa71812a3a21e8c9bfb83f60b0011f5e36f2b1399d51928209/uvicorn-0.34.0-py3-none-any.whl", hash = "sha256:023dc038422502fa28a09c7a30bf2b6991512da7dcdb8fd35fe57cfc154126f4", size = 62315 },
 ]
 
 [[package]]

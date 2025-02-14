@@ -4,11 +4,11 @@ from unittest.mock import mock_open, patch
 import pytest
 
 from actions.base import AgentAction
-from inputs.base import SensorOutput, SensorOutputConfig
+from inputs.base import Sensor, SensorConfig
 from llm import LLM
 from llm.output_model import CortexOutputModel
 from runtime.config import RuntimeConfig, load_config
-from simulators.base import Simulator
+from simulators.base import Simulator, SimulatorConfig
 
 
 @pytest.fixture
@@ -19,7 +19,7 @@ def mock_config_data():
         "system_prompt_base": "system prompt base",
         "system_governance": "system governance",
         "system_prompt_examples": "system prompt examples",
-        "agent_inputs": [{"type": "test_input", "config": {"base_url": "test-url"}}],
+        "agent_inputs": [{"type": "test_input"}],
         "cortex_llm": {"type": "test_llm", "config": {"model": "test-model"}},
         "simulators": [{"type": "test_simulator"}],
         "agent_actions": [
@@ -27,6 +27,9 @@ def mock_config_data():
                 "name": "test_action",
                 "implementation": "test_implementation",
                 "connector": "test_connector",
+                "config": {
+                    "arg1": "val1",
+                },
             }
         ],
     }
@@ -34,8 +37,8 @@ def mock_config_data():
 
 @pytest.fixture
 def mock_dependencies():
-    class MockInput(SensorOutput):
-        def __init__(self, config=SensorOutputConfig()):
+    class MockInput(Sensor):
+        def __init__(self, config=SensorConfig()):
             super().__init__(config)
 
     class MockAction(AgentAction):
@@ -48,8 +51,8 @@ def mock_dependencies():
             )
 
     class MockSimulator(Simulator):
-        def __init__(self):
-            super().__init__(name="mock_simulator")
+        def __init__(self, config: SimulatorConfig):
+            super().__init__(config)
 
     class MockLLM(LLM[CortexOutputModel]):
         pass
@@ -70,7 +73,7 @@ def mock_empty_config_data():
         "system_prompt_base": "",
         "system_governance": "",
         "system_prompt_examples": "",
-        "agent_inputs": [{"type": "nonexistent_input_type", "config": {}}],
+        "agent_inputs": [{"type": "nonexistent_input_type"}],
         "cortex_llm": {"type": "test_llm", "config": {}},
         "simulators": [],
         "agent_actions": [],
@@ -86,7 +89,7 @@ def mock_multiple_components_config():
         "system_governance": "system governance",
         "system_prompt_examples": "system prompt examples",
         "agent_inputs": [
-            {"type": "test_input_1", "config": {"base_url": "test"}},
+            {"type": "test_input_1"},
             {"type": "test_input_2"},
         ],
         "cortex_llm": {"type": "test_llm", "config": {"model": "test-model"}},

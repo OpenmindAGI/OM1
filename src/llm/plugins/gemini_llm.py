@@ -78,7 +78,11 @@ class GeminiLLM(LLM[R]):
             Input prompt for the LLM
         """
         completion = await self._client.chat.completions.create(
-            model="gemini-2.0-flash-exp",
+            model=(
+                "gemini-2.0-flash-exp"
+                if self._config.model is None
+                else self._config.model
+            ),
             messages=self._build_messages(prompt),
             response_format={"type": "json_object"},
         )

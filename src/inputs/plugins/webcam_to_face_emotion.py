@@ -8,7 +8,7 @@ from typing import Optional
 import cv2
 from deepface import DeepFace
 
-from inputs.base import SensorOutputConfig
+from inputs.base import SensorConfig
 from inputs.base.loop import FuserInput
 from providers.io_provider import IOProvider
 
@@ -57,7 +57,7 @@ class FaceEmotionCapture(FuserInput[cv2.typing.MatLike]):
     Processes video frames to detect faces and classify emotions.
     """
 
-    def __init__(self, config: SensorOutputConfig = SensorOutputConfig()):
+    def __init__(self, config: SensorConfig = SensorConfig()):
         """
         Initialize FaceEmotionCapture instance.
         """

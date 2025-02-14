@@ -4,6 +4,7 @@ import logging
 from actions.orchestrator import ActionOrchestrator
 from fuser import Fuser
 from inputs.orchestrator import InputOrchestrator
+from providers.io_provider import IOProvider
 from providers.sleep_ticker_provider import SleepTickerProvider
 from runtime.config import RuntimeConfig
 from simulators.orchestrator import SimulatorOrchestrator
@@ -44,6 +45,7 @@ class CortexRuntime:
         self.action_orchestrator = ActionOrchestrator(config)
         self.simulator_orchestrator = SimulatorOrchestrator(config)
         self.sleep_ticker_provider = SleepTickerProvider()
+        self.io_provider = IOProvider()
 
     async def run(self) -> None:
         """
@@ -137,7 +139,6 @@ class CortexRuntime:
         commands_silent = []
         for command in output.commands:
             action_type = command.name
-            # action_spec = command.arguments[0].value
             if action_type != "speak":
                 commands_silent.append(command)
                 logging.debug(f"appended: {action_type}")

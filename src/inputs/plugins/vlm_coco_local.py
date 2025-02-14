@@ -11,7 +11,7 @@ import torch
 from PIL import Image
 from torchvision.models import detection as detection_model
 
-from inputs.base import SensorOutputConfig
+from inputs.base import SensorConfig
 from inputs.base.loop import FuserInput
 from providers.io_provider import IOProvider
 
@@ -35,15 +35,19 @@ class Message:
     message: str
 
 
-def check_webcam():
+# if working on Mac, please disable continuity camera on your iphone
+# Settings > General > AirPlay & Continuity, and tunr off Continuity
+
+
+def check_webcam(index_to_check):
     """
     Checks if a webcam is available and returns True if found, False otherwise.
     """
-    cap = cv2.VideoCapture(0)  # 0 is the default camera index
+    cap = cv2.VideoCapture(index_to_check)  # 0 is the default camera index
     if not cap.isOpened():
-        logging.info("No webcam found")
+        logging.info(f"ERROR: COCO did not find cam: {index_to_check}")
         return False
-    logging.info("Found cam(0)")
+    logging.info(f"COCO found cam: {index_to_check}")
     return True
 
 
@@ -54,14 +58,18 @@ class VLM_COCO_Local(FuserInput[Image.Image]):
     Bounding Boxes use image convention, ie center.y = 0 means top of image.
     """
 
-    def __init__(self, config: SensorOutputConfig = SensorOutputConfig()):
+    def __init__(self, config: SensorConfig = SensorConfig()):
         """
         Initialize VLM input handler with empty message buffer.
         """
         super().__init__(config)
 
         self.device = "cpu"
-        self.detection_threshold = 0.9
+        self.detection_threshold = 0.7
+
+        self.camera_index = 0  # default to default webcam unless specified otherwsie
+        if self.config.camera_index:
+            self.camera_index = self.config.camera_index
 
         # Track IO
         self.io_provider = IOProvider()
@@ -69,7 +77,8 @@ class VLM_COCO_Local(FuserInput[Image.Image]):
         # Messages buffer
         self.messages: list[Message] = []
 
-        self.descriptor_for_LLM = "COCO Object Detector"
+        # Simple description of sensor output to help LLM understand its importance and utility
+        self.descriptor_for_LLM = "Object Detector"
 
         # Low resolution Faster R-CNN model with a MobileNetV3-Large backbone tuned for mobile use cases.
         self.model = detection_model.fasterrcnn_mobilenet_v3_large_320_fpn(
@@ -85,12 +94,18 @@ class VLM_COCO_Local(FuserInput[Image.Image]):
         self.model.eval()
         logging.info("COCO Object Detector Started")
 
-        self.have_cam = check_webcam()
+        self.have_cam = check_webcam(self.camera_index)
 
         # Start capturing video, if we have a webcam
         self.cap = None
         if self.have_cam:
-            self.cap = cv2.VideoCapture(0)
+            self.cap = cv2.VideoCapture(self.camera_index)
+            self.width = int(self.cap.get(3))  # float `width`
+            self.height = int(self.cap.get(4))  # float `height`
+            self.cam_third = int(self.width / 3)
+            logging.info(
+                f"Webcam pixel dimensions for COCO: {self.width}, {self.height}"
+            )
 
     async def _poll(self) -> Image.Image:
         """
@@ -111,7 +126,7 @@ class VLM_COCO_Local(FuserInput[Image.Image]):
             ret, frame = self.cap.read()
             return frame
 
-    async def _raw_to_text(self, raw_input: Image.Image) -> Optional[Message]:
+    async def _raw_to_text(self, raw_input: Optional[Image.Image]) -> Optional[Message]:
         """
         Process raw image input to generate text description.
 
@@ -128,7 +143,7 @@ class VLM_COCO_Local(FuserInput[Image.Image]):
 
         filtered_detections = None
 
-        if raw_input:
+        if raw_input is not None:
             image = raw_input.copy().transpose((2, 0, 1))
             batch_image = np.expand_dims(image, axis=0)
             tensor_image = torch.tensor(
@@ -146,35 +161,44 @@ class VLM_COCO_Local(FuserInput[Image.Image]):
                 )
                 if score >= self.detection_threshold
             ]
-            logging.debug(f"filtered_detections {filtered_detections}")
+            logging.debug(f"COCO filtered_detections {filtered_detections}")
 
         sentence = None
 
-        if len(filtered_detections) > 0:
+        if filtered_detections and len(filtered_detections) > 0:
+
             pred_boxes = torch.stack(
                 [detection.bbox for detection in filtered_detections]
+            )
+            pred_scores = torch.stack(
+                [detection.score for detection in filtered_detections]
             )
             pred_labels = [
                 self.class_labels[detection.label] for detection in filtered_detections
             ]
+            logging.debug(f"COCO labels {pred_labels} scores {pred_scores}")
 
+            # we have a least one detection, and that will have the highest score
             thing = pred_labels[0]
-            # Calculate center coordinates of first object
             x1 = pred_boxes[0, 0]
-            # y1 = pred_boxes[0, 1]
             x2 = pred_boxes[0, 2]
-            # y2 = pred_boxes[0, 3]
-            center_x = (x1 + x2) / 2
-            # center_y = (y1 + y2) / 2
+            center_x = (x1 + x2) / 2  # center of the bbox
 
-            direction = "in front of you."
-            if center_x < 480:
-                direction = "on your left."
-            elif center_x > 960:
-                direction = "on your right."
+            direction = "in front of you"
+            # so if the width is 1920, then the left third runs between 0 and 639
+            # middle is 640 - 1279
+            # right is > 1280
+            if center_x < self.cam_third:
+                direction = "on your left"
+            elif center_x > 2 * self.cam_third:
+                direction = "on your right"
 
-            sentence = f"You see a {thing} {direction}"
-            logging.info(f"VLM_COCO_Local: {sentence}")
+            sentence = f"You see a {thing} {direction}."
+
+            # add at most one more object
+            if len(pred_labels) > 1:
+                other_thing = pred_labels[1]
+                sentence = sentence + f" You also see a {other_thing}."
 
         if sentence is not None:
             return Message(timestamp=time.time(), message=sentence)
@@ -209,6 +233,8 @@ class VLM_COCO_Local(FuserInput[Image.Image]):
             return None
 
         latest_message = self.messages[-1]
+
+        logging.info(f"VLM_COCO_Local: {latest_message.message}")
 
         result = f"""
 {self.descriptor_for_LLM} INPUT

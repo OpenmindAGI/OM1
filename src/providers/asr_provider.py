@@ -14,7 +14,7 @@ class ASRProvider:
     """
     Audio Speech Recognition Provider that handles audio streaming and websocket communication.
 
-    This class implementationements a singleton pattern to manage audio input streaming and websocket
+    This class implements a singleton pattern to manage audio input streaming and websocket
     communication for speech recognition services. It runs in a separate thread to handle
     continuous audio processing.
 
@@ -22,9 +22,18 @@ class ASRProvider:
     ----------
     ws_url : str
         The websocket URL for the ASR service connection.
+    device_id : int
+        The device ID of the chosen microphone; used the system default if None
+    microphone_name : str
+        The name of the microphone to use for audio input
     """
 
-    def __init__(self, ws_url: str):
+    def __init__(
+        self,
+        ws_url: str,
+        device_id: Optional[int] = None,
+        microphone_name: Optional[str] = None,
+    ):
         """
         Initialize the ASR Provider.
 
@@ -32,11 +41,17 @@ class ASRProvider:
         ----------
         ws_url : str
             The websocket URL for the ASR service connection.
+        device_id : int
+            The device ID of the chosen microphone; used the system default if None
+        microphone_name : str
+            The name of the microphone to use for audio input
         """
         self.running: bool = False
         self.ws_client: ws.Client = ws.Client(url=ws_url)
         self.audio_stream: AudioInputStream = AudioInputStream(
-            audio_data_callback=self.ws_client.send_message
+            device=device_id,
+            device_name=microphone_name,
+            audio_data_callback=self.ws_client.send_message,
         )
         self._thread: Optional[threading.Thread] = None
 

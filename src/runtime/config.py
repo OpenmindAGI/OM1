@@ -1,56 +1,37 @@
 import json
 import os
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List
 
 from actions import load_action
 from actions.base import AgentAction
 from inputs import load_input
-from inputs.base import SensorOutput, SensorOutputConfig
+from inputs.base import Sensor, SensorConfig
 from llm import LLM, LLMConfig, load_llm
 from llm.output_model import CortexOutputModel
 from runtime.robotics import load_unitree
 from simulators import load_simulator
-from simulators.base import Simulator
+from simulators.base import Simulator, SimulatorConfig
 
 
 @dataclass
 class RuntimeConfig:
-    """
-    Runtime configuration container.
-
-    Parameters
-    ----------
-    hertz : float
-        The frequency at which the runtime loop operates
-    name : str
-        Unique identifier for this configuration
-    system_prompt : str
-        System prompt used for LLM initialization
-    agent_inputs : List[SensorOutput]
-        List of input components for gathering agent data
-    cortex_llm : LLM[CortexOutputModel]
-        Language model configuration for the agent's cognitive processing
-    agent_actions : List[AgentAction]
-        List of available actions the agent can perform
-    simulators : List[Simulator]
-        List of simulation components for environment modeling
-    unitree_ethernet : str
-        Ethernet adapter name for Unitree robot communication
-    """
+    """Runtime configuration for the agent."""
 
     hertz: float
     name: str
     system_prompt_base: str
     system_governance: str
     system_prompt_examples: str
-    agent_inputs: List[SensorOutput]
-    cortex_llm: LLM[CortexOutputModel]
-    agent_actions: List[AgentAction]
+    agent_inputs: List[Sensor]
+    cortex_llm: LLM
     simulators: List[Simulator]
+    agent_actions: List[AgentAction]
 
-    # unitree
-    unitree_ethernet: Optional[str] = None
+    @classmethod
+    def load(cls, config_name: str) -> "RuntimeConfig":
+        """Load a runtime configuration from a file."""
+        return load_config(config_name)
 
 
 def load_config(config_name: str) -> RuntimeConfig:
@@ -93,9 +74,7 @@ def load_config(config_name: str) -> RuntimeConfig:
     parsed_config = {
         **raw_config,
         "agent_inputs": [
-            load_input(input["type"])(
-                config=SensorOutputConfig(**input.get("config", {}))
-            )
+            load_input(input["type"])(config=SensorConfig(**input.get("config", {})))
             for input in raw_config.get("agent_inputs", [])
         ],
         "cortex_llm": load_llm(raw_config["cortex_llm"]["type"])(
@@ -103,7 +82,11 @@ def load_config(config_name: str) -> RuntimeConfig:
             output_model=CortexOutputModel,
         ),
         "simulators": [
-            load_simulator(simulator["type"])()
+            load_simulator(simulator["type"])(
+                config=SimulatorConfig(
+                    name=simulator["type"], **simulator.get("config", {})
+                )
+            )
             for simulator in raw_config.get("simulators", [])
         ],
         "agent_actions": [
