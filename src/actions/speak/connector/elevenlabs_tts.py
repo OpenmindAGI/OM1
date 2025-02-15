@@ -15,8 +15,11 @@ class SpeakRos2Connector(ActionConnector[SpeakInput]):
         microphone_name = getattr(self.config, "microphone_name", None)
         speaker_name = getattr(self.config, "speaker_name", None)
 
-        # Eleven Labs TTS configuration
+        # OM API key
         api_key = getattr(self.config, "api_key", None)
+
+        # Eleven Labs TTS configuration
+        elevenlabs_api_key = getattr(self.config, "elevenlabs_api_key", None)
         voice_id = getattr(self.config, "voice_id", "JBFqnCBsd6RMkjVDRZzb")
         model_id = getattr(self.config, "model_id", "eleven_flash_v2_5")
         output_format = getattr(self.config, "output_format", "mp3_44100_128")
@@ -30,6 +33,7 @@ class SpeakRos2Connector(ActionConnector[SpeakInput]):
         self.tts = ElevenLabsTTSProvider(
             url="https://api.openmind.org/api/core/elevenlabs/tts",
             api_key=api_key,
+            elevenlabs_api_key=elevenlabs_api_key,
             device_id=speaker_device_id,
             speaker_name=speaker_name,
             voice_id=voice_id,

@@ -3,7 +3,7 @@ import time
 
 import serial
 
-from actions.base import ActionConnector
+from actions.base import ActionConfig, ActionConnector
 from actions.move.interface import MoveInput
 
 """
@@ -13,8 +13,8 @@ This only works if you actually have a serial port connected to your computer, s
 
 class MoveSerialConnector(ActionConnector[MoveInput]):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, config: ActionConfig):
+        super().__init__(config)
 
         # Open the serial port
         self.port = (

@@ -15,7 +15,7 @@ class SpeakRos2Connector(ActionConnector[SpeakInput]):
         microphone_name = getattr(self.config, "microphone_name", None)
         speaker_name = getattr(self.config, "speaker_name", None)
 
-        # Riva TTS configuration
+        # OM API key
         api_key = getattr(self.config, "api_key", None)
 
         # Initialize ASR and TTS providers

@@ -91,6 +91,7 @@ class ElevenLabsTTSProvider:
         self,
         url: str,
         api_key: Optional[str] = None,
+        elevenlabs_api_key: Optional[str] = None,
         device_id: Optional[int] = None,
         speaker_name: Optional[str] = None,
         voice_id: Optional[str] = "JBFqnCBsd6RMkjVDRZzb",
@@ -101,6 +102,7 @@ class ElevenLabsTTSProvider:
         Initialize the TTS provider with given URL.
         """
         self.api_key: str = api_key
+        self.elevenlabs_api_key: str = elevenlabs_api_key
 
         # Initialize TTS provider
         self.running: bool = False
@@ -138,12 +140,18 @@ class ElevenLabsTTSProvider:
             Text to be converted to speech
         """
         logging.info(f"audio_stream: {text}")
+        elevenlabs_api_key = (
+            {"elevenlabs_api_key": self.elevenlabs_api_key}
+            if self.elevenlabs_api_key
+            else {}
+        )
         self._audio_stream.add_request(
             {
                 "text": text,
                 "voice_id": self._voice_id,
                 "model_id": self._model_id,
                 "output_format": self._output_format,
+                **elevenlabs_api_key,
             }
         )
 
