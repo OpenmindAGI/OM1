@@ -1,7 +1,7 @@
 from actions.base import ActionConfig, ActionConnector
 from actions.speak.interface import SpeakInput
 from providers.asr_provider import ASRProvider
-from providers.tts_provider import TTSProvider
+from providers.riva_tts_provider import RivaTTSProvider
 
 
 class SpeakRos2Connector(ActionConnector[SpeakInput]):
@@ -9,21 +9,14 @@ class SpeakRos2Connector(ActionConnector[SpeakInput]):
     def __init__(self, config: ActionConfig):
         super().__init__(config)
 
-        microphone_device_id = None
-        if hasattr(self.config, "microphone_device_id"):
-            microphone_device_id = self.config.microphone_device_id
+        # Get microphone and speaker device IDs and names
+        microphone_device_id = getattr(self.config, "microphone_device_id", None)
+        speaker_device_id = getattr(self.config, "speaker_device_id", None)
+        microphone_name = getattr(self.config, "microphone_name", None)
+        speaker_name = getattr(self.config, "speaker_name", None)
 
-        speaker_device_id = None
-        if hasattr(self.config, "speaker_device_id"):
-            speaker_device_id = self.config.speaker_device
-
-        microphone_name = None
-        if hasattr(self.config, "microphone_name"):
-            microphone_name = self.config.microphone_name
-
-        speaker_name = None
-        if hasattr(self.config, "speaker_name"):
-            speaker_name = self.config.speaker_name
+        # OM API key
+        api_key = getattr(self.config, "api_key", None)
 
         # Initialize ASR and TTS providers
         self.asr = ASRProvider(
@@ -31,10 +24,11 @@ class SpeakRos2Connector(ActionConnector[SpeakInput]):
             device_id=microphone_device_id,
             microphone_name=microphone_name,
         )
-        self.tts = TTSProvider(
-            url="https://api-tts.openmind.org",
+        self.tts = RivaTTSProvider(
+            url="https://api.openmind.org/api/core/riva/tts",
             device_id=speaker_device_id,
             speaker_name=speaker_name,
+            api_key=api_key,
         )
         self.tts.start()
 

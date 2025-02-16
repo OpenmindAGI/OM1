@@ -25,10 +25,11 @@ dependencies = [
     "fastapi>=0.110.0",
     "uvicorn>=0.27.1",
     "websockets>=12.0",
-    "om1-modules @ git+https://github.com/OpenmindAGI/om1-modules.git@a31b230cf0bd1bf5e1d55fb7896acc6e3df445dd",
+    "om1-modules @ git+https://github.com/OpenmindAGI/om1-modules.git@a049c4c0b8174a56b82da5e17fa725ddde79805a",
     "aiohttp>=3.9.3",
     "python-multipart>=0.0.9",
     "jinja2>=3.1.3",
+<<<<<<< HEAD
     "langchain",
     "langchain-community",
     "langchain-text-splitters",
@@ -36,6 +37,9 @@ dependencies = [
     "langchain-openai",
     "unstructured",
     "unstructured[pdf]"
+=======
+    "pydub>=0.25.1",
+>>>>>>> 913348bdfa108564b62514c529e4e447044c992e
 ]
 
 [project.optional-dependencies]

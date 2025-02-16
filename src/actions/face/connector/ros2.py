@@ -1,10 +1,14 @@
 import logging
 
-from actions.base import ActionConnector
+from actions.base import ActionConfig, ActionConnector
 from actions.face.interface import FaceInput
 
 
 class FaceRos2Connector(ActionConnector[FaceInput]):
+
+    def __init__(self, config: ActionConfig):
+        super().__init__(config)
+
     async def connect(self, output_interface: FaceInput) -> None:
         # define/clarify the datatype
         new_msg = {"face": ""}
