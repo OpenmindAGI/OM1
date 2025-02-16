@@ -3,10 +3,10 @@ import os
 import time
 
 import hid
+from unitree.unitree_sdk2py.go2.sport.sport_client import SportClient
 
 from actions.base import ActionConnector
 from actions.move_safe.interface import MoveInput
-from unitree.unitree_sdk2py.go2.sport.sport_client import SportClient
 
 
 class MoveRos2Connector(ActionConnector[MoveInput]):

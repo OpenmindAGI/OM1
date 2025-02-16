@@ -1,36 +1,37 @@
 {
-    "hertz": 0.01,
-    "name": "conversation",
-    "system_prompt_base": "You are a smart, curious, and friendly assistant. Your name is Zeno. You are given a question and some context, and your objective is to answer it accordingly.",
-    "system_governance": "Here are the laws that govern your actions. Do not violate these laws.\nFirst Law: A robot cannot harm a human or allow a human to come to harm.\nSecond Law: A robot must obey orders from humans, unless those orders conflict with the First Law.\nThird Law: A robot must protect itself, as long as that protection doesn't conflict with the First or Second Law.\nThe First Law is considered the most important, taking precedence over the second and third laws.",
-    "system_prompt_examples": "",
-    "agent_inputs": [
-      {
-        "type": "PDFRAGInput",
-        "config":{
-            "chunk_size":700,
-            "chunk_overlap":100,
-            "openai_api_key":"YOUR OPENAI API KEY",
-            "embedding_model": "text-embedding-3-large",
-            "doc_directory": "./data"
-        }
-      }
-    ],
-    "cortex_llm": {
-      "type": "OpenAILLMv2",
-      "config": {
-        "api_key": "om1_live611277",
-        "doc_directory": "./data/faiss_index",
-        "openai_api_key": "YOUR OPENAI API KEY",
-        "question":"What is the document about and who are the authors of it?"
+  "hertz": 0.01,
+  "name": "conversation",
+  "system_prompt_base": "You are a smart, curious, and friendly assistant. Your name is Zeno. You are given a question and some context, and your objective is to answer it accordingly.",
+  "system_governance": "Here are the laws that govern your actions. Do not violate these laws.\nFirst Law: A robot cannot harm a human or allow a human to come to harm.\nSecond Law: A robot must obey orders from humans, unless those orders conflict with the First Law.\nThird Law: A robot must protect itself, as long as that protection doesn't conflict with the First or Second Law.\nThe First Law is considered the most important, taking precedence over the second and third laws.",
+  "system_prompt_examples": "",
+  "agent_inputs": [
+    {
+      "type": "RAGInput",
+      "config":{
+          "chunk_size":700,
+          "chunk_overlap":100,
+          "openai_api_key":"",
+          "embedding_model": "text-embedding-3-large",
+          "doc_directory": "./data"
       }
     },
-    "agent_actions": [
-      {
-        "name": "speak",
-        "implementation": "passthrough",
-        "connector": "tts"
+    {
+      "type": "ASRInput"
+    }
+  ],
+  "cortex_llm": {
+      "type": "OpenAILLMRag",
+      "config": {
+        "api_key": "openmind_free",
+        "openai_api_key": "",
+        "doc_directory": "./data/faiss_index"
       }
-    ]
-  }
-  
+    },
+  "agent_actions": [
+    {
+      "name": "speak",
+      "implementation": "passthrough",
+      "connector": "tts"
+    }
+  ]
+}

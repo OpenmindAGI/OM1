@@ -1,19 +1,19 @@
 import logging
 import time
 import typing as T
-from langchain_community.vectorstores import FAISS
-from langchain_openai import OpenAIEmbeddings, ChatOpenAI
-import uuid
 
 import openai
+from langchain_community.vectorstores import FAISS
+from langchain_openai import OpenAIEmbeddings
 from pydantic import BaseModel
 
 from llm import LLM, LLMConfig
+from providers.io_provider import IOProvider
 
 R = T.TypeVar("R", bound=BaseModel)
 
 
-class OpenAILLMv2(LLM[R]):
+class OpenAILLMRag(LLM[R]):
     """
     An OpenAI-based Language Learning Model implementation.
 
@@ -41,13 +41,19 @@ class OpenAILLMv2(LLM[R]):
             Configuration settings for the LLM.
         """
         super().__init__(output_model, config)
-        
-        self.embedding_model = getattr(config, "embedding_model", "text-embedding-3-large")
+
+        self.embedding_model = getattr(
+            config, "embedding_model", "text-embedding-3-large"
+        )
         self.doc_directory = config.doc_directory
-        self.api_key = config.openai_api_key
-        self.question = config.question
-        
-        self.embeddings = OpenAIEmbeddings(model=self.embedding_model, api_key=self.api_key)
+        self.api_key = config.api_key
+        self.openai_api_key = config.openai_api_key
+
+        self.io_provider = IOProvider()
+
+        self.embeddings = OpenAIEmbeddings(
+            model=self.embedding_model, api_key=self.openai_api_key
+        )
         base_url = config.base_url or "https://api.openmind.org/api/core/openai"
 
         if config.api_key is None or config.api_key == "":
@@ -63,17 +69,6 @@ class OpenAILLMv2(LLM[R]):
         self._client = openai.AsyncClient(**client_kwargs)
 
     async def ask(self, prompt: str) -> R | None:
-
-        docsearch = FAISS.load_local(self.doc_directory, self.embeddings, allow_dangerous_deserialization=True)
-
-        docsearch = docsearch.as_retriever(search_type="mmr", search_kwargs={"k": 4})
-        retrieved_docs = docsearch.invoke(self.question)
-
-        docs_content = "\n\n".join(doc.page_content for doc in retrieved_docs)
-
-        prompt = f"Based on the context given below:\n {docs_content}\n Answer the question: {self.question}\n " 
-        print("\n\nressss...\n\n")
-        print(prompt)
         """
         Send a prompt to the OpenAI API and get a structured response.
 
@@ -88,6 +83,18 @@ class OpenAILLMv2(LLM[R]):
             Parsed response matching the output_model structure, or None if
             parsing fails.
         """
+
+        asr_input = self.io_provider.inputs["ASRInput"].input
+
+        docsearch = FAISS.load_local(
+            self.doc_directory, self.embeddings, allow_dangerous_deserialization=True
+        )
+        docsearch = docsearch.as_retriever(search_type="mmr", search_kwargs={"k": 4})
+        retrieved_docs = docsearch.invoke(asr_input)
+        docs_content = "\n\n".join(doc.page_content for doc in retrieved_docs)
+
+        prompt = f"Based on the context given below:\n {docs_content}\n Answer the question given: {asr_input}\n Note that if the question is a general greeting or a typical conversation, respond directly with your knowledge without using the context. Generating an answer using the context is necessary only if the question is ACTUALLY a qestion. You MUST NOT call a function or tool either."
+
         try:
             logging.debug(f"OpenAI LLM input: {prompt}")
             self.io_provider.llm_start_time = time.time()
@@ -103,8 +110,7 @@ class OpenAILLMv2(LLM[R]):
 
             message_content = parsed_response.choices[0].message.content
             self.io_provider.llm_end_time = time.time()
-            
-            print("\n\nressss...\n\n")
+
             print(message_content)
 
             try:

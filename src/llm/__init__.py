@@ -29,7 +29,6 @@ class LLMConfig(BaseModel):
     model: T.Optional[str] = None
     doc_directory: T.Optional[str] = None
     openai_api_key: T.Optional[str] = None
-    question: T.Optional[str] = None
 
 
 class LLM(T.Generic[R]):

@@ -28,7 +28,14 @@ dependencies = [
     "om1-modules @ git+https://github.com/OpenmindAGI/om1-modules.git@a31b230cf0bd1bf5e1d55fb7896acc6e3df445dd",
     "aiohttp>=3.9.3",
     "python-multipart>=0.0.9",
-    "jinja2>=3.1.3"
+    "jinja2>=3.1.3",
+    "langchain",
+    "langchain-community",
+    "langchain-text-splitters",
+    "faiss-cpu",
+    "langchain-openai",
+    "unstructured",
+    "unstructured[pdf]"
 ]
 
 [project.optional-dependencies]
