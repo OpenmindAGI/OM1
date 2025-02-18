@@ -3,9 +3,9 @@
   "name": "OpenMind",
   "favicon": "/assets/favicon.png",
   "colors": {
-    "primary": "#E83362",
-    "light": "#E53935",
-    "dark": "#E63946"
+    "primary": "#FD015F",
+    "light": "#E10054",
+    "dark": "#FD015F"
   },
   "styling": {
     "codeblocks": "system"
