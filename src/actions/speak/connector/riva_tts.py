@@ -18,14 +18,20 @@ class SpeakRos2Connector(ActionConnector[SpeakInput]):
         # OM API key
         api_key = getattr(self.config, "api_key", None)
 
+        # Endpoint URLs
+        asr_url = getattr(self.config, "asr_url", "wss://api-asr.openmind.org")
+        tts_url = getattr(
+            self.config, "tts_url", "https://api.openmind.org/api/core/riva/tts"
+        )
+
         # Initialize ASR and TTS providers
         self.asr = ASRProvider(
-            ws_url="wss://api-asr.openmind.org",
+            ws_url=asr_url,
             device_id=microphone_device_id,
             microphone_name=microphone_name,
         )
         self.tts = RivaTTSProvider(
-            url="https://api.openmind.org/api/core/riva/tts",
+            url=tts_url,
             device_id=speaker_device_id,
             speaker_name=speaker_name,
             api_key=api_key,
