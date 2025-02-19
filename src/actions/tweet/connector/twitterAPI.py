@@ -4,15 +4,16 @@ import warnings
 
 from dotenv import load_dotenv
 
-from actions.base import ActionConnector
+from actions.base import ActionConfig, ActionConnector
 from actions.tweet.interface import TweetInput
 
 
 class TweetAPIConnector(ActionConnector[TweetInput]):
     """Connector for Twitter API."""
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, config: ActionConfig):
+        super().__init__(config)
+
         load_dotenv()
 
         # Suppress tweepy warnings

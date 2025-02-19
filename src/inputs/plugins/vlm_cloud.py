@@ -60,10 +60,7 @@ class VLMCloud(FuserInput[str]):
         self.message_buffer: Queue[str] = Queue()
 
         # Initialize VLM provider
-        base_url = "wss://api-vila.openmind.org"
-
-        if hasattr(self.config, "base_url"):
-            base_url = self.config.base_url
+        base_url = getattr(self.config, "base_url", "wss://api-vila.openmind.org")
 
         self.vlm: VLMProvider = VLMProvider(ws_url=base_url)
         self.vlm.start()

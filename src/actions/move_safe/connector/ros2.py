@@ -4,15 +4,16 @@ import time
 
 import hid
 
-from actions.base import ActionConnector
+from actions.base import ActionConfig, ActionConnector
 from actions.move_safe.interface import MoveInput
 from unitree.unitree_sdk2py.go2.sport.sport_client import SportClient
 
 
 class MoveRos2Connector(ActionConnector[MoveInput]):
 
-    def __init__(self):
-        # pygame.init()
+    def __init__(self, config: ActionConfig):
+        super().__init__(config)
+
         self.joysticks = []
 
         self.vendor_id = ""

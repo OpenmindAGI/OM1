@@ -9,7 +9,7 @@ from .singleton import singleton
 
 
 @singleton
-class TTSProvider:
+class RivaTTSProvider:
     """
     Text-to-Speech Provider that manages an audio output stream.
 
@@ -24,6 +24,8 @@ class TTSProvider:
         The audio device index for audio output (default is None)
     speaker_name : str, optional
         The name of the speaker for audio output (default is None)
+    api_key : str, optional
+        The API key for the TTS service (default is None)
     """
 
     def __init__(
@@ -31,6 +33,7 @@ class TTSProvider:
         url: str,
         device_id: Optional[int] = None,
         speaker_name: Optional[str] = None,
+        api_key: Optional[str] = None,
     ):
         """
         Initialize the TTS provider with given URL.
@@ -43,7 +46,10 @@ class TTSProvider:
         self.running: bool = False
         self._thread: Optional[threading.Thread] = None
         self._audio_stream: AudioOutputStream = AudioOutputStream(
-            url=url, device=device_id, device_name=speaker_name
+            url=url,
+            device=device_id,
+            device_name=speaker_name,
+            headers={"x-api-key": api_key} if api_key else None,
         )
 
     def register_tts_state_callback(self, tts_state_callback: Optional[Callable]):
@@ -67,7 +73,7 @@ class TTSProvider:
             Text to be converted to speech
         """
         logging.info(f"audio_stream: {text}")
-        self._audio_stream.add(text)
+        self._audio_stream.add_request({"text": text})
 
     def start(self):
         """
