@@ -4,7 +4,7 @@ description: 'Get started with OpenMind OS (OM1)'
 ---
 
 <Note>
-  This guide provides a comprehensive overview of the OM1 agent runtime system, including CLI commands, project structure, development workflow, and configuration.
+  This guide provides an overview of the OM1 agent runtime system, including CLI commands, project structure, development workflow, and configuration.
 </Note>
 
 ## Quick Start
@@ -78,7 +78,7 @@ The main entry point is `src/run.py` which provides the following commands:
 ## Lint and Unittesting
 
 * To unittest the system, run `uv run pytest --log-cli-level=DEBUG -s`
-* To lint the code, run `uv run ruff check . --fix && uv run black . && uv run isort .` 
+* To lint the code, run `uv run ruff check . --fix && uv run black . && uv run isort .`
 
 ## Adding New Actions
 
@@ -123,6 +123,40 @@ actions/
   ```
 </Accordion>
 
+
+```json Configuration
+{
+  "hertz": 0.5,
+  "name": "agent_name",
+  "api_key": "your_key_here",
+  "system_prompt": "...",
+  "agent_inputs": [
+    {
+      "type": "VlmInput"
+    }
+  ],
+  "cortex_llm": {
+    "type": "OpenAILLM",
+    "config": {
+      "base_url": "", // Optional: URL of the LLM endpoint
+      "api_key": "your_key_here" // Optional: Override the default API key
+    }
+  },
+  "simulators": [
+    {
+      "type": "WebSim"
+    }
+  ],
+  "agent_actions": [
+    {
+      "name": "move",
+      "implementation": "passthrough",
+      "connector": "ros2"
+    }
+  ]
+}
+```
+
 <Accordion title="Pre-commit Hooks">
   Install pre-commit hooks:
   ```bash
@@ -146,13 +180,6 @@ actions/
   ```
 </ResponseField>
 
-<ResponseField name="UNITREE_WIRED_ETHERNET" type="string">
-  Network adapter for Unitree robot connection
-  ```bash
-  UNITREE_WIRED_ETHERNET=eno0  # or "SIM" for debugging
-  ```
-</ResponseField>
-
 ## LLM Configuration
 
 OpenMind provides proxy endpoints for various LLM services:
@@ -162,28 +189,8 @@ OpenMind provides proxy endpoints for various LLM services:
 {
   "type": "OpenAILLM",
   "config": {
-    "base_url": "https://api.openmind.org/api/core/openai",
-    "api_key": "your_key_here"
-  }
-}
-```
-
-```json DeepSeek
-{
-  "type": "DeepSeekLLM",
-  "config": {
-    "base_url": "https://api.openmind.org/api/core/deepseek",
-    "api_key": "your_key_here"
-  }
-}
-```
-
-```json Gemini
-{
-  "type": "GeminiLLM",
-  "config": {
-    "base_url": "https://api.openmind.org/api/core/gemini",
-    "api_key": "your_key_here"
+    "base_url": "...", // Optional: URL of the LLM endpoint
+    "api_key": "..."   // Optional: Override the default API key
   }
 }
 ```

@@ -16,17 +16,23 @@ def mock_config_data():
     return {
         "hertz": 10.0,
         "name": "test_config",
+        "api_key": "global_test_api_key",
         "system_prompt_base": "system prompt base",
         "system_governance": "system governance",
         "system_prompt_examples": "system prompt examples",
         "agent_inputs": [{"type": "test_input"}],
         "cortex_llm": {"type": "test_llm", "config": {"model": "test-model"}},
-        "simulators": [{"type": "test_simulator"}],
+        "simulators": [
+            {"type": "test_simulator", "config": {"api_key": "sim_test_api_key"}}
+        ],
         "agent_actions": [
             {
                 "name": "test_action",
                 "implementation": "test_implementation",
                 "connector": "test_connector",
+                "config": {
+                    "arg1": "val1",
+                },
             }
         ],
     }
@@ -126,11 +132,14 @@ def test_load_config(mock_config_data, mock_dependencies):
         assert (
             config.system_prompt_examples == mock_config_data["system_prompt_examples"]
         )
+        assert config.api_key == mock_config_data["api_key"]
         assert len(config.agent_inputs) == 1
         assert isinstance(config.agent_inputs[0], mock_dependencies["input"])
+        assert config.agent_inputs[0].config.api_key == mock_config_data["api_key"]
         assert isinstance(config.cortex_llm, mock_dependencies["llm"])
         assert len(config.simulators) == 1
         assert isinstance(config.simulators[0], mock_dependencies["simulator"])
+        assert config.simulators[0].config.api_key == "sim_test_api_key"
         assert len(config.agent_actions) == 1
         assert isinstance(config.agent_actions[0], mock_dependencies["action"])
 
