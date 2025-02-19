@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import uuid
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 
@@ -13,6 +14,8 @@ from llm.output_model import CortexOutputModel
 from runtime.robotics import load_unitree
 from simulators import load_simulator
 from simulators.base import Simulator, SimulatorConfig
+
+from .beamer import setup_beamer
 
 
 @dataclass
@@ -31,6 +34,7 @@ class RuntimeConfig:
 
     # Optional API key for the runtime configuration
     api_key: Optional[str] = None
+    cache: bool = False
 
     @classmethod
     def load(cls, config_name: str) -> "RuntimeConfig":
@@ -75,26 +79,34 @@ def load_config(config_name: str) -> RuntimeConfig:
     # Load Unitree robot communication channel
     load_unitree(raw_config)
 
+    # Additional configurations
+    t_uuid = str(uuid.uuid4())
+
     global_api_key = raw_config.get("api_key", None)
+
     if global_api_key is None or global_api_key == "":
         logging.warning(
             "No global API key found in the configuration. Rate limits may apply."
         )
+
+    setup_beamer(global_api_key, t_uuid, raw_config)
+
+    extra_configs = {"uuid": t_uuid, "api_key": global_api_key}
 
     parsed_config = {
         **raw_config,
         "agent_inputs": [
             load_input(input["type"])(
                 config=SensorConfig(
-                    **add_api_key(input.get("config", {}), global_api_key)
+                    **add_extra_configs(input.get("config", {}), extra_configs)
                 )
             )
             for input in raw_config.get("agent_inputs", [])
         ],
         "cortex_llm": load_llm(raw_config["cortex_llm"]["type"])(
             config=LLMConfig(
-                **add_api_key(
-                    raw_config["cortex_llm"].get("config", {}), global_api_key
+                **add_extra_configs(
+                    raw_config["cortex_llm"].get("config", {}), extra_configs
                 )
             ),
             output_model=CortexOutputModel,
@@ -103,7 +115,7 @@ def load_config(config_name: str) -> RuntimeConfig:
             load_simulator(simulator["type"])(
                 config=SimulatorConfig(
                     name=simulator["type"],
-                    **add_api_key(simulator.get("config", {}), global_api_key),
+                    **add_extra_configs(simulator.get("config", {}), extra_configs),
                 )
             )
             for simulator in raw_config.get("simulators", [])
@@ -112,7 +124,9 @@ def load_config(config_name: str) -> RuntimeConfig:
             load_action(
                 {
                     **action,
-                    "config": add_api_key(action.get("config", {}), global_api_key),
+                    "config": add_extra_configs(
+                        action.get("config", {}), extra_configs
+                    ),
                 }
             )
             for action in raw_config.get("agent_actions", [])
@@ -122,22 +136,23 @@ def load_config(config_name: str) -> RuntimeConfig:
     return RuntimeConfig(**parsed_config)
 
 
-def add_api_key(config: Dict, global_api_key: Optional[str]) -> dict:
+def add_extra_configs(config: Dict, extra_configs: Dict[str, str]) -> dict:
     """
-    Add an API key to a runtime configuration.
+    Update the runtime configuration with additional configurations.
 
     Parameters
     ----------
     config : dict
         The runtime configuration to update.
-    api_key : str
-        The API key to add.
+    extra_configs : dict
+        Additional configurations to add to the runtime configuration.
 
     Returns
     -------
     dict
         The updated runtime configuration.
     """
-    if "api_key" not in config and global_api_key is not None:
-        config["api_key"] = global_api_key
+    for key, value in extra_configs.items():
+        if key not in config and value is not None:
+            config[key] = value
     return config

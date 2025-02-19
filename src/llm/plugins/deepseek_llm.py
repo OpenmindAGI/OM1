@@ -88,6 +88,7 @@ class DeepSeekLLM(LLM[R]):
                 ),
                 messages=messages,
                 response_format={"type": "json_object"},
+                extra_headers={"x-uuid": self._config.uuid},
             )
 
             message_content = parsed_response.choices[0].message.content

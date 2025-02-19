@@ -22,11 +22,14 @@ class LLMConfig(BaseModel):
         Authentication key for the LLM service
     model : str, optional
         Name of the LLM model to use
+    uuid: str, optional
+        UUID for the process
     """
 
     base_url: T.Optional[str] = None
     api_key: T.Optional[str] = None
     model: T.Optional[str] = None
+    uuid: T.Optional[str] = None
 
 
 class LLM(T.Generic[R]):

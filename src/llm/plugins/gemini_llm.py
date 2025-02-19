@@ -85,6 +85,7 @@ class GeminiLLM(LLM[R]):
             ),
             messages=self._build_messages(prompt),
             response_format={"type": "json_object"},
+            extra_headers={"x-uuid": self._config.uuid},
         )
         return completion
 

@@ -24,14 +24,20 @@ class SpeakRos2Connector(ActionConnector[SpeakInput]):
         model_id = getattr(self.config, "model_id", "eleven_flash_v2_5")
         output_format = getattr(self.config, "output_format", "mp3_44100_128")
 
+        # Endpoint URLs
+        asr_url = getattr(self.config, "asr_url", "wss://api-asr.openmind.org")
+        tts_url = getattr(
+            self.config, "tts_url", "https://api.openmind.org/api/core/elevenlabs/tts"
+        )
+
         # Initialize ASR and TTS providers
         self.asr = ASRProvider(
-            ws_url="wss://api-asr.openmind.org",
+            ws_url=asr_url,
             device_id=microphone_device_id,
             microphone_name=microphone_name,
         )
         self.tts = ElevenLabsTTSProvider(
-            url="https://api.openmind.org/api/core/elevenlabs/tts",
+            url=tts_url,
             api_key=api_key,
             elevenlabs_api_key=elevenlabs_api_key,
             device_id=speaker_device_id,

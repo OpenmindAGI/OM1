@@ -79,6 +79,7 @@ class OpenAILLM(LLM[R]):
                 ),
                 messages=[{"role": "user", "content": prompt}],
                 response_format=self._output_model,
+                extra_headers={"x-uuid": self._config.uuid},
             )
 
             message_content = parsed_response.choices[0].message.content
