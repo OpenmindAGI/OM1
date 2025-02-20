@@ -1,0 +1,116 @@
+# Tweet Agent Documentation
+
+## Overview
+The tweet agent is an AI-powered agent that monitors a knowledge base and automatically generates and posts tweets about interesting findings. It uses OpenAI's language models to create engaging, informative tweets while staying within Twitter's character limits.
+
+## Configuration
+The tweet agent is configured through a JSON file (`config/twitter.json`). Here's a breakdown of the key configuration parameters:
+
+```json
+{
+    "hertz": 0.2,  // How frequently the agent checks for new content (5 second intervals)
+    "name": "twitter_agent",
+    "system_prompt_base": "You are an AI agent that shares knowledge from the OpenMind knowledge base...",
+    "system_governance": "Here are the laws that govern your actions...",
+    "system_prompt_examples": "Here are some examples of interactions...",
+    "agent_inputs": [
+        {
+            "type": "TwitterInput",
+            "config": {
+                "query": "What are the latest developments in cryptocurrency?"
+            }
+        }
+    ],
+    "cortex_llm": {
+        "type": "OpenAILLM"
+    },
+    "agent_actions": [
+        {
+            "name": "tweet",
+            "implementation": "passthrough",
+            "connector": "twitterAPI"
+        }
+    ]
+}
+```
+
+## Components
+
+### TwitterInput
+The TwitterInput component queries the knowledge base for relevant information based on the configured query. This information is then used to generate tweet content.
+
+### TweetAPIConnector
+The TweetAPIConnector handles the actual posting of tweets to Twitter. It requires proper Twitter API credentials to be set in the `.env` file:
+
+```env
+TWITTER_API_KEY=your_api_key
+TWITTER_API_SECRET=your_api_secret
+TWITTER_ACCESS_TOKEN=your_access_token
+TWITTER_ACCESS_TOKEN_SECRET=your_access_token_secret
+TWITTER_BEARER_TOKEN=your_bearer_token
+```
+
+### Passthrough Implementation
+The tweet action uses a passthrough implementation, meaning the input tweet text is passed directly to the Twitter API without modification.
+
+## Usage
+
+1. Set up Twitter API credentials in `.env` file
+2. Configure the tweet agent in `config/twitter.json`
+3. Run the agent using:
+```bash
+python src/run.py start twitter
+```
+
+## Example Tweet Generation
+
+The agent follows these steps:
+1. Queries the knowledge base based on configured topics
+2. Processes the information through the LLM
+3. Generates an engaging tweet under 280 characters
+4. Posts the tweet via the Twitter API
+
+Example tweet format:
+```json
+{
+    "sentence": "Breaking: OpenAI just announced GPT-5 with improved reasoning capabilities and better alignment. This could be a game-changer for AI safety and capabilities! #AI #GPT5"
+}
+```
+
+## Error Handling
+
+The TweetAPIConnector includes error handling for common issues:
+- Failed API connections
+- Rate limiting
+- Invalid tweet content
+- Network errors
+
+All errors are logged for monitoring and debugging purposes.
+
+## Best Practices
+
+1. Keep queries focused and specific
+2. Include relevant hashtags in example tweets
+3. Monitor the agent's output regularly
+4. Adjust the `hertz` rate based on your Twitter API rate limits
+5. Use the governance system to ensure appropriate content
+
+## Dependencies
+
+- OpenAI API access
+- Twitter API credentials
+- Python 3.12 or higher
+- Required Python packages (specified in `uv.lock`)
+
+## Troubleshooting
+
+Common issues and solutions:
+1. Twitter API authentication errors: Verify credentials in `.env`
+2. Rate limiting: Adjust the `hertz` value
+3. Connection timeouts: Check network connectivity
+4. Invalid tweet content: Review system prompts and examples
+
+For detailed logs, run with debug mode:
+```bash
+python src/run.py start twitter --debug
+``` 
