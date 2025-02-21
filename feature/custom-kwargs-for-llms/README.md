@@ -18,7 +18,6 @@ timeout=30, # Custom timeout for client
 max_retries=3 # Custom retry configuration
 )
 
-text
 
 #### Making Requests with Custom Parameters
 
@@ -30,7 +29,6 @@ top_p=0.9, # Nucleus sampling parameter
 max_tokens=100 # Maximum response length
 )
 
-text
 
 ### Supported Parameters
 
