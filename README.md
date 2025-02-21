@@ -34,7 +34,8 @@ uv venv
 ```
 
 _Note 1:_ You will need the Rust Python package manager `uv`.
-* To install on Mac, use `brew install uv`.
+* To install on Mac Intel chip, use `brew install uv`.
+* To install on Mac M1/2/3, use `curl -LsSf https://astral.sh/uv/install.sh | sh` (make sure the terminal and python are arm64 native)
 * On Linux, use `curl -LsSf https://astral.sh/uv/install.sh | sh`.
 
 _Note 2:_ If your system doesn't have `portaudio`, you should install it to run the program.

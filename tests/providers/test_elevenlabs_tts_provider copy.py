@@ -75,7 +75,7 @@ def test_add_pending_message(mock_audio_stream):
         {
             "text": "test message",
             "voice_id": "JBFqnCBsd6RMkjVDRZzb",
-            "model_id": "eleven_multilingual_v2",
+            "model_id": "eleven_flash_v2_5",
             "output_format": "mp3_44100_128",
         }
     )

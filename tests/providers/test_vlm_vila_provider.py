@@ -2,7 +2,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from providers.vlm_provider import VLMProvider
+from providers.vlm_vila_provider import VLMVilaProvider
 
 
 @pytest.fixture
@@ -17,22 +17,22 @@ def fps():
 
 @pytest.fixture(autouse=True)
 def reset_singleton():
-    VLMProvider._instance = None
+    VLMVilaProvider._instance = None
     yield
 
 
 @pytest.fixture
 def mock_dependencies():
     with (
-        patch("providers.vlm_provider.ws.Client") as mock_ws_client,
-        patch("providers.vlm_provider.VideoStream") as mock_video_stream,
+        patch("providers.vlm_vila_provider.ws.Client") as mock_ws_client,
+        patch("providers.vlm_vila_provider.VideoStream") as mock_video_stream,
     ):
         yield mock_ws_client, mock_video_stream
 
 
 def test_initialization(ws_url, fps, mock_dependencies):
     mock_ws_client, mock_video_stream = mock_dependencies
-    provider = VLMProvider(ws_url, fps=fps)
+    provider = VLMVilaProvider(ws_url, fps=fps)
 
     mock_ws_client.assert_called_once_with(url=ws_url)
     mock_video_stream.assert_called_once_with(provider.ws_client.send_message, fps=fps)
@@ -44,8 +44,8 @@ def test_initialization(ws_url, fps, mock_dependencies):
 
 
 def test_singleton_pattern(ws_url, fps):
-    provider1 = VLMProvider(ws_url, fps=fps)
-    provider2 = VLMProvider(ws_url, fps=fps)
+    provider1 = VLMVilaProvider(ws_url, fps=fps)
+    provider2 = VLMVilaProvider(ws_url, fps=fps)
 
     assert provider1 is provider2
     assert provider1.ws_client is provider2.ws_client
@@ -53,7 +53,7 @@ def test_singleton_pattern(ws_url, fps):
 
 
 def test_register_message_callback(ws_url, fps, mock_dependencies):
-    provider = VLMProvider(ws_url, fps=fps)
+    provider = VLMVilaProvider(ws_url, fps=fps)
     callback = Mock()
 
     provider.register_message_callback(callback)
@@ -61,7 +61,7 @@ def test_register_message_callback(ws_url, fps, mock_dependencies):
 
 
 def test_start(ws_url, fps, mock_dependencies):
-    provider = VLMProvider(ws_url, fps=fps)
+    provider = VLMVilaProvider(ws_url, fps=fps)
     provider.start()
 
     assert provider.running
@@ -72,7 +72,7 @@ def test_start(ws_url, fps, mock_dependencies):
 
 
 def test_start_already_running(ws_url, fps, mock_dependencies):
-    provider = VLMProvider(ws_url, fps=fps)
+    provider = VLMVilaProvider(ws_url, fps=fps)
     provider.start()
     initial_thread = provider._thread
 
@@ -81,7 +81,7 @@ def test_start_already_running(ws_url, fps, mock_dependencies):
 
 
 def test_stop(ws_url, fps, mock_dependencies):
-    provider = VLMProvider(ws_url, fps=fps)
+    provider = VLMVilaProvider(ws_url, fps=fps)
     provider.start()
     provider.stop()
 

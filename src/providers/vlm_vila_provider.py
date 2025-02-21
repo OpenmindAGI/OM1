@@ -10,7 +10,7 @@ from .singleton import singleton
 
 
 @singleton
-class VLMProvider:
+class VLMVilaProvider:
     """
     VLM Provider that handles audio streaming and websocket communication.
 

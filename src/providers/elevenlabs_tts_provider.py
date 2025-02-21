@@ -42,21 +42,34 @@ class ElevenLabsAudioOutputStream(AudioOutputStream):
         audio_segment = AudioSegment.from_mp3(io.BytesIO(audio_bytes))
         raw_data = audio_segment.raw_data
 
-        # Update stream to fit the new audio data
-        self.stream = self._audio_interface.open(
-            format=self._audio_interface.get_format_from_width(
-                audio_segment.sample_width
-            ),
-            channels=audio_segment.channels,
-            rate=audio_segment.frame_rate,
-            output=True,
+        current_format = self.stream._format
+        needed_format = self._audio_interface.get_format_from_width(
+            audio_segment.sample_width
         )
 
-        chunk_size = 1024
-        for i in range(0, len(raw_data), chunk_size):
-            self.stream.write(raw_data[i : i + chunk_size])
+        if (
+            current_format != needed_format
+            or self.stream._channels != audio_segment.channels
+            or self.stream._rate != audio_segment.frame_rate
+        ):
+            self.stream.stop_stream()
+            self.stream.close()
 
-        self.stream.stop_stream()
+            # Reopen the stream with the new format
+            self.stream = self._audio_interface.open(
+                output_device_index=self._device,
+                format=needed_format,
+                channels=audio_segment.channels,
+                rate=audio_segment.frame_rate,
+                output=True,
+                frames_per_buffer=8192,
+            )
+
+        chunk_size = 8192
+        for i in range(0, len(raw_data), chunk_size):
+            self.stream.write(
+                raw_data[i : i + chunk_size], exception_on_underflow=False
+            )
 
         self._tts_callback(False)
 
@@ -95,7 +108,7 @@ class ElevenLabsTTSProvider:
         device_id: Optional[int] = None,
         speaker_name: Optional[str] = None,
         voice_id: Optional[str] = "JBFqnCBsd6RMkjVDRZzb",
-        model_id: Optional[str] = "eleven_multilingual_v2",
+        model_id: Optional[str] = "eleven_flash_v2_5",
         output_format: Optional[str] = "mp3_44100_128",
     ):
         """

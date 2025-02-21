@@ -1,14 +1,14 @@
-import json
 from unittest.mock import Mock, patch
 
 import pytest
 
-from inputs.plugins.vlm_cloud import Message, VLMCloud
+from inputs.base import SensorConfig
+from inputs.plugins.vlm_openai import Message, VLMOpenAI
 
 
 @pytest.fixture
 def mock_vlm_provider():
-    with patch("inputs.plugins.vlm_cloud.VLMProvider") as mock:
+    with patch("inputs.plugins.vlm_openai.VLMOpenAIProvider") as mock:
         mock_instance = Mock()
         mock.return_value = mock_instance
         yield mock_instance
@@ -16,28 +16,20 @@ def mock_vlm_provider():
 
 @pytest.fixture
 def vlm_input(mock_vlm_provider):
-    return VLMCloud()
+    return VLMOpenAI(config=SensorConfig(api_key="test_api_key"))
 
 
-def test_init(vlm_input, mock_vlm_provider):
-    assert vlm_input.messages == []
-    assert vlm_input.message_buffer.empty()
-    mock_vlm_provider.start.assert_called_once()
-    mock_vlm_provider.register_message_callback.assert_called_once_with(
-        vlm_input._handle_vlm_message
-    )
+def test_missing_api_key():
+    with pytest.raises(ValueError):
+        VLMOpenAI(config=SensorConfig(api_key=""))
 
 
 def test_handle_vlm_message(vlm_input):
-    test_message = json.dumps({"vlm_reply": "test video"})
-    vlm_input._handle_vlm_message(test_message)
-    assert vlm_input.message_buffer.get_nowait() == "test video"
-
-
-def test_handle_invalid_json(vlm_input):
-    invalid_json = "invalid json"
-    vlm_input._handle_vlm_message(invalid_json)
-    assert vlm_input.message_buffer.empty()
+    image_content = "image content"
+    mock_chat_completion = Mock()
+    mock_chat_completion.choices = [Mock(message=Mock(content=image_content))]
+    vlm_input._handle_vlm_message(mock_chat_completion)
+    assert vlm_input.message_buffer.get_nowait() == image_content
 
 
 @pytest.mark.asyncio

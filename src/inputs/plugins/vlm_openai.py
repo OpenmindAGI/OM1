@@ -1,15 +1,16 @@
 import asyncio
-import json
 import logging
 import time
 from dataclasses import dataclass
 from queue import Empty, Queue
-from typing import Dict, List, Optional
+from typing import List, Optional
+
+from openai import ChatCompletion
 
 from inputs.base import SensorConfig
 from inputs.base.loop import FuserInput
 from providers.io_provider import IOProvider
-from providers.vlm_provider import VLMProvider
+from providers.vlm_openai_provider import VLMOpenAIProvider
 
 
 @dataclass
@@ -29,7 +30,7 @@ class Message:
     message: str
 
 
-class VLMCloud(FuserInput[str]):
+class VLMOpenAI(FuserInput[str]):
     """
     Vision Language Model input handler.
 
@@ -60,15 +61,23 @@ class VLMCloud(FuserInput[str]):
         self.message_buffer: Queue[str] = Queue()
 
         # Initialize VLM provider
-        base_url = getattr(self.config, "base_url", "wss://api-vila.openmind.org")
+        base_url = getattr(
+            self.config, "base_url", "https://api.openmind.org/api/core/openai"
+        )
+        api_key = getattr(self.config, "api_key", None)
 
-        self.vlm: VLMProvider = VLMProvider(ws_url=base_url)
+        if api_key is None or api_key == "":
+            raise ValueError("config file missing api_key")
+
+        self.vlm: VLMOpenAIProvider = VLMOpenAIProvider(
+            base_url=base_url, api_key=api_key
+        )
         self.vlm.start()
         self.vlm.register_message_callback(self._handle_vlm_message)
 
         self.descriptor_for_LLM = "Vision Language Model"
 
-    def _handle_vlm_message(self, raw_message: str):
+    def _handle_vlm_message(self, raw_message: ChatCompletion):
         """
         Process incoming VLM messages.
 
@@ -80,14 +89,8 @@ class VLMCloud(FuserInput[str]):
         raw_message : str
             Raw JSON message received from the VLM service
         """
-        try:
-            json_message: Dict = json.loads(raw_message)
-            if "vlm_reply" in json_message:
-                vlm_reply = json_message["vlm_reply"]
-                self.message_buffer.put(vlm_reply)
-                logging.info("Detected VLM message: %s", vlm_reply)
-        except json.JSONDecodeError:
-            pass
+        logging.info(f"VLM OpenAI received message: {raw_message}")
+        self.message_buffer.put(raw_message.choices[0].message.content)
 
     async def _poll(self) -> Optional[str]:
         """
