@@ -132,12 +132,12 @@ More detailed documentation can be accessed at [docs.openmind.org](https://docs.
 
 Highlights:
 
-- [Core Architecture and Runtime Flow](./docs/development//architecture.mdx)
-- [Quick Start](./docs/quick_start.mdx)
-- [Developer Guide](./docs/development/guide.mdx)
-- [Example 1 - Using DeepSeek or Gemini as the Core LLM](./docs/examples/llm_models.mdx)
-- [Example 2 - Using Cloud Endpoints for Voice Inputs and Text to Speech](./docs/examples/conversation.mdx)
-- [Example 3 - An Interactive Smart Toy](./docs/examples/smart_toy.mdx)
+- [Core Architecture and Runtime Flow](./docs/getting-started/architecture.mdx)
+- [Quick Start](./docs/getting-started/quick_start.mdx)
+- [Developer Guide](./docs/development/linting-testing.mdx)
+- [Example 1 - Using DeepSeek or Gemini as the Core LLM](./docs/core-features/llm_models.mdx)
+- [Example 2 - Using Cloud Endpoints for Voice Inputs and Text to Speech](./docs/core-features/conversation.mdx)
+- [Example 3 - An Interactive Smart Toy](./docs/core-features/smart_toy.mdx)
 - [Robotics - Unitree Dog](./docs/robotics/unitree_robotics.mdx)
 - [Robotics - Unitree Dog with Wallet](./docs/robotics/coinbase_hackathon.mdx)
 
