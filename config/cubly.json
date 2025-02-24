@@ -11,6 +11,9 @@
     },
     {
       "type": "ASRInput"
+    },
+    {
+      "type": "SerialReader"
     }
   ],
   "simulators": [
