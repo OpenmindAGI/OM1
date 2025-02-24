@@ -10,7 +10,7 @@
     {
       "type": "ASRInput",
       "config": {
-        "microphone_name": "Wireless Microphone RX"
+        "microphone_name": "USB-C to 3.5mm Headphone"
       }
     },
     {
@@ -34,8 +34,8 @@
       "connector": "elevenlabs_tts",
       "config": {
         "voice_id": "i4CzbCVWoqvD0P1QJCUL",
-        "microphone_name": "Wireless Microphone RX",
-        "speaker_name": "Bose Flex 2 SoundLink"
+        "microphone_name": "USB-C to 3.5mm Headphone",
+        "speaker_name": "Avantree C81G"
       }
     },
     {

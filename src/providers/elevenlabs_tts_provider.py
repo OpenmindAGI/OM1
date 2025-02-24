@@ -22,7 +22,7 @@ class ElevenLabsAudioOutputStream(AudioOutputStream):
     def __init__(
         self,
         url,
-        rate=8000,
+        rate=48000,
         device=None,
         device_name=None,
         tts_state_callback=None,

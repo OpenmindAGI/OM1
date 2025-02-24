@@ -49,6 +49,7 @@ class ASRProvider:
         self.running: bool = False
         self.ws_client: ws.Client = ws.Client(url=ws_url)
         self.audio_stream: AudioInputStream = AudioInputStream(
+            rate=48000,
             device=device_id,
             device_name=microphone_name,
             audio_data_callback=self.ws_client.send_message,
