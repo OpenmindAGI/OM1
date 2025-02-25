@@ -37,11 +37,15 @@ class ASRInput(FuserInput[str]):
         self.message_buffer: Queue[str] = Queue()
 
         # Initialize ASR provider
+        rate = getattr(self.config, "rate", 48000)
+        chunk = getattr(self.config, "chunk", 12144)
         base_url = getattr(self.config, "base_url", "wss://api-asr.openmind.org")
         microphone_device_id = getattr(self.config, "microphone_device_id", None)
         microphone_name = getattr(self.config, "microphone_name", None)
 
         self.asr: ASRProvider = ASRProvider(
+            rate=rate,
+            chunk=chunk,
             ws_url=base_url,
             device_id=microphone_device_id,
             microphone_name=microphone_name,

@@ -25,6 +25,7 @@ ACTION_MAP = {
     "move": "**** performed this motion: {}.",
 }
 
+
 class LLMHistoryManager:
     def __init__(
         self,
@@ -37,7 +38,7 @@ class LLMHistoryManager:
 
         # configuration
         self.config = config
-        self.agent_name = 'IRIS'
+        self.agent_name = "IRIS"
         self.system_prompt = system_prompt.replace("****", self.agent_name)
         self.summary_command = summary_command.replace("****", self.agent_name)
 
@@ -93,9 +94,7 @@ class LLMHistoryManager:
             )
 
             summary = response.choices[0].message.content
-            return ChatMessage(
-                role="assistant", content=f"Previously, {summary}"
-            )
+            return ChatMessage(role="assistant", content=f"Previously, {summary}")
 
         except Exception as e:
             logging.error(f"Error summarizing messages: {e}")
@@ -145,9 +144,9 @@ class LLMHistoryManager:
             async def wrapper(self: Any, prompt: str, *args, **kwargs) -> R:
 
                 if self._config.history_length == 0:
-                    await func(self, prompt, [], *args, **kwargs)
+                    result = await func(self, prompt, [], *args, **kwargs)
                     self.history_manager.frame_index += 1
-                    return
+                    return result
 
                 cycle = self.history_manager.frame_index
                 logging.debug(f"LLM Tasking cycle debug tracker: {cycle}")
@@ -162,13 +161,18 @@ class LLMHistoryManager:
                 response = await func(self, prompt, messages, *args, **kwargs)
 
                 if response is not None:
-                    action_message = "Given that information, **** took these actions: " + (
-                        " | ".join(
-                            ACTION_MAP[command.name].format(
-                                command.arguments[0].value if command.arguments else ""
+                    action_message = (
+                        "Given that information, **** took these actions: "
+                        + (
+                            " | ".join(
+                                ACTION_MAP[command.name].format(
+                                    command.arguments[0].value
+                                    if command.arguments
+                                    else ""
+                                )
+                                for command in response.commands
+                                if command.name in ACTION_MAP
                             )
-                            for command in response.commands
-                            if command.name in ACTION_MAP
                         )
                     )
 
