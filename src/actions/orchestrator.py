@@ -31,20 +31,20 @@ class ActionOrchestrator:
         Start actions and connectors in separate threads
         """
         for agent_action in self._config.agent_actions:
-            if agent_action.name not in self._impl_threads:
+            if agent_action.llm_label not in self._impl_threads:
                 impl_thread = threading.Thread(
                     target=self._run_implementation_loop,
                     args=(agent_action,),
                     daemon=True,
                 )
-                self._impl_threads[agent_action.name] = impl_thread
+                self._impl_threads[agent_action.llm_label] = impl_thread
                 impl_thread.start()
 
-            if agent_action.name not in self._connector_threads:
+            if agent_action.llm_label not in self._connector_threads:
                 conn_thread = threading.Thread(
                     target=self._run_connector_loop, args=(agent_action,), daemon=True
                 )
-                self._connector_threads[agent_action.name] = conn_thread
+                self._connector_threads[agent_action.llm_label] = conn_thread
                 conn_thread.start()
 
         return asyncio.Future()  # Return future for compatibility
@@ -57,7 +57,7 @@ class ActionOrchestrator:
             try:
                 action.implementation.tick()
             except Exception as e:
-                logging.error(f"Error in implementation {action.name}: {e}")
+                logging.error(f"Error in implementation {action.llm_label}: {e}")
 
     def _run_connector_loop(self, action: AgentAction):
         """
@@ -67,7 +67,7 @@ class ActionOrchestrator:
             try:
                 action.connector.tick()
             except Exception as e:
-                logging.error(f"Error in connector {action.name}: {e}")
+                logging.error(f"Error in connector {action.llm_label}: {e}")
 
     async def flush_promises(self) -> tuple[list[T.Any], list[asyncio.Task[T.Any]]]:
         """
@@ -87,11 +87,12 @@ class ActionOrchestrator:
         for command in commands:
             logging.debug(f"Sending command: {command}")
             action = next(
-                (m for m in self._config.agent_actions if m.name == command.name), None
+                (m for m in self._config.agent_actions if m.llm_label == command.type),
+                None,
             )
             if action is None:
                 logging.warning(
-                    f"Attempted to call non-existant action: {command.name}"
+                    f"Attempted to call non-existant action: {command.type}"
                 )
                 continue
             action_response = asyncio.create_task(self._promise_action(action, command))
@@ -99,12 +100,12 @@ class ActionOrchestrator:
 
     async def _promise_action(self, action: AgentAction, command: Command) -> T.Any:
         logging.debug(
-            f"Calling action {action.name} with arguments {command.arguments}"
+            f"Calling action {action.llm_label} with type {command.type} and argument {command.value}"
         )
         input_interface = T.get_type_hints(action.interface)["input"](
-            **{arg.name: arg.value for arg in command.arguments}
+            **{"action": command.value}
         )
         action_response = await action.implementation.execute(input_interface)
-        logging.debug(f"Action {action.name} returned {action_response}")
+        logging.debug(f"Action {action.llm_label} returned {action_response}")
         await action.connector.connect(action_response)
         return action_response

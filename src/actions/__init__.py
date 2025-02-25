@@ -34,15 +34,13 @@ def describe_action(action_name: str, llm_label: str) -> str:
         elif isinstance(field_type, type) and issubclass(field_type, Enum):
             # Handle enums by listing allowed values
             values = [f"'{v.value}'" for v in field_type]
-            hints[field_name] = (
-                f"{field_type.__name__} - Allowed values: {', '.join(values)}"
-            )
+            hints[field_name] = f"Allowed values: {', '.join(values)}"
         else:
             hints[field_name] = str(field_type)
 
     # Format the full docstring
-    type_hints = "\n".join(f"    {name}: {desc}" for name, desc in hints.items())
-    return f"command: {llm_label}\n{doc}\nArguments:\n{type_hints}"
+    type_hints = "\n".join(f"{desc}" for name, desc in hints.items())
+    return f"command: {llm_label}\n{doc}\n    Arguments: {type_hints}"
 
 
 def load_action(

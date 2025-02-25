@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from llm.output_model import Command, CommandArgument
+from llm.output_model import Command
 from runtime.config import RuntimeConfig
 from runtime.cortex import CortexRuntime
 
@@ -59,9 +59,8 @@ async def test_tick_successful_execution(runtime):
     )
     mocks["fuser"].fuse.return_value = "test prompt"
 
-    command = Command(
-        name="command1", arguments=[CommandArgument(name="arg1", value="val1")]
-    )
+    command = Command(type="command1", value="val1")
+
     mock_output = Mock()
     mock_output.commands = [command]
     cortex_runtime.config.cortex_llm.ask = AsyncMock(return_value=mock_output)
