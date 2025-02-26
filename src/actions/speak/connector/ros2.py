@@ -11,5 +11,5 @@ class SpeakRos2Connector(ActionConnector[SpeakInput]):
 
     async def connect(self, output_interface: SpeakInput) -> None:
 
-        new_msg = {"speak": output_interface.sentence}
+        new_msg = {"speak": output_interface.action}
         logging.info(f"SendThisToROS2: {new_msg}")
