@@ -22,7 +22,7 @@ class ElevenLabsAudioOutputStream(AudioOutputStream):
     def __init__(
         self,
         url,
-        rate=8000,
+        rate=48000,
         device=None,
         device_name=None,
         tts_state_callback=None,
@@ -46,6 +46,7 @@ class ElevenLabsAudioOutputStream(AudioOutputStream):
         needed_format = self._audio_interface.get_format_from_width(
             audio_segment.sample_width
         )
+        audio_chunk = int(audio_segment.frame_rate * 0.1) # 100ms of audio
 
         if (
             current_format != needed_format
@@ -62,18 +63,17 @@ class ElevenLabsAudioOutputStream(AudioOutputStream):
                 channels=audio_segment.channels,
                 rate=audio_segment.frame_rate,
                 output=True,
-                frames_per_buffer=8192,
+                frames_per_buffer=audio_chunk,
             )
 
-        chunk_size = 8192
-        for i in range(0, len(raw_data), chunk_size):
+        for i in range(0, len(raw_data), audio_chunk):
             self.stream.write(
-                raw_data[i : i + chunk_size], exception_on_underflow=False
+                raw_data[i : i + audio_chunk], exception_on_underflow=False
             )
 
         self.stream.stop_stream()
-        self._tts_callback(False)
         self.stream.start_stream()
+        self._tts_callback(False)
 
 
 @singleton

@@ -3,6 +3,7 @@ import threading
 import time
 from typing import Callable, Optional
 
+import pyaudio
 from om1_speech import AudioInputStream
 from om1_utils import ws
 
@@ -46,9 +47,19 @@ class ASRProvider:
         microphone_name : str
             The name of the microphone to use for audio input
         """
+
+        p = pyaudio.PyAudio()
+        info = p.get_host_api_info_by_index(0)
+        numdevices = info.get("deviceCount")
+
+        for i in range(0, numdevices):
+            info = p.get_device_info_by_host_api_device_index(0, i)
+            logging.info(f"info: {info}")
+
         self.running: bool = False
         self.ws_client: ws.Client = ws.Client(url=ws_url)
         self.audio_stream: AudioInputStream = AudioInputStream(
+            rate=48000,
             device=device_id,
             device_name=microphone_name,
             audio_data_callback=self.ws_client.send_message,

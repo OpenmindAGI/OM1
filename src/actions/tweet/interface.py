@@ -7,7 +7,7 @@ from actions.base import Interface
 class TweetInput:
     """Input interface for tweet action."""
 
-    tweet: str = ""  # Make tweet optional with default empty string
+    action: str = ""  # Make tweet optional with default empty string
 
 
 class Tweet(Interface):

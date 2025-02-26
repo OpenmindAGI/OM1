@@ -12,9 +12,9 @@ repos:
     rev: 6.0.0
     hooks:
     -   id: isort
-# - repo: https://github.com/Yelp/detect-secrets
-#   rev: v1.5.0
-#   hooks:
-#     - id: detect-secrets
-#       args: [--exclude-secrets, 'openmind_free']
-#       files: ^config/.*$
+- repo: https://github.com/Yelp/detect-secrets
+  rev: v1.5.0
+  hooks:
+    - id: detect-secrets
+      args: [--exclude-secrets, 'openmind_free']
+      files: ^config/.*$

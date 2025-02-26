@@ -558,6 +558,8 @@ class WebSim(Simulator):
             logging.debug(f"GET {input_info}")
             if input_type == "GovernanceEthereum":
                 continue
+            if input_type == "Universal Laws":
+                continue
             if input_info.timestamp is not None:
                 if input_info.timestamp < earliest_time:
                     earliest_time = float(input_info.timestamp)
@@ -620,18 +622,18 @@ class WebSim(Simulator):
                 }
 
                 for command in commands:
-                    if command.name == "move":
-                        new_action = command.arguments[0].value
+                    if command.type == "move":
+                        new_action = command.value
                         if new_action != self.state.current_action:
                             self.state.current_action = new_action
                             updated = True
-                    elif command.name == "speak":
-                        new_speech = command.arguments[0].value
+                    elif command.type == "speak":
+                        new_speech = command.value
                         if new_speech != self.state.last_speech:
                             self.state.last_speech = new_speech
                             updated = True
-                    elif command.name == "face":
-                        new_emotion = command.arguments[0].value
+                    elif command.type == "emotion":
+                        new_emotion = command.value
                         if new_emotion != self.state.current_emotion:
                             self.state.current_emotion = new_emotion
                             updated = True

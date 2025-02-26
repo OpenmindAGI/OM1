@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from llm.output_model import Command, CommandArgument
+from llm.output_model import Command
 from runtime.config import RuntimeConfig
 from simulators.base import Simulator, SimulatorConfig
 from simulators.orchestrator import SimulatorOrchestrator
@@ -41,10 +41,8 @@ def orchestrator(mock_config):
 def test_command():
     """Create a test command with proper structure."""
 
-    def _create_command(name="test", arg_name="test", arg_value="1"):
-        return Command(
-            name=name, arguments=[CommandArgument(name=arg_name, value=str(arg_value))]
-        )
+    def _create_command(type="test", arg_value="1"):
+        return Command(type=type, value=str(arg_value))
 
     return _create_command
 
@@ -83,9 +81,7 @@ async def test_promise_and_flush(mock_config):
     orchestrator = SimulatorOrchestrator(mock_config)
 
     # Create a test command
-    test_commands = [
-        Command(name="test", arguments=[CommandArgument(name="test", value="1")])
-    ]
+    test_commands = [Command(type="test", value="1")]
 
     # Mock _promise_simulator to return immediately
     async def mock_promise_simulator(simulator, commands):
@@ -119,7 +115,7 @@ async def test_promise_and_flush(mock_config):
 @pytest.mark.asyncio
 async def test_promise_simulator(orchestrator, test_command):
     """Test sending commands to a single simulator."""
-    test_commands = [test_command(name="test", arg_name="test", arg_value="1")]
+    test_commands = [test_command(type="test", arg_value="1")]
     simulator = orchestrator._config.simulators[0]
 
     with patch("logging.debug") as mock_logging:
@@ -136,12 +132,8 @@ async def test_promise_simulator(orchestrator, test_command):
 @pytest.mark.asyncio
 async def test_concurrent_simulator_operations(orchestrator):
     """Test that multiple simulators can operate concurrently."""
-    test_commands1 = [
-        Command(name="test1", arguments=[CommandArgument(name="test", value="1")])
-    ]
-    test_commands2 = [
-        Command(name="test2", arguments=[CommandArgument(name="test", value="2")])
-    ]
+    test_commands1 = [Command(type="test1", value="1")]
+    test_commands2 = [Command(type="test2", value="2")]
 
     # Start simulators
     orchestrator.start()

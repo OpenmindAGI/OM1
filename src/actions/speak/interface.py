@@ -5,7 +5,7 @@ from actions.base import Interface
 
 @dataclass
 class SpeakInput:
-    sentence: str
+    action: str
 
 
 @dataclass

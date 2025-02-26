@@ -32,7 +32,7 @@ class TweetAPIConnector(ActionConnector[TweetInput]):
         """Send tweet via Twitter API."""
         try:
             # Log the tweet we're about to send
-            tweet_to_make = {"sentence": output_interface.tweet}
+            tweet_to_make = {"action": output_interface.tweet}
             logging.info(f"SendThisToTwitterAPI: {tweet_to_make}")
 
             # Send tweet
