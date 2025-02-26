@@ -38,7 +38,7 @@ class LLMHistoryManager:
 
         # configuration
         self.config = config
-        self.agent_name = "IRIS"
+        self.agent_name = self.config.agent_name
         self.system_prompt = system_prompt.replace("****", self.agent_name)
         self.summary_command = summary_command.replace("****", self.agent_name)
 
@@ -144,9 +144,9 @@ class LLMHistoryManager:
             async def wrapper(self: Any, prompt: str, *args, **kwargs) -> R:
 
                 if self._config.history_length == 0:
-                    result = await func(self, prompt, [], *args, **kwargs)
+                    response = await func(self, prompt, [], *args, **kwargs)
                     self.history_manager.frame_index += 1
-                    return result
+                    return response
 
                 cycle = self.history_manager.frame_index
                 logging.debug(f"LLM Tasking cycle debug tracker: {cycle}")
