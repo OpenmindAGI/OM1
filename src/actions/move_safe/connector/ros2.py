@@ -33,7 +33,13 @@ class MoveRos2Connector(ActionConnector[MoveInput]):
         self.vendor_id = ""
         self.product_id = ""
         self.button_previous = None
+        self.d_pad_previous = None
+        self.rt_previous = 0
+        self.lt_previous = 0
         self.gamepad = None
+
+        self.move_speed = 0.7
+        self.turn_speed = 0.6
 
         self.cb: list[str] = []
 
@@ -145,15 +151,83 @@ class MoveRos2Connector(ActionConnector[MoveInput]):
 
         logging.info(f"SendThisToROS2: {output_interface.action}")
 
+    def _move_robot(self, move_speed_x, move_speed_y, rotate_speed=0.0) -> None:
+        if not self.sport_client or self.current_state == RobotState.STANDING:
+            return
+
+        try:
+            logging.info(
+                f"Moving robot: move_speed_x={move_speed_x}, move_speed_y={move_speed_y}, rotate_speed={rotate_speed}"
+            )
+            sport_client = SportClient()
+            sport_client.Init()
+            sport_client.Move(move_speed_x, move_speed_y, rotate_speed)
+        except Exception as e:
+            logging.error(f"Error moving robot: {e}")
+
     def tick(self) -> None:
 
         time.sleep(0.1)
 
         if self.gamepad:
 
-            button_now = list(self.gamepad.read(64))[14]
+            data = list(self.gamepad.read(64))
+            # Process triggers for rotation
+            # RT is typically on byte 9, LT on byte 8 for Xbox controllers
+            rt_value = data[11]  # Right Trigger
+            lt_value = data[9]  # Left Trigger
 
-            if self.button_previous == 0 and button_now > 0:
+            # Trigger values usually range from 0 to 255
+            # Check if the triggers have changed significantly
+            rt_changed = abs(rt_value - self.rt_previous) > 5
+            lt_changed = abs(lt_value - self.lt_previous) > 5
+
+            if rt_changed or lt_changed:
+                # Update previous values
+                self.rt_previous = rt_value
+                self.lt_previous = lt_value
+
+                # Normalize trigger values from 0-255 to 0-1.0
+                rt_normalized = rt_value / 255.0
+                lt_normalized = lt_value / 255.0
+
+                # Right Trigger - clockwise rotation
+                if rt_normalized > 0.8 and rt_normalized > lt_normalized:
+                    self._move_robot(0.0, 0.0, -self.turn_speed)
+
+                # Left Trigger - counter-clockwise rotation
+                elif lt_normalized > 0.8 and lt_normalized > rt_normalized:
+                    self._move_robot(0.0, 0.0, self.turn_speed)
+
+                # Both triggers released or below threshold
+                elif rt_normalized <= 0.8 and lt_normalized <= 0.8:
+                    logging.debug("Triggers released - Stopping rotation")
+                    self._move_robot(0.0, 0.0)
+
+            d_pad_value = data[13]
+            if d_pad_value != self.d_pad_previous:
+                self.d_pad_previous = d_pad_value
+
+                # Control robot movement based on D-pad
+                if d_pad_value == 1:  # Up
+                    logging.info("D-pad UP - Moving forward")
+                    self._move_robot(self.move_speed, 0.0)
+                elif d_pad_value == 5:  # Down
+                    logging.info("D-pad DOWN - Moving backward")
+                    self._move_robot(-self.move_speed, 0.0)
+                elif d_pad_value == 7:  # Left
+                    logging.info("D-pad LEFT - Turning left")
+                    self._move_robot(0.0, self.move_speed)
+                elif d_pad_value == 3:  # Right
+                    logging.info("D-pad RIGHT - Turning right")
+                    self._move_robot(0.0, -self.move_speed)
+                elif d_pad_value == 0:  # Nothing pressed
+                    logging.debug("D-pad released - Stopping movement")
+                    self._move_robot(0.0, 0.0)
+
+            button_value = data[14]
+
+            if self.button_previous == 0 and button_value > 0:
                 # YAY - user just pressed a button
                 # we need this logic because when the user presses a button
                 # the gamepad sends a 'press' indication over and over again
@@ -161,18 +235,22 @@ class MoveRos2Connector(ActionConnector[MoveInput]):
                 # duplicated movement commands with a single button press
                 # to prevent this, we only act when the button state changes from
                 # 0 to > 0
-                if button_now == 1:
+                # A button
+                if button_value == 1:
                     self._execute_sport_command_sync("StandUp")
                     logging.info("Controller unitree: stand_up")
-                elif button_now == 2:
+                # B button
+                elif button_value == 2:
                     self._execute_sport_command_sync("StandDown")
                     logging.info("Controller unitree: lay_down")
-                elif button_now == 8:
+                # X button
+                elif button_value == 8:
                     self._execute_sport_command_sync("Hello")
                     logging.info("Controller unitree: say_hello")
-                elif button_now == 16:
+                # Y button
+                elif button_value == 16:
                     self._execute_sport_command_sync("Stretch")
                     logging.info("Controller unitree: stretch")
-                logging.info(f"Gamepad button depressed edge {button_now}")
+                logging.info(f"Gamepad button depressed edge {button_value}")
 
-            self.button_previous = button_now
+            self.button_previous = button_value
