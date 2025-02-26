@@ -423,3 +423,20 @@ export CYCLONEDDS_URI='
 	<Discovery><EnableTopicDiscoveryEndpoints>true</EnableTopicDiscoveryEndpoints></Discovery>
 	</Domain>
 </CycloneDDS>'  
+
+## Terminal based setup of bluetooth audio devices
+
+```bash
+bluetoothctl
+
+list show all paired devices
+scan on # search for nearby devices
+pair MAC address
+
+sudo apt install blueman
+mark device as trusted
+
+trust <MAC>
+pair <MAC>
+connect <MAC>
+```
