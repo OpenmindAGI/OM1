@@ -26,6 +26,10 @@ class ASRProvider:
         The device ID of the chosen microphone; used the system default if None
     microphone_name : str
         The name of the microphone to use for audio input
+    rate : int
+        The audio sample rate for the audio stream; used the system default if None
+    chunk : int
+        The audio chunk size for the audio stream; used the 200ms default if None
     """
 
     def __init__(
@@ -33,6 +37,8 @@ class ASRProvider:
         ws_url: str,
         device_id: Optional[int] = None,
         microphone_name: Optional[str] = None,
+        rate: Optional[int] = None,
+        chunk: Optional[int] = None,
     ):
         """
         Initialize the ASR Provider.
@@ -45,10 +51,16 @@ class ASRProvider:
             The device ID of the chosen microphone; used the system default if None
         microphone_name : str
             The name of the microphone to use for audio input
+        rate : int
+            The audio sample rate for the audio stream; used the system default if None
+        chunk : int
+            The audio chunk size for the audio stream; used the 200ms default if None
         """
         self.running: bool = False
         self.ws_client: ws.Client = ws.Client(url=ws_url)
         self.audio_stream: AudioInputStream = AudioInputStream(
+            rate=rate,
+            chunk=chunk,
             device=device_id,
             device_name=microphone_name,
             audio_data_callback=self.ws_client.send_message,

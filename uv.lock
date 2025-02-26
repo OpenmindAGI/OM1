@@ -1947,7 +1947,7 @@ requires-dist = [
     { name = "hid" },
     { name = "jinja2", specifier = ">=3.1.3" },
     { name = "numpy" },
-    { name = "om1-modules", git = "https://github.com/OpenmindAGI/om1-modules.git?rev=2c7d639bdb6aca74a35b32d149c28428103e2613#2c7d639bdb6aca74a35b32d149c28428103e2613" },
+    { name = "om1-modules", git = "https://github.com/OpenmindAGI/om1-modules.git?rev=95cd8a6f1dec9cfa7401f832ab1792e3e0c92ee2#95cd8a6f1dec9cfa7401f832ab1792e3e0c92ee2" },
     { name = "openai", specifier = ">=1.59.5" },
     { name = "opencv-python" },
     { name = "pillow", specifier = ">=11.1.0" },
@@ -1978,7 +1978,7 @@ dev = [
 [[package]]
 name = "om1-modules"
 version = "0.1.0"
-source = { git = "https://github.com/OpenmindAGI/om1-modules.git?rev=2c7d639bdb6aca74a35b32d149c28428103e2613#2c7d639bdb6aca74a35b32d149c28428103e2613" }
+source = { git = "https://github.com/OpenmindAGI/om1-modules.git?rev=95cd8a6f1dec9cfa7401f832ab1792e3e0c92ee2#95cd8a6f1dec9cfa7401f832ab1792e3e0c92ee2" }
 dependencies = [
     { name = "numpy" },
     { name = "opencv-python" },
