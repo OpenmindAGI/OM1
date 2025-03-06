@@ -3,22 +3,25 @@
   "name": "OpenMind",
   "favicon": "/assets/favicon.png",
   "colors": {
-    "primary": "#E83362",
-    "light": "#E53935",
-    "dark": "#E63946"
+    "primary": "#FD015F",
+    "light": "#E10054",
+    "dark": "#FD015F"
   },
   "styling": {
     "codeblocks": "system"
   },
   "background": {
     "decoration": "grid"
-  },  "navigation": {
+  },
+  "navigation": {
     "tabs": [
       {
         "tab": "Home",
-        "pages": ["home"]
+        "pages": [
+          "home"
+        ]
       },
-      { 
+      {
         "tab": "Guides",
         "groups": [
           {
@@ -60,7 +63,6 @@
               "robotics/asimov_governance",
               "robotics/coinbase_hackathon",
               "robotics/unitree_robotics"
-              
             ]
           }
         ]
