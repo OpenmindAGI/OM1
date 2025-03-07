@@ -60,6 +60,9 @@ class LLMHistoryManager:
         Returns a new message containing the summary.
         """
         try:
+            if not messages:
+                logging.warning("No messages to summarize")
+                return ChatMessage(role="system", content="No history to summarize")
 
             logging.debug(f"All raw info: {messages} len{len(messages)}")
 
@@ -85,51 +88,105 @@ class LLMHistoryManager:
 
             logging.info(f"Information to summarize:\n{summary_prompt}")
 
-            response = await self.client.chat.completions.create(
-                model=self.config.model,
-                messages=[
-                    {"role": "system", "content": self.system_prompt},
-                    {"role": "user", "content": summary_prompt},
-                ],
+            # Set timeout for API call
+            timeout = 10.0  # seconds
+            response = await asyncio.wait_for(
+                self.client.chat.completions.create(
+                    model=self.config.model,
+                    messages=[
+                        {"role": "system", "content": self.system_prompt},
+                        {"role": "user", "content": summary_prompt},
+                    ],
+                ),
+                timeout=timeout,
             )
+
+            if not response or not response.choices:
+                logging.error("Invalid API response format")
+                return ChatMessage(
+                    role="system", content="Error: Received invalid response from API"
+                )
 
             summary = response.choices[0].message.content
             return ChatMessage(role="assistant", content=f"Previously, {summary}")
 
+        except asyncio.TimeoutError:
+            logging.error(f"API request timed out after {timeout} seconds")
+            return ChatMessage(role="system", content="Error: API request timed out")
+        except openai.APIError as e:
+            logging.error(f"OpenAI API error: {e}")
+            return ChatMessage(
+                role="system", content=f"Error: API service unavailable: {str(e)}"
+            )
+        except openai.APIConnectionError as e:
+            logging.error(f"OpenAI API connection error: {e}")
+            return ChatMessage(
+                role="system", content="Error: Could not connect to API service"
+            )
+        except openai.RateLimitError as e:
+            logging.error(f"OpenAI API rate limit error: {e}")
+            return ChatMessage(role="system", content="Error: API rate limit exceeded")
         except Exception as e:
-            logging.error(f"Error summarizing messages: {e}")
+            logging.error(f"Error summarizing messages: {type(e).__name__}: {e}")
             return ChatMessage(role="system", content="Error summarizing state")
 
     async def start_summary_task(self, messages: List[ChatMessage]):
         """
         Start a new task to summarize the messages.
         """
+        if not messages:
+            logging.warning("No messages to summarize in start_summary_task")
+            return
+
         try:
             if self._summary_task and not self._summary_task.done():
                 logging.info("Previous summary task still running")
                 return
 
-            self._summary_task = asyncio.create_task(self.summarize_messages(messages))
+            messages_copy = messages.copy()
+            self._summary_task = asyncio.create_task(
+                self.summarize_messages(messages_copy)
+            )
 
             def callback(task):
                 try:
-                    if not task.cancelled():
-                        summary_message = task.result()
-                        if summary_message.role == "assistant":
-                            messages.clear()
-                            messages.append(summary_message)
-                            logging.info("Successfully summarized the state")
-                        else:
-                            raise Exception("Failed to summarize the state")
+                    if task.cancelled():
+                        logging.warning("Summary task was cancelled")
+                        return
+
+                    summary_message = task.result()
+                    if summary_message.role == "assistant":
+                        messages.clear()
+                        messages.append(summary_message)
+                        logging.info("Successfully summarized the state")
+                    elif (
+                        summary_message.role == "system"
+                        and "Error" in summary_message.content
+                    ):
+                        logging.error(
+                            f"Summarization failed: {summary_message.content}"
+                        )
+                        messages.pop(0) if messages else None
+                        messages.pop(0) if messages else None
+                    else:
+                        logging.warning(f"Unexpected summary result: {summary_message}")
+                except asyncio.CancelledError:
+                    logging.warning("Summary task callback cancelled")
                 except Exception as e:
-                    logging.error(f"Error in summary task callback: {e}")
+                    logging.error(
+                        f"Error in summary task callback: {type(e).__name__}: {e}"
+                    )
                     messages.pop(0) if messages else None
                     messages.pop(0) if messages else None
 
             self._summary_task.add_done_callback(callback)
 
+        except asyncio.CancelledError:
+            logging.warning("Summary task creation cancelled")
         except Exception as e:
-            logging.error(f"Error starting summary task: {e}")
+            logging.error(f"Error starting summary task: {type(e).__name__}: {e}")
+            messages.pop(0) if messages else None
+            messages.pop(0) if messages else None
 
     def get_messages(self) -> List[dict]:
         """

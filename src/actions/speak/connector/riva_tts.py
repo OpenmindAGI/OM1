@@ -4,7 +4,7 @@ from providers.asr_provider import ASRProvider
 from providers.riva_tts_provider import RivaTTSProvider
 
 
-class SpeakRos2Connector(ActionConnector[SpeakInput]):
+class SpeakRivaTTSConnector(ActionConnector[SpeakInput]):
 
     def __init__(self, config: ActionConfig):
         super().__init__(config)

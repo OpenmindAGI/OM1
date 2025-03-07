@@ -4,7 +4,7 @@ from providers.asr_provider import ASRProvider
 from providers.elevenlabs_tts_provider import ElevenLabsTTSProvider
 
 
-class SpeakRos2Connector(ActionConnector[SpeakInput]):
+class SpeakElevenLabsTTSConnector(ActionConnector[SpeakInput]):
 
     def __init__(self, config: ActionConfig):
         super().__init__(config)
