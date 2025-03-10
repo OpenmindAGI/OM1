@@ -167,8 +167,8 @@ Add the `dds` python module to your code base: `uv pip install -r pyproject.toml
 
 On Mac, **make sure that your XBOX controller is running the most recent firmware**, otherwise you will be able to pair but not connect to the controller. You will need a PC with `Xbox Accessories` installed to update the XBOX controller's firmware. Many Mac OS updates hose support for the XBOX controller, which is then fixed (after some delay) via an XBOX firmware update. 
 
-On Mac, you may also need to install `hidapi` (`brew install hidapi`). NOTE: There is a bug on Mac when installing packages with `brew` - some libraries cannot be found by `uv`. If you get errors such as
-`Unable to load any of the following libraries:libhidapi-hidraw.so`, set `export DYLD_FALLBACK_LIBRARY_PATH="$HOMEBREW_PREFIX/lib"` in your `.zshenv` or equivalent.
+On Mac, you will also need to install `hidapi` (`brew install hidapi`). NOTE: There is a bug on Mac when installing packages with `brew` - some libraries cannot be found by `uv`. If you get errors such as
+`Unable to load any of the following libraries:libhidapi-hidraw.so`, set `export DYLD_FALLBACK_LIBRARY_PATH=$HOMEBREW_PREFIX/lib` in your `.zshenv` or equivalent.
 
 On Linux, install `hidapi` like this:
 

@@ -75,7 +75,7 @@ class VLMOpenAI(FuserInput[str]):
         self.vlm.start()
         self.vlm.register_message_callback(self._handle_vlm_message)
 
-        self.descriptor_for_LLM = "Vision Language Model"
+        self.descriptor_for_LLM = "Vision"
 
     def _handle_vlm_message(self, raw_message: ChatCompletion):
         """

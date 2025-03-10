@@ -146,10 +146,13 @@ class MoveRos2Connector(ActionConnector[MoveInput]):
         elif output_interface.action == "dance":
             logging.info("Unitree AI command: dance")
             await self._execute_sport_command("Dance1")
+        elif output_interface.action == "stand still":
+            logging.info("Unitree AI command: stand still")
+            # do nothing
         else:
             logging.info(f"Unknown move type: {output_interface.action}")
 
-        logging.info(f"SendThisToROS2: {output_interface.action}")
+        logging.info(f"SendThisToSportClient: {output_interface.action}")
 
     def _move_robot(self, move_speed_x, move_speed_y, rotate_speed=0.0) -> None:
         if not self.sport_client or self.current_state == RobotState.STANDING:

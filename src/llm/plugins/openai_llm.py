@@ -74,7 +74,7 @@ class OpenAILLM(LLM[R]):
             parsing fails.
         """
         try:
-            logging.debug(f"OpenAI LLM input: {prompt}")
+            logging.info(f"OpenAI LLM input: {prompt}")
             logging.debug(f"OpenAI LLM messages: {messages}")
 
             self.io_provider.llm_start_time = time.time()
@@ -95,7 +95,7 @@ class OpenAILLM(LLM[R]):
                 parsed_response = self._output_model.model_validate_json(
                     message_content
                 )
-                logging.debug(f"OpenAI LLM output: {parsed_response}")
+                logging.info(f"OpenAI LLM output: {parsed_response}")
                 return parsed_response
             except Exception as e:
                 logging.error(f"Error parsing OpenAI response: {e}")

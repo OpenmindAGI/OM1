@@ -147,9 +147,9 @@ class CortexRuntime:
         if self.config.name == "spot_speak":
             # spot, the speaking dog
             await self.action_orchestrator.promise(output.commands)
-        elif ("Voice Input" in prompt) or ("WalletCoinbase" in prompt):
-            # send speech data to loudspeaker
+        elif ("Voice INPUT" in prompt) or ("WalletCoinbase" in prompt):
+            # send speech to speaker
             await self.action_orchestrator.promise(output.commands)
         else:
-            # do not send speech to loudpspear but only to simulator
+            # do not send speech to speaker but only to simulator
             await self.action_orchestrator.promise(commands_silent)

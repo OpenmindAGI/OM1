@@ -1,18 +1,22 @@
-import time
 import sys
+import time
 
-from unitree.unitree_sdk2py.core.channel import ChannelSubscriber, ChannelFactoryInitialize
-from unitree.unitree_sdk2py.idl.default import unitree_go_msg_dds__LowState_
-from unitree.unitree_sdk2py.idl.unitree_go.msg.dds_ import LowState_
 import unitree_legged_const as go2
+
+from unitree.unitree_sdk2py.core.channel import (
+    ChannelFactoryInitialize,
+    ChannelSubscriber,
+)
+from unitree.unitree_sdk2py.idl.unitree_go.msg.dds_ import LowState_
+
 
 class Custom:
     def __init__(self):
-        self.low_state = None  
+        self.low_state = None
 
     # Public methods
     def Init(self):
-        # create subscriber # 
+        # create subscriber #
         self.lowstate_subscriber = ChannelSubscriber("rt/lowstate", LowState_)
         self.lowstate_subscriber.Init(self.LowStateMessageHandler, 10)
 
@@ -22,9 +26,10 @@ class Custom:
         print("IMU state: ", msg.imu_state)
         print("Battery state: voltage: ", msg.power_v, "current: ", msg.power_a)
 
-if __name__ == '__main__':
 
-    if len(sys.argv)>1:
+if __name__ == "__main__":
+
+    if len(sys.argv) > 1:
         ChannelFactoryInitialize(0, sys.argv[1])
     else:
         ChannelFactoryInitialize(0)
@@ -32,5 +37,5 @@ if __name__ == '__main__':
     custom = Custom()
     custom.Init()
 
-    while True:        
+    while True:
         time.sleep(1)

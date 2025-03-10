@@ -30,7 +30,7 @@ class RivaASRInput(FuserInput[str]):
         self.messages: List[str] = []
 
         # Set IO Provider
-        self.descriptor_for_LLM = "Voice Input"
+        self.descriptor_for_LLM = "Voice"
         self.io_provider = IOProvider()
 
         # Buffer for storing messages
