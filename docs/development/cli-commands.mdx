@@ -1,0 +1,10 @@
+
+The OpenMind OS provides a command-line interface (CLI) to manage agents and projects. 
+The main entry point is `src/run.py` which provides the following commands:
+
+- `start`: Start an agent with a specified config
+  ```bash Start an agent with a specified config
+  python src/run.py start [config_name] [--debug]
+  ```
+  - `config_name`: Name of the config file (without .json extension) in the config directory
+  - `--debug`: Optional flag to enable debug logging

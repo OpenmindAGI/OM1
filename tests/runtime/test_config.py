@@ -48,6 +48,7 @@ def mock_dependencies():
         def __init__(self):
             super().__init__(
                 name="mock_action",
+                llm_label="mock_llm_label",
                 implementation="mock_implementation",
                 interface="mock_interface",
                 connector="mock_connector",
@@ -100,11 +101,13 @@ def mock_multiple_components_config():
         "agent_actions": [
             {
                 "name": "test_action_1",
+                "llm_label": "emotion",
                 "implementation": "test_implementation_1",
                 "connector": "test_connector_1",
             },
             {
                 "name": "test_action_2",
+                "llm_label": "emotion",
                 "implementation": "test_implementation_2",
                 "connector": "test_connector_2",
             },

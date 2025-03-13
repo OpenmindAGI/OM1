@@ -68,6 +68,7 @@ class AgentAction:
     """Base class for agent actions"""
 
     name: str
+    llm_label: str
     interface: T.Type[Interface]
     implementation: ActionImplementation
     connector: ActionConnector

@@ -6,6 +6,7 @@ import openai
 from pydantic import BaseModel
 
 from llm import LLM, LLMConfig
+from providers.llm_history_manager import LLMHistoryManager
 
 R = T.TypeVar("R", bound=BaseModel)
 
@@ -21,12 +22,12 @@ class OpenAILLM(LLM[R]):
     ----------
     output_model : Type[R]
         A Pydantic BaseModel subclass defining the expected response structure.
-    config : LLMConfig, optional
+    config : LLMConfig
         Configuration object containing API settings. If not provided, defaults
         will be used.
     """
 
-    def __init__(self, output_model: T.Type[R], config: T.Optional[LLMConfig] = None):
+    def __init__(self, output_model: T.Type[R], config: LLMConfig = LLMConfig()):
         """
         Initialize the OpenAI LLM instance.
 
@@ -39,21 +40,23 @@ class OpenAILLM(LLM[R]):
         """
         super().__init__(output_model, config)
 
-        base_url = config.base_url or "https://api.openmind.org/api/core/openai"
-
-        if config.api_key is None or config.api_key == "":
+        if not config.api_key:
             raise ValueError("config file missing api_key")
-        else:
-            api_key = config.api_key
+        if not config.model:
+            self._config.model = "gpt-4o-mini"
 
-        client_kwargs = {}
-        client_kwargs["base_url"] = base_url
-        client_kwargs["api_key"] = api_key
+        self._client = openai.AsyncClient(
+            base_url=config.base_url or "https://api.openmind.org/api/core/openai",
+            api_key=config.api_key,
+        )
 
-        logging.info(f"Initializing OpenAI client with {client_kwargs}")
-        self._client = openai.AsyncClient(**client_kwargs)
+        # Initialize history manager
+        self.history_manager = LLMHistoryManager(self._config, self._client)
 
-    async def ask(self, prompt: str) -> R | None:
+    @LLMHistoryManager.update_history()
+    async def ask(
+        self, prompt: str, messages: T.List[T.Dict[str, str]] = []
+    ) -> R | None:
         """
         Send a prompt to the OpenAI API and get a structured response.
 
@@ -61,6 +64,8 @@ class OpenAILLM(LLM[R]):
         ----------
         prompt : str
             The input prompt to send to the model.
+        messages : List[Dict[str, str]]
+            List of message dictionaries to send to the model.
 
         Returns
         -------
@@ -69,30 +74,32 @@ class OpenAILLM(LLM[R]):
             parsing fails.
         """
         try:
-            logging.debug(f"OpenAI LLM input: {prompt}")
+            logging.info(f"OpenAI LLM input: {prompt}")
+            logging.debug(f"OpenAI LLM messages: {messages}")
+
             self.io_provider.llm_start_time = time.time()
+
+            # this saves all the input information
             self.io_provider.set_llm_prompt(prompt)
 
-            parsed_response = await self._client.beta.chat.completions.parse(
-                model=(
-                    "gpt-4o-mini" if self._config.model is None else self._config.model
-                ),
-                messages=[{"role": "user", "content": prompt}],
+            response = await self._client.beta.chat.completions.parse(
+                model=self._config.model,
+                messages=[*messages, {"role": "user", "content": prompt}],
                 response_format=self._output_model,
             )
 
-            message_content = parsed_response.choices[0].message.content
+            message_content = response.choices[0].message.content
             self.io_provider.llm_end_time = time.time()
 
             try:
                 parsed_response = self._output_model.model_validate_json(
                     message_content
                 )
-                logging.debug(f"LLM output: {parsed_response}")
+                logging.info(f"OpenAI LLM output: {parsed_response}")
                 return parsed_response
             except Exception as e:
-                logging.error(f"Error parsing response: {e}")
+                logging.error(f"Error parsing OpenAI response: {e}")
                 return None
         except Exception as e:
-            logging.error(f"Error asking LLM: {e}")
+            logging.error(f"OpenAI API error: {e}")
             return None

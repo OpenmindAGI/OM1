@@ -1,0 +1,159 @@
+---
+title: Conversation
+description: "Using Cloud Endpoints for Voice Inputs and Text to Speech"
+---
+
+This section provides various examples for integrating and using multiple cloud-based AI endpoints, such as OpenAI, DeepSeek, and others, for voice input processing, text-to-speech (TTS) and emotion detection synthesis. Whether you need to convert spoken language into text (ASR) or generate natural-sounding speech from text, these examples will help you interact with different cloud providers seamlessly.
+
+
+## Voice to Text processing with OpenAI
+<Note>
+This example uses your `default` audio in (microphone) and your `default` audio output (speaker). Please test both your microphone and speaker in your system settings to make sure they are connected and working.
+</Note>
+<Info>
+It will request permission to on your audio. Allow permissions.
+</Info>
+
+#### Command
+```
+uv run src/run.py conversation
+```
+
+#### Response
+```
+WARNING:root:Unitree SDK not found. Please install the Unitree SDK to use this plugin.
+WARNING:root:Unitree SDK not found. Please install the Unitree SDK to use this plugin.
+INFO:om1_speech:Found 7 audio devices
+INFO:om1_speech:Default input device: MacBook Pro Microphone (1)
+INFO:om1_speech:Selected input device: MacBook Pro Microphone (1)
+INFO:om1_utils:WebSocket client thread started
+INFO:om1_utils:Connected to wss://api-asr.openmind.org
+INFO:om1_utils:Connection established
+INFO:om1_speech:Started audio processing thread
+INFO:om1_speech:Started audio stream with device 1
+INFO:om1_utils:Registered message callback
+INFO:root:Initializing OpenAI client with {'base_url': 'https://api.openmind.org/api/core/openai', 'api_key': 'om1_live_57c93cb779732cd5e45a2e3c7a5f7ce4d526f8269d9986ef3d5f084b2db2f69b456f67da22fc2ece'}
+INFO:om1_speech:Found 7 audio devices
+INFO:om1_speech:Device 0: LG FHD
+INFO:om1_speech:Max Output Channels: 2
+INFO:om1_speech:Selected output device: LG FHD at index 0
+INFO:om1_speech:Successfully opened audio stream
+INFO:root:Detected ASR message: hello hello
+
+```
+
+#### Code Explanation
+<Steps>
+<Step title="Missing Unitree SDK"> 
+```
+WARNING:root:Unitree SDK not found. Please install the Unitree SDK to use this plugin.
+WARNING:root:Unitree SDK not found. Please install the Unitree SDK to use this plugin.
+```
+- The script attempts to load the Unitree SDK, which is likely used for controlling a Unitree robot (like a quadruped robot dog).
+- Since the SDK is not installed, the script warns the user but continues execution (not a fatal error).
+
+<Info>
+You will be able to speak to the LLM and it will generate voice outputs.
+</Info>
+
+## Hardware Audio Drivers
+
+
+</Step>
+<Step title="Audio Input Detection and Selection"> 
+    ```
+    INFO:om1_speech:Found 7 audio devices
+    INFO:om1_speech:Default input device: MacBook Pro Microphone (1)
+    INFO:om1_speech:Selected input device: MacBook Pro Microphone (1)
+
+
+    ```
+    - The system detects 7 audio devices (microphones/speakers).
+    - The default input device is selected: MacBook Pro Microphone (1).
+    - This suggests speech recognition or voice input functionality.
+</Step>
+<Step title="WebSocket Connection Established"> 
+ ```
+    INFO:om1_utils:WebSocket client thread started
+    INFO:om1_utils:Connected to wss://api-asr.openmind.org
+    INFO:om1_utils:Connection established
+    ```
+- A WebSocket client thread starts.
+- It successfully connects to wss://api-asr.openmind.org, which appears to be an Automatic Speech Recognition (ASR) service (real-time voice-to-text processing).
+- Connection established, meaning speech recognition is now active.
+</Step>
+<Step title="Audio Processing Starts"> 
+ ```
+    INFO:om1_speech:Started audio processing thread
+    INFO:om1_speech:Started audio stream with device 1
+    INFO:om1_utils:Registered message callback
+
+    ```
+- The script starts processing audio input from the selected microphone (device 1).
+- It also registers a callback function to handle messages received via WebSocket.
+</Step>
+<Step title=" OpenAI Client Initialization"> 
+ ```
+    INFO:root:Initializing OpenAI client with {'base_url': 'https://api.openmind.org/api/core/openai', 'api_key': 'om1_live_57c93cb779732cd5e45a2e3c7a5f7ce4d526f8269d9986ef3d5f084b2db2f69b456f67da22fc2ece'}
+ ```
+- The script initializes an OpenAI-based client for handling conversational AI.
+- It connects to https://api.openmind.org/api/core/openai, suggesting it's using OpenAI's LLM API (likely for chatbot responses).
+- The API key is logged (security risk ⚠️ – API keys should not be exposed in logs).
+</Step>
+<Step title="Audio Output Device Detection"> 
+ ```
+    INFO:om1_speech:Found 7 audio devices
+    INFO:om1_speech:Device 0: LG FHD
+    INFO:om1_speech:Max Output Channels: 2
+    INFO:om1_speech:Selected output device: LG FHD at index 0
+    INFO:om1_speech:Successfully opened audio stream
+
+<CodeGroup>
+For Mac:
+```bash Mac Audio Drivers
+brew install portaudio
+
+```
+- The system detects audio output devices.
+- It selects LG FHD as the output device (a monitor or external speaker).
+- Audio streaming is successfully opened, meaning the system can play sound.
+</Step>
+<Step title="Speech Recognition Captured Input"> 
+ ```
+    INFO:root:Detected ASR message: hello hello
+```
+
+- The system successfully recognized and transcribed speech input (hello hello).
+- This confirms that the ASR (Automatic Speech Recognition) system is working.
+</Step>
+</Steps>
+
+
+</CodeGroup>
+
+## Enumerating your audio
+
+You can enumerate available audio via the test script in /system_hw_test`:
+
+```bash
+python test_audio.py
+```
+
+<Note>
+Especially on Linux, such as on Ubuntu 20.04 on the Nvidia Orin, audio support can be marginal. Expect some audio inputs and outputs to not work correctly, or to advertise incorrect hardware capabilities, such as USB microphones that report zero input channels etc. Typical work arounds are to try different audio cards. 
+</Note>
+
+## Testing audio
+
+You can provide test sentences to speak by adding the `MockInput` to the config file:  
+
+```bash
+{
+    "type": "MockInput",
+    "config": {
+        "input_name": "Voice Input"
+    }
+}
+```
+
+Then connect to the `ws` (`wscat -c ws://localhost:8765`) and type in the words you want the system to speak. This is useful to debug audio out issues and related settings such as chunk values. 

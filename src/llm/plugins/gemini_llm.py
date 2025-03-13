@@ -6,7 +6,7 @@ import openai
 from pydantic import BaseModel
 
 from llm import LLM, LLMConfig
-from providers.io_provider import IOProvider
+from providers.llm_history_manager import LLMHistoryManager
 
 R = T.TypeVar("R", bound=BaseModel)
 
@@ -16,9 +16,17 @@ class GeminiLLM(LLM[R]):
     Google Gemini LLM implementation using OpenAI-compatible API.
 
     Handles authentication and response parsing for Gemini endpoints.
+
+    Parameters
+    ----------
+    output_model : Type[R]
+        A Pydantic BaseModel subclass defining the expected response structure.
+    config : LLMConfig
+        Configuration object containing API settings. If not provided, defaults
+        will be used.
     """
 
-    def __init__(self, output_model: T.Type[R], config: T.Optional[LLMConfig] = None):
+    def __init__(self, output_model: T.Type[R], config: LLMConfig = LLMConfig()):
         """
         Initialize the DeepSeek LLM instance.
 
@@ -31,105 +39,74 @@ class GeminiLLM(LLM[R]):
         """
         super().__init__(output_model, config)
 
-        base_url = config.base_url or "https://api.openmind.org/api/core/gemini"
-
-        if config.api_key is None or config.api_key == "":
+        if not config.api_key:
             raise ValueError("config file missing api_key")
-        else:
-            api_key = config.api_key
+        if not config.model:
+            self._config.model = "gemini-2.0-flash-exp"
 
-        client_kwargs = {}
-        client_kwargs["base_url"] = base_url
-        client_kwargs["api_key"] = api_key
+        self._client = openai.AsyncOpenAI(
+            base_url=config.base_url or "https://api.openmind.org/api/core/gemini",
+            api_key=config.api_key,
+        )
 
-        # Initialize OpenAI-compatible client
-        logging.info(f"Initializing Gemini OpenAI client with {client_kwargs}")
-        self._client = openai.AsyncOpenAI(**client_kwargs)
-        self.io_provider = IOProvider()
+        # Initialize history manager
+        self.history_manager = LLMHistoryManager(self._config, self._client)
 
-    async def ask(self, prompt: str) -> R | None:
+    @LLMHistoryManager.update_history()
+    async def ask(self, prompt: str, messages: T.List[T.Dict[str, str]]) -> R | None:
         """
         Execute LLM query and parse response
 
         Parameters
         ----------
         prompt : str
-            Input prompt for the LLM
-        """
-        try:
-            self.io_provider.llm_start_time = time.time()
-            self.io_provider.set_llm_prompt(prompt)
-            response = await self._execute_api_request(prompt)
-            logging.debug(f"Gemini raw response: {response}")
-            self.io_provider.llm_end_time = time.time()
-            return self._parse_response(response)
-
-        except Exception as error:
-            logging.error(f"Gemini API error: {error}")
-            return None
-
-    async def _execute_api_request(self, prompt: str):
-        """
-        Execute the actual API call to Gemini
-
-        Parameters
-        ----------
-        prompt : str
-            Input prompt for the LLM
-        """
-        completion = await self._client.chat.completions.create(
-            model=(
-                "gemini-2.0-flash-exp"
-                if self._config.model is None
-                else self._config.model
-            ),
-            messages=self._build_messages(prompt),
-            response_format={"type": "json_object"},
-        )
-        return completion
-
-    def _build_messages(self, prompt: str) -> list[dict]:
-        """
-        Construct message payload for API request
-
-        Parameters
-        ----------
-        prompt : str
-            Input prompt for the LLM
+            The input prompt to send to the model.
+        messages : List[Dict[str, str]]
+            List of message dictionaries to send to the model.
 
         Returns
         -------
-        list[dict]
-            List of messages to send to the API
-        """
-        system_message = {
-            "role": "system",
-            "content": f"Respond with valid JSON matching this schema: {self._output_model.model_json_schema()}",
-        }
-        return [system_message, {"role": "user", "content": prompt}]
-
-    def _parse_response(self, response: openai.ChatCompletion) -> R | None:
-        """
-        Parse the response from the API
-
-        Parameters
-        ----------
-        response
-
-
-        Returns
-        -------
-        R | None
+        R or None
             Parsed response matching the output_model structure, or None if
             parsing fails.
         """
-
         try:
-            content = response.choices[0].message.content
-            logging.debug(f"Gemini output: {content}")
-            parsed = self._output_model.model_validate_json(content)
-            logging.debug(f"Gemini output parsed: {parsed}")
-            return parsed
-        except Exception as error:
-            logging.error(f"Failed to parse Gemini response: {error}")
+            logging.debug(f"Gemini LLM input: {prompt}")
+            logging.debug(f"Gemini LLM messages: {messages}")
+
+            self.io_provider.llm_start_time = time.time()
+            self.io_provider.set_llm_prompt(prompt)
+
+            messages = [
+                {
+                    "role": "system",
+                    "content": f"Respond with valid JSON matching this schema: {self._output_model.model_json_schema()}",
+                },
+                *messages,
+                {
+                    "role": "user",
+                    "content": prompt,
+                },
+            ]
+
+            response = await self._client.chat.completions.create(
+                model=self._config.model,
+                messages=messages,
+                response_format={"type": "json_object"},
+            )
+
+            message_content = response.choices[0].message.content
+            self.io_provider.llm_end_time = time.time()
+
+            try:
+                parsed_response = self._output_model.model_validate_json(
+                    message_content
+                )
+                logging.debug(f"Gemini LLM output: {parsed_response}")
+                return parsed_response
+            except Exception as e:
+                logging.error(f"Error parsing Gemini response: {e}")
+                return None
+        except Exception as e:
+            logging.error(f"Gemini API error: {e}")
             return None

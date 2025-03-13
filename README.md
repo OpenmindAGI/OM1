@@ -1,7 +1,7 @@
 
 ![OM_Banner_X2 (1)](https://github.com/user-attachments/assets/853153b7-351a-433d-9e1a-d257b781f93c)
 
-<p align="center">  <a href="https://arxiv.org/abs/2412.18588">Technical Paper</a> |  <a href="https://docs.openmind.org/examples/conversation">Documentation</a> |  <a href="https://x.com/openmind_agi">X</a> </p>
+<p align="center">  <a href="https://arxiv.org/abs/2412.18588">Technical Paper</a> |  <a href="https://docs.openmind.org/">Documentation</a> |  <a href="https://x.com/openmind_agi">X</a> | <a href="https://discord.gg/VUjpg4ef5n">Discord</a> </p>
 
 **Openmind's OM1 is a modular AI runtime for agents and robots with multimodal capabilities including movement and speech.**
 
@@ -40,9 +40,9 @@ _Note 1:_ You will need the Rust Python package manager `uv`.
 
 _Note 2:_ If your system doesn't have `portaudio`, you should install it to run the program.
 * To install on Mac, use `brew install portaudio`
-* On Linux, use `sudo apt-get install libasound-dev`
+* On Linux, use `sudo apt-get install portaudio19-dev python-all-dev`
 
-Similarily, you may need `ffmpeg`.
+Similarily, you may need `ffmpeg`, and/or other modules, depending on your system.
 
 2. Set the configuration variables. 
 
@@ -132,13 +132,13 @@ More detailed documentation can be accessed at [docs.openmind.org](https://docs.
 
 Highlights:
 
-- [Core Architecture and Runtime Flow](./docs/development//architecture.mdx)
-- [Quick Start](./docs/quick_start.mdx)
-- [Developer Guide](./docs/development/guide.mdx)
-- [Example 1 - Using DeepSeek or Gemini as the Core LLM](./docs/examples/llm_models.mdx)
-- [Example 2 - Using Cloud Endpoints for Voice Inputs and Text to Speech](./docs/examples/conversation.mdx)
-- [Example 3 - An Interactive Smart Toy](./docs/examples/smart_toy.mdx)
-- [Robotics - Unitree Dog](./docs/robotics/unitree_robotics.mdx)
+- [Core Architecture and Runtime Flow](./docs/getting-started/architecture.mdx)
+- [Quick Start](./docs/getting-started/quick_start.mdx)
+- [Developer Guide](./docs/development/linting-testing.mdx)
+- [Example 1 - Using DeepSeek or Gemini as the Core LLM](./docs/core-features/llm_models.mdx)
+- [Example 2 - Using Cloud Endpoints for Voice Inputs and Text to Speech](./docs/core-features/conversation.mdx)
+- [Example 3 - An Interactive Smart Toy](./docs/core-features/smart_toy.mdx)
+- [Robotics - Unitree Dog](./docs/robotics/unitree_go2_quadruped.mdx)
 - [Robotics - Unitree Dog with Wallet](./docs/robotics/coinbase_hackathon.mdx)
 
 ## Contributing

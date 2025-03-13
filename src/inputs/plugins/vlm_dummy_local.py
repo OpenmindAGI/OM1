@@ -48,7 +48,7 @@ class DummyVLMLocal(FuserInput[Image.Image]):
         # Messages buffer
         self.messages: list[Message] = []
 
-        self.descriptor_for_LLM = "Vision Language Model"
+        self.descriptor_for_LLM = "Vision"
 
     async def _poll(self) -> Image.Image:
         """
@@ -132,7 +132,7 @@ class DummyVLMLocal(FuserInput[Image.Image]):
 """
 
         self.io_provider.add_input(
-            self.__class__.__name__, latest_message.message, latest_message.timestamp
+            self.descriptor_for_LLM, latest_message.message, latest_message.timestamp
         )
         self.messages = []
 

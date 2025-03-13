@@ -51,6 +51,8 @@ jobs:
 
       - name: Run unit tests
         run: |
+          uv venv
+          uv pip install -r pyproject.toml --extra dds
           uv run pytest --log-cli-level=DEBUG -s
 
       - name: Upload test results

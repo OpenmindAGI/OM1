@@ -111,7 +111,7 @@ class UnitreeCameraVLMProvider:
          Frames per second for the video stream.
     """
 
-    def __init__(self, ws_url: str, fps: int = 30):
+    def __init__(self, ws_url: str, fps: int = 5):
         """
         Initialize the VLM Provider.
 

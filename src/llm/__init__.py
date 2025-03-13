@@ -22,11 +22,15 @@ class LLMConfig(BaseModel):
         Authentication key for the LLM service
     model : str, optional
         Name of the LLM model to use
+    history_length : int, optional
+        Number of interactions to store in the history buffer
     """
 
     base_url: T.Optional[str] = None
     api_key: T.Optional[str] = None
     model: T.Optional[str] = None
+    agent_name: T.Optional[str] = "IRIS"
+    history_length: T.Optional[int] = 0
 
 
 class LLM(T.Generic[R]):
@@ -44,7 +48,7 @@ class LLM(T.Generic[R]):
 
     """
 
-    def __init__(self, output_model: T.Type[R], config: T.Optional[LLMConfig]):
+    def __init__(self, output_model: T.Type[R], config: LLMConfig = LLMConfig()):
         # Set up the LLM configuration
         self._config = config
 
@@ -54,7 +58,7 @@ class LLM(T.Generic[R]):
         # Set up the IO provider
         self.io_provider = IOProvider()
 
-    async def ask(self, prompt: str) -> R:
+    async def ask(self, prompt: str, messages: T.List[T.Dict[str, str]] = []) -> R:
         """
         Send a prompt to the LLM and receive a typed response.
 
@@ -62,6 +66,8 @@ class LLM(T.Generic[R]):
         ----------
         prompt : str
             Input text to send to the model
+        messages : List[Dict[str, str]]
+            List of message dictionaries to send to the model.
 
         Returns
         -------

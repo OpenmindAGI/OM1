@@ -1,0 +1,27 @@
+## Adding New Actions
+
+Actions are the core capabilities of an agent. For example, for a robot, these capabilities are actions such as movement and speech. Each action consists of:
+
+1. Interface (`interface.py`): Defines input/output types.
+2. Implementation (`implementation/`): Business logic, if any. Otherwise, use passthrough.
+3. Connector (`connector/`): Code that connects `OM1` to specific virtual or physical environments, typically through middleware (e.g. custom APIs, `ROS2`, `Zenoh`, or `CycloneDDS`)
+
+Example action structure:
+
+```tree Example Action Structure
+actions/
+└── move_{unique_hardware_id}/
+    ├── interface.py      # Defines MoveInput/Output
+    ├── implementation/
+    │   └── passthrough.py
+    └── connector/
+        ├── ros2.py       # Maps OM1 data/commands to hardware layers and robot middleware
+        ├── zenoh.py
+        └── unitree.py
+```
+
+<Note>
+In general, each robot will have specific capabilities, and therefore, each action will be hardware specific.
+</Note>
+
+*Example*: if you are adding support for the Unitree G1 Humanoid version 13.2b, which supports a new movement subtype such as `dance_2`, you could name the updated action `move_unitree_g1_13_2b` and select that action in your `unitree_g1.json` configuration file.

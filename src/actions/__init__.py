@@ -11,7 +11,7 @@ from actions.base import (
 )
 
 
-def describe_action(action_name: str) -> str:
+def describe_action(action_name: str, llm_label: str) -> str:
     interface = None
     action = importlib.import_module(f"actions.{action_name}.interface")
     for _, obj in action.__dict__.items():
@@ -34,15 +34,13 @@ def describe_action(action_name: str) -> str:
         elif isinstance(field_type, type) and issubclass(field_type, Enum):
             # Handle enums by listing allowed values
             values = [f"'{v.value}'" for v in field_type]
-            hints[field_name] = (
-                f"{field_type.__name__} - Allowed values: {', '.join(values)}"
-            )
+            hints[field_name] = f"Allowed values: {', '.join(values)}"
         else:
             hints[field_name] = str(field_type)
 
     # Format the full docstring
-    type_hints = "\n".join(f"    {name}: {desc}" for name, desc in hints.items())
-    return f"command: {action_name}\n{doc}\nArguments:\n{type_hints}"
+    type_hints = "\n".join(f"{desc}" for name, desc in hints.items())
+    return f"command: {llm_label}\n{doc}\n    Arguments: {type_hints}"
 
 
 def load_action(
@@ -83,6 +81,7 @@ def load_action(
     config = ActionConfig(**action_config.get("config", {}))
     return AgentAction(
         name=action_config["name"],
+        llm_label=action_config["llm_label"],
         interface=interface,
         implementation=implementation_class(config),
         connector=connector_class(config),

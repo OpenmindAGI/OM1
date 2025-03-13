@@ -1,0 +1,21 @@
+---
+title: Linting and Testing
+description: "Instructions for linting and unit testing the code."
+---
+
+Maintaining code quality and ensuring your agents work correctly is crucial when developing with OpenMind OS (OM1). This section covers recommended linting and testing practices to help you catch errors early, maintain code consistency, and validate agent behavior before deployment.
+
+## Linting
+
+* Run `uv run ruff check . --fix && uv run black . && uv run isort .` to check/format your code.
+
+<Tip>To automatically run the lint check before committing, install [pre-commit](https://pre-commit.com/) and execute `pre-commit install`. This ensures that pre-commit checks run before each commit. Additionally, you can manually trigger all checks by running `pre-commit run --all-files`.</Tip>
+
+## Unit testing 
+
+To unit test the system, run:
+```
+uv run pytest --log-cli-level=DEBUG -s
+```
+
+* Use type `hints` and `docstrings` for better code maintainability.

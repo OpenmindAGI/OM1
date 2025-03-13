@@ -17,8 +17,8 @@ RULES are stored on the ETHEREUM HOLESKY testnet
 
 https://holesky.etherscan.io/address/0xe706b7e30e378b89c7b2ee7bfd8ce2b91959d695
 
-Note: Etherscan.io does not handle bytes[]/json well. See below for ways to 
-interact with HOLESKY and decode the data, generating an ASCII string.  
+Note: Etherscan.io does not handle bytes[]/json well. See below for ways to
+interact with HOLESKY and decode the data, generating an ASCII string.
 """
 
 
@@ -214,7 +214,7 @@ class GovernanceEthereum(FuserInput[float]):
 """
 
         self.io_provider.add_input(
-            self.__class__.__name__, latest_message.message, latest_message.timestamp
+            self.descriptor_for_LLM, latest_message.message, latest_message.timestamp
         )
         # no need to blank because we are only saving rare law changes
         # self.messages = []

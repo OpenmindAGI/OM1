@@ -10,7 +10,10 @@
       "type": "FaceEmotionCapture"
     },
     {
-      "type": "ASRInput"
+      "type": "GoogleASRInput"
+    },
+    {
+      "type": "SerialReader"
     }
   ],
   "simulators": [
@@ -24,11 +27,13 @@
   "agent_actions": [
     {
       "name": "move_serial_arduino",
+      "llm_label": "move",
       "implementation": "passthrough",
       "connector": "serial_arduino"
     },
     {
       "name": "speak",
+      "llm_label": "speak",
       "implementation": "passthrough",
       "connector": "elevenlabs_tts"
     }

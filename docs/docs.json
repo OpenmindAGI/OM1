@@ -10,39 +10,60 @@
   "styling": {
     "codeblocks": "system"
   },
+  "background": {
+    "decoration": "grid"
+  },
   "navigation": {
     "tabs": [
+      {
+        "tab": "Home",
+        "pages": [
+          "home"
+        ]
+      },
       {
         "tab": "Guides",
         "groups": [
           {
-            "group": "Get Started",
+            "group": "Getting Started",
             "pages": [
-              "introduction",
-              "quick_start"
+              "getting-started/introduction",
+              "getting-started/quick_start",
+              "getting-started/architecture",
+              "getting-started/glossary"
+            ]
+          },
+          {
+            "group": "Tutorials",
+            "pages": [
+              "core-features/conversation",
+              "core-features/llm_models",
+              "core-features/smart_toy"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "configuration/configuration"
             ]
           },
           {
             "group": "Development",
             "pages": [
-              "development/guide",
-              "development/architecture"
-            ]
-          },
-          {
-            "group": "Examples",
-            "pages": [
-              "examples/conversation",
-              "examples/llm_models",
-              "examples/smart_toy"
+              "development/intro",
+              "development/linting-testing",
+              "development/cli-commands",
+              "development/actions",
+              "development/env"
             ]
           },
           {
             "group": "Robotics",
             "pages": [
               "robotics/asimov_governance",
-              "robotics/unitree_robotics",
-              "robotics/coinbase_hackathon"
+              "robotics/coinbase_hackathon",
+              "robotics/unitree_go2_quadruped",
+              "robotics/unitree_g1_humanoid"
             ]
           }
         ]

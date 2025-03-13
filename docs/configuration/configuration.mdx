@@ -1,0 +1,136 @@
+Agents are configured via JSON files in the `config/` directory. Key configuration elements:
+
+```json Configuration
+{
+  "hertz": 0.5,
+  "name": "agent_name",
+  "api_key": "your_key_here",
+  "system_prompt": "...",
+  "agent_inputs": [
+    {
+      "type": "VlmInput"
+    }
+  ],
+  "cortex_llm": {
+    "type": "OpenAILLM",
+    "config": {
+      "base_url": "", // Optional: URL of the LLM endpoint
+      "api_key": "your_key_here" // Optional: Override the default API key
+    }
+  },
+  "simulators": [
+    {
+      "type": "WebSim"
+    }
+  ],
+  "agent_actions": [
+    {
+      "name": "move",
+      "implementation": "passthrough",
+      "connector": "ros2"
+    }
+  ]
+}
+```
+
+* **Hertz** Defines the base tick rate of the agent. This rate can be overridden to allow the agent to respond quickly to changing environments using event-triggered callbacks through real-time middleware.
+
+* **Name** A unique identifier for the agent.
+
+* **System Prompt** Defines the agent's personality and behavior. This acts as the system prompt for the agent's operations.
+
+* **Cortex LLM** Configuration for the language model (LLM) used by the agent.
+
+  - **Type**: Specifies the LLM plugin.
+
+  - **Config**: Configuration for the LLM, including the API endpoint and API key. If you do not change the file, and use the `openmind_free` api key, the LLM operates with a rate limiter with Openmind's public endpoint.
+
+OpenMind OpenAI Proxy endpoint is:
+```
+[https://api.openmind.org/api/core/openai](https://api.openmind.org/api/core/openai)
+```
+OpenMind DeepSeek Proxy endpoint is:
+```
+[https://api.openmind.org/api/core/deepseek](https://api.openmind.org/api/core/deepseek)
+```
+OpenMind Gemini Proxy endpoint is: 
+```
+[https://api.openmind.org/api/core/gemini](https://api.openmind.org/api/core/gemini)
+```
+
+## LLM Configuration
+
+```json LLM Configuration
+"cortex_llm": {
+  "type": "OpenAILLM",
+  "config": {
+    "base_url": "...", // Optional: URL of the LLM endpoint
+    "api_key": "..."   // Optional: Override the default API key
+  }
+}
+```
+
+
+You can directly access other OpenAI style endpoints by specifying a custom API endpoint in your configuration file. To do this, provide a suitable `base_url` and the `api_key` for OpenAI, DeepSeek, or other providers. Possible `base_url` choices are:
+<AccordionGroup>
+    <Card>
+    - https://api.openai.com/v1
+    </Card>
+    <Card>
+    - https://api.deepseek.com/v1
+    </Card>
+    <Card>
+    - https://api.openai.com/v1
+    </Card>
+    <Card>
+    - and many others...
+    </Card> 
+</AccordionGroup>
+
+
+## Lint and Unittesting
+
+* To unittest the system, run `uv run pytest --log-cli-level=DEBUG -s`
+* To lint the code, run `uv run ruff check . --fix && uv run black . && uv run isort .`
+
+## Project Structure
+
+```tree Project Structure
+.
+├── config/               # Agent configuration files
+├── src/
+│   ├── actions/          # Agent outputs/actions/capabilities
+│   ├── fuser/            # Input fusion logic
+│   ├── inputs/           # Input plugins (e.g. VLM, audio)
+│   ├── llm/              # LLM integration
+│   ├── providers/        # Providers
+│   ├── runtime/          # Core runtime system
+│   ├── simulators/       # Virtual endpoints such as `WebSim`
+│   └── run.py            # CLI entry point
+```
+
+### Simulators
+
+Lists the simulation modules used by the agent. These define the simulated environment or entities the agent interacts with.
+
+```json Simulators Configuration
+"simulators": [
+  {
+    "type": "WebSim"
+  }
+]
+```
+
+### Agent Actions
+
+Defines the agent's available capabilities, including action names, their implementation, and the connector used to execute them.
+
+```json Agent Actions Configuration
+"agent_actions": [
+  {
+    "name": "move", // Action name
+    "implementation": "passthrough", // Implementation to use
+    "connector": "ros2" // Connector handler
+  }
+]
+```

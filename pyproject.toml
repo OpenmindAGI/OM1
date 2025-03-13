@@ -5,6 +5,8 @@ description = "OM1 - a modern agent and robotics runtime system"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    "audiosegment",
+    "pyaudio",
     "openai>=1.59.5",
     "pillow>=11.1.0",
     "python-dotenv>=1.0.1",
@@ -12,8 +14,6 @@ dependencies = [
     "opencv-python",
     "deepface",
     "tf_keras",
-    "pygame",
-    "gif-pygame",
     "web3",
     "numpy",
     "cdp-sdk>=0.15.0",
@@ -25,7 +25,7 @@ dependencies = [
     "fastapi>=0.110.0",
     "uvicorn>=0.27.1",
     "websockets>=12.0",
-    "om1-modules @ git+https://github.com/OpenmindAGI/om1-modules.git@1596dfe496305f1bc7ceee1f2b4a61ea07c14fd8",
+    "om1-modules @ git+https://github.com/OpenmindAGI/om1-modules.git@5a7ae162a53b0456f7b7552219863969ca473c64",
     "aiohttp>=3.9.3",
     "python-multipart>=0.0.9",
     "jinja2>=3.1.3",
@@ -50,7 +50,7 @@ dev = [
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 asyncio_mode = "auto"
-norecursedirs = ["src/unitree"]
+norecursedirs = ["src/unitree", "system_hw_test"]
 
 [tool.black]
 line-length = 88

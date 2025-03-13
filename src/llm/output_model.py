@@ -1,38 +1,20 @@
 from pydantic import BaseModel, Field
 
 
-class CommandArgument(BaseModel):
-    """
-    Single argument for a command execution.
-
-    Parameters
-    ----------
-    name : str
-        Name identifier for the argument
-    value : str
-        Value to be used for the argument
-    """
-
-    name: str = Field(..., description="The name of the argument")
-    value: str = Field(..., description="The value of the argument")
-
-
 class Command(BaseModel):
     """
-    Executable command with its arguments.
+    Executable action with its argument.
 
     Parameters
     ----------
-    name : str
-        Name of the command to execute
-    arguments : list[CommandArgument]
-        List of arguments required for command execution
+    type : str
+        Type of action to execute
+    value : str
+        The action argument, such as magnitude or sentence to speak
     """
 
-    name: str = Field(..., description="The name of the command to execute")
-    arguments: list[CommandArgument] = Field(
-        ..., description="Arguments for the command"
-    )
+    type: str = Field(..., description="The type of action")
+    value: str = Field(..., description="The action argument")
 
 
 class CortexOutputModel(BaseModel):
@@ -45,4 +27,4 @@ class CortexOutputModel(BaseModel):
         Sequence of commands to be executed
     """
 
-    commands: list[Command] = Field(..., description="List of commands to execute")
+    commands: list[Command] = Field(..., description="List of actions to execute")

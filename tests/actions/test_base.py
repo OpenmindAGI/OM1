@@ -66,6 +66,7 @@ def test_connector(action_config):
 def agent_action(test_implementation, test_connector):
     return AgentAction(
         name="test_action",
+        llm_label="test_llm_label",
         interface=TestInterface,
         implementation=test_implementation,
         connector=test_connector,

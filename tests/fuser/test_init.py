@@ -16,6 +16,7 @@ class MockSensor(Sensor):
 @dataclass
 class MockAction:
     name: str
+    llm_label: str = None
 
 
 @dataclass

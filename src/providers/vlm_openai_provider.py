@@ -61,7 +61,10 @@ class VLMOpenAIProvider:
                     {
                         "role": "user",
                         "content": [
-                            {"type": "text", "text": "What's in this image?"},
+                            {
+                                "type": "text",
+                                "text": "What is the most interesting aspect in this series of images?",
+                            },
                             {
                                 "type": "image_url",
                                 "image_url": {

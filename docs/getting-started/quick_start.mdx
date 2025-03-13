@@ -1,0 +1,172 @@
+---
+title: Quick Start
+description: "Get started with Openmind OS (OM1)"
+---
+
+## How To Use The Spot Agent
+
+The `Spot` agent uses your webcam to label objects and sends those captions to `OpenAI 4o`. The LLM then returns `movement`, `speech`, and `face` commands, which are displayed in `WebSim`. `WebSim` also shows basic timing and other debug information.
+
+### Prerequisites
+<Note>
+	Before getting started, ensure you have the following installed on your machine:
+</Note>
+
+<Steps>
+  <Step title="Homebrew (Package Manager for macOS and Linux)">
+     If Homebrew is not installed, run:
+	```
+	/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+	```
+  </Step>
+  <Step title="UV (A Rust and Python package manager)">
+    <CodeGroup>
+	``` bash Mac
+	brew install uv
+	```
+
+	``` bash Linux
+	curl -LsSf https://astral.sh/uv/install.sh | sh
+	```
+	</CodeGroup>
+  </Step>
+  <Step title="Hardware audio drivers">
+   <Info>
+	This will let you speak to the LLM, and it will generate voice outputs.
+	</Info>
+
+	On Mac and Linux, you may need to install `portaudio`.
+
+	<CodeGroup>
+	For Mac:
+	```bash Mac Audio Drivers
+	brew install portaudio
+	```
+
+	For Linux:
+	```bash Linux Audio Drivers
+	sudo apt-get update
+	sudo apt-get install portaudio19-dev python-all-dev
+	```
+	</CodeGroup>
+  </Step>
+</Steps>
+
+
+### Installation and Setup
+<Steps>
+  <Step title="Clone the repository">
+   Run the following commands to clone the repository and set up the environment:
+
+	```bash clone repo
+	git clone https://github.com/OpenmindAGI/OM1.git
+	cd OM1
+	git submodule update --init
+	uv venv
+	```
+
+	**Project Structure**
+	```bash Project Structure
+.
+├── config/               # Agent configuration files
+├── src/
+│   ├── actions/          # Agent outputs/actions/capabilities
+│   ├── fuser/            # Input fusion logic
+│   ├── inputs/           # Input plugins (e.g. VLM, audio)
+│   ├── llm/              # LLM integration
+│   ├── providers/        # Providers
+│   ├── runtime/          # Core runtime system
+│   ├── simulators/       # Virtual endpoints such as `WebSim`
+│   └── run.py            # CLI entry point
+```
+</Step>
+
+  <Step title="Configure API Key">
+	<Steps>
+  		<Step title="Go to  Openmind Portal">
+		</Step>
+  		<Step title="Sign up using your Google account or with your email address and password.">
+  		</Step>
+		<Step title="Click on Generate API Key">
+  		</Step>
+		<Step title=" Wait a few seconds, your API key will be generated.">
+			<img
+			className="block dark:hidden"
+			src="/assets/api-key.png"
+			alt="API key"
+			/>
+			<img
+			className="hidden dark:block"
+			src="/assets/api-key.png"
+			alt="API key"
+			/>
+		<Warning>
+			Important: Your API key will only be shown once. Copy it and store it securely.
+Do not share it with anyone.
+		</Warning>
+	  </Step>
+	  <Step title="Add the API key to the configuration file:">
+	  * Open `config/spot.json`.
+	  * Inside the `config` object, create a variable named `api-key` and assign your API key as the value.
+	  <Note>
+	  	Ensure to do the same to other config files
+	  </Note>
+	  <img
+			className="block dark:hidden"
+			src="/assets/api-key.png"
+			alt="API key"
+		/>
+		<img
+			className="hidden dark:block"
+			src="/assets/api-key.png"
+			alt="API key"
+		/>
+	  </Step>
+	</Steps>
+  </Step>
+
+  <Step title="Run the Spot Agent">
+  #### Run the following command to start the Spot Agent:
+  ```
+  uv run src/run.py spot
+  ```
+  <Warning>
+	Some necessary packages like websockets, openapi etc will be installed during this process. This might take a little time, so please be patient.
+  </Warning>
+
+  #### Response:
+  ```
+  INFO:root:SendThisToROS2: {'move': 'dance'}
+	INFO:root:SendThisToROS2: {'speak': "Hello, it's so nice to see you! Let's dance together!"}
+	INFO:root:SendThisToROS2: {'face': 'joy'}
+	INFO:root:VLM_COCO_Local: You see a person in front of you.
+	INFO:httpx:HTTP Request: POST https://api.openmind.org/api/core/openai/chat/completions "HTTP/1.1 200 OK"
+	INFO:root:Inputs and LLM Outputs: {
+		'current_action': 'wag tail', 
+		'last_speech': "Hello, new friend! I'm so happy to see you!", 
+		'current_emotion': 'joy', 
+		'system_latency': {
+			'fuse_time': 0.2420651912689209, 
+			'llm_start': 0.24208617210388184, 
+			'processing': 1.4561660289764404, 
+			'complete': 1.6982522010803223}, 
+		'inputs': [{
+			'input_type': 'VLM_COCO_Local', 
+			'timestamp': 0.0, 
+			'input': 'You see a person in front of you.'}]
+		}
+
+  ```
+
+  #### Explanation
+
+  The response above provides insight into how the spot agent processes its environment and decides on its next actions.
+  - First, it detects a person using vision.
+  - Next, it decides on a friendly action (dancing and speaking).
+  - Expresses emotions via facial displays.
+  - Logs latency and processing times to monitor system performance.
+  - Communicates with an external AI API for response generation.
+
+Overall, the system follows a predefined behavior where spotting a person triggers joyful interactions, driven by the LLM-assisted decision-making process. 
+  </Step>
+</Steps>

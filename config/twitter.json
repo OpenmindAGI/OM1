@@ -19,6 +19,7 @@
     "agent_actions": [
       {
         "name": "tweet",
+        "llm_label": "tweet",
         "implementation": "passthrough",
         "connector": "twitterAPI"
       }

@@ -8,6 +8,8 @@ class MovementAction(str, Enum):
     STAND_UP = "stand up"
     SIT = "sit"
     SHAKE_PAW = "shake paw"
+    DANCE = "dance"
+    STRETCH = "stretch"
     STAND_STILL = "stand still"
     DO_NOTHING = "stand still"
 
