@@ -613,12 +613,23 @@ class WebSim(Simulator):
                     )
 
                 # Process system latency relative to earliest time
+                fuser_end_time = self.io_provider.fuser_end_time or 0
+                llm_start_time = self.io_provider.llm_start_time or 0
+                llm_end_time = self.io_provider.llm_end_time or 0
+
                 system_latency = {
-                    "fuse_time": self.io_provider.fuser_end_time - earliest_time,
-                    "llm_start": self.io_provider.llm_start_time - earliest_time,
-                    "processing": self.io_provider.llm_end_time
-                    - self.io_provider.llm_start_time,
-                    "complete": self.io_provider.llm_end_time - earliest_time,
+                    "fuse_time": (
+                        fuser_end_time - earliest_time if fuser_end_time else 0
+                    ),
+                    "llm_start": (
+                        llm_start_time - earliest_time if llm_start_time else 0
+                    ),
+                    "processing": (
+                        llm_end_time - llm_start_time
+                        if (llm_end_time and llm_start_time)
+                        else 0
+                    ),
+                    "complete": llm_end_time - earliest_time if llm_end_time else 0,
                 }
 
                 for command in commands:

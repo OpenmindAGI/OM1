@@ -1,6 +1,6 @@
 import threading
 from dataclasses import dataclass
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 from .singleton import singleton
 
@@ -43,6 +43,9 @@ class IOProvider:
         self._llm_prompt: Optional[str] = None
         self._llm_start_time: Optional[float] = None
         self._llm_end_time: Optional[float] = None
+
+        # Additional variables storage
+        self._variables: Dict[str, Any] = {}
 
     @property
     def inputs(self) -> Dict[str, Input]:
@@ -240,3 +243,34 @@ class IOProvider:
         """
         with self._lock:
             self._llm_end_time = value
+
+    def add_dynamic_variable(self, key: str, value: Any) -> None:
+        """
+        Add a dynamic variable to the provider.
+
+        Parameters
+        ----------
+        key : str
+            The variable key.
+        value : Any
+            The variable value.
+        """
+        with self._lock:
+            self._variables[key] = value
+
+    def get_dynamic_variable(self, key: str) -> Any:
+        """
+        Get a dynamic variable from the provider.
+
+        Parameters
+        ----------
+        key : str
+            The variable key.
+
+        Returns
+        -------
+        Any
+            The variable value.
+        """
+        with self._lock:
+            return self._variables.get(key)

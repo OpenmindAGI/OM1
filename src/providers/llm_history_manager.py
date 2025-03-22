@@ -210,8 +210,8 @@ class LLMHistoryManager:
 
                 formatted_inputs = "**** sensed the following: "
                 for input_type, input_info in self.io_provider.inputs.items():
-                    logging.info(f"LLM: {input_type}")
-                    logging.info(f"LLM: {input_info}")
+                    logging.debug(f"LLM: {input_type}")
+                    logging.debug(f"LLM: {input_info}")
                     formatted_inputs += f"{input_type}: {input_info.input} | "
 
                 # formatted_inputs = f"**** sensed the following: {" | ".join(f"{input_type}: {input_info.input}" for input_type, input_info in self.io_provider.inputs.items())}"

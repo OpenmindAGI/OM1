@@ -74,7 +74,7 @@ class OpenAILLM(LLM[R]):
             parsing fails.
         """
         try:
-            logging.info(f"OpenAI LLM input: {prompt}")
+            logging.debug(f"OpenAI LLM input: {prompt}")
             logging.debug(f"OpenAI LLM messages: {messages}")
 
             self.io_provider.llm_start_time = time.time()
