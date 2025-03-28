@@ -23,7 +23,6 @@
                       ".*/tf",
                       ".*/tf_static",
                       ".*/wheel_status",
-                      ".*/motion_control",
                       ".*/oakd/rgb/preview/image_raw" // allows camera data to flow to other computers
                     ],
         subscribers: [
@@ -41,26 +40,13 @@
                       ".*/tf",
                       ".*/tf_static",
                       ".*/wheel_status",
-                      ".*/motion_control",
                       ".*/oakd/rgb/preview/image_raw" // allows camera data to flow to other computers
                      ],
         service_servers: [
-          ".*get_parameters",
-          ".*get_parameter_types",
-          ".*list_parameters",
-          ".*describe_parameters",
-          ".*set_parameters",
-          ".*set_parameters_atomically",
           ".*/start_motor",
           ".*/stop_motor"
         ],
         service_clients: [
-          ".*get_parameters",
-          ".*get_parameter_types",
-          ".*list_parameters",
-          ".*describe_parameters",
-          ".*set_parameters",
-          ".*set_parameters_atomically",
           ".*/start_motor",
           ".*/stop_motor"
         ],

@@ -4,11 +4,17 @@ description: "TurtleBot4 Basic Setup"
 ---
 
 - [Basic Commands](#basic-commands)
+- [Identity and Keys](#identity-and-keys)
 - [Suggested Operating System Versions](#suggested-operating-system-versions)
-- [Set Up](#set-up)
-- [Interacting with TurtleBot4 from a Remote Computer using Zenoh](#interacting-with-turtlebot4-from-a-remote-computer-using-zenoh)
+- [TurtleBot4 Set Up](#turtlebot4-set-up)
+  * [Enable full motion control](#enable-full-motion-control)
+- [Run OM1 on the Internal RPi4](#run-om1-on-the-internal-rpi4)
+- [Run OM1 on an External Development Computer (e.g. Mac Laptop)](#run-om1-on-an-external-development-computer--eg-mac-laptop-)
+  * [Interacting with TurtleBot4 from a Remote Computer using Zenoh](#interacting-with-turtlebot4-from-a-remote-computer-using-zenoh)
 - [Expected ROS2 Topics for a Correctly Configured System](#expected-ros2-topics-for-a-correctly-configured-system)
 - [Building the Docker Dual Bridge Images](#building-the-docker-dual-bridge-images)
+- [Debugging Commands](#debugging-commands)
+
 
 ## Basic Commands
 
@@ -114,7 +120,7 @@ To spin the robot, for example, on the TurtleBot4 command line issue:
 
 ```bash
 ros2 topic pub /$URID/c3/cmd_vel geometry_msgs/msg/Twist "linear:
-  x: 0.0
+  x: -0.5
   y: 0.0
   z: 0.0
 angular:
@@ -125,7 +131,21 @@ angular:
 
 To debug movement, use `ros2 topic info /$URID/pi/cmd_vel --verbose`.
 
-To enable full range of motion, set `ros2 param set /$URID/c3/motion_control safety_override backup_only`. This removes the cliff protection, which limits backwards movements to 1 cm. 
+### Enable full motion control
+
+To enable full range of motion, set `/$URID/c3/motion_control safety_override` to the desired value. This removes the cliff protection, which limits backwards movements to 1 cm. 
+
+The best way to change this setting is via the Create3's App config page at its web server (e.g. `192.168.1.XXX:8080/ros-config`). In the `Application ROS 2 Parameters File` window, add your Create3 ROS2 namespace, such as `/OM123435Cc1234/c3/` and then select your desired `safety_override options`. For example, an `Application ROS 2 Parameters File` could look like this:
+
+```
+/OM123435Cc1234/c3/motion_control:
+  ros__parameters:
+    # safety_override options are 
+    # "none" - standard safety profile, robot cannot backup more than an inch because of lack of cliff protection in rear, max speed 0.306m/s
+    # "backup_only" - allow backup without cliff safety, but keep cliff safety forward and max speed at 0.306m/s
+    # "full" - no cliff safety, robot will ignore cliffs and set max speed to 0.46m/s
+    safety_override: "full"
+```
 
 ## Run OM1 on the Internal RPi4
 
@@ -199,9 +219,10 @@ Congratulations - Your laptop is now controlling the TurtleBot4!
 
 ### Interacting with TurtleBot4 from a Remote Computer using Zenoh
 
+Inside `system_hw_test`, there are several scripts for you to interact with the TurtleBot4. For all these scripts, please provide/update the topic names to include your specific namespace. If you do not update the namespaces, the scripts will fail. 
+
 Steer the TurtleBot4 with your keyboard:
 ```bash
-cd system_hw_test
 uv run turtlebot4_keyboard_movement.py
 ```
 * W - Move Forward
@@ -211,13 +232,11 @@ uv run turtlebot4_keyboard_movement.py
 
 Read TurtleBot4 laser scan, collision, and battery data:
 ```bash
-cd system_hw_test
 uv run turtlebot4_laserscan.py
 ```
 
 Read TurtleBot4 Camera PREVIEW (250x250RGB) data:
 ```bash
-cd system_hw_test
 uv run turtlebot4_camera_opencv.py
 ```
 
