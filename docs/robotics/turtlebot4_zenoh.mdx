@@ -119,15 +119,21 @@ ros2 topic echo /$URID/pi/scan
 To spin the robot, for example, on the TurtleBot4 command line issue:
 
 ```bash
-ros2 topic pub /$URID/c3/cmd_vel geometry_msgs/msg/Twist "linear:
-  x: -0.5
+ros2 topic pub -r 1 /$URID/c3/cmd_vel geometry_msgs/msg/Twist "linear:
+  x: 0.1
   y: 0.0
   z: 0.0
 angular:
   x: 0.0
   y: 0.0
-  z: 0.1"
+  z: 0.0"
 ```
+
+The `-r 10` refers to the publish rate. This is what controls the distance traveled. The central idea behind TB4 movement control is that if you:
+
+* Publish `twist` messages **above** a critical rate (of about 1.7Hz), then the TB4 executes smooth movement at the target velocity (after an early transient while it is accelerating). For example, if you run `topic pub -r 10` with a 0.5 m/s velocity for two seconds, then the robot will travel about 1 m.
+
+* Publish `twist` messages **below** the critical rate (of about 1.7Hz), then the TB4 executes jerky movements consisting of acceleration, reaching target velocity, followed by deceleration to zero after a `max_duration` timeout. The specific setting of the fixed timeout period hardcoded into the closed source Create3 code is currently unknown.
 
 To debug movement, use `ros2 topic info /$URID/pi/cmd_vel --verbose`.
 
