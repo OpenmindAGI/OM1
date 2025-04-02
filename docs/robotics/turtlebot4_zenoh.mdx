@@ -129,11 +129,11 @@ angular:
   z: 0.0"
 ```
 
-The `-r 10` refers to the publish rate. This is what controls the distance traveled. The central idea behind TB4 movement control is that if you:
+The `-r 10` refers to the publish rate. This rate setting greatly affects the smoothness of the motion, but also, to a lesser degree, the distance traveled. The central idea behind TB4 movement control is that if you:
 
-* Publish `twist` messages **above** a critical rate (of about 1.7Hz), then the TB4 executes smooth movement at the target velocity (after an early transient while it is accelerating). For example, if you run `topic pub -r 10` with a 0.5 m/s velocity for two seconds, then the robot will travel about 1 m.
+* publish `twist` messages **above** a critical rate (of about 1.7Hz), then the TB4 executes smooth movement at the target velocity (after an early transient while it is accelerating). For example, if you run `topic pub -r 10` with a 0.5 m/s velocity for two seconds, then the robot will smoothly travel about 1 m.
 
-* Publish `twist` messages **below** the critical rate (of about 1.7Hz), then the TB4 executes jerky movements consisting of acceleration, reaching target velocity, followed by deceleration to zero after a `max_duration` timeout. The specific setting of the fixed timeout period hardcoded into the closed source Create3 code is currently unknown.
+* publish `twist` messages **below** the critical rate (of about 1.7Hz), then the TB4 executes jerky cycles consisting of acceleration, reaching target velocity, followed by deceleration to zero after a `max_duration` timeout. For example, if you run `topic pub -r 1` with a 0.5 m/s velocity for two seconds, then the robot will travel about 0.6 m in a series of stops and starts. The specific setting of the fixed timeout period hardcoded into the Create3 firmware is currently unknown.
 
 To debug movement, use `ros2 topic info /$URID/pi/cmd_vel --verbose`.
 
