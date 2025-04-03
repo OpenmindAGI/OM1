@@ -10,13 +10,6 @@ from actions.base import ActionConfig, ActionConnector
 from actions.move_turtle.interface import MoveInput
 from zenoh_idl import geometry_msgs, nav_msgs, sensor_msgs
 
-
-@dataclass
-class Message:
-    timestamp: float
-    message: str
-
-
 class g:
     x = 0.0
     y = 0.0
@@ -73,13 +66,15 @@ def listenerHazard(sample):
 
 
 def listener(data):
+    
     odom = nav_msgs.Odometry.deserialize(data.payload.to_bytes())
     x = odom.pose.pose.orientation.x
     y = odom.pose.pose.orientation.y
     z = odom.pose.pose.orientation.z
     w = odom.pose.pose.orientation.w
-    logging.debug(f"TurtleBot4 Odom listener received {odom.pose.pose.orientation}")
-    # x,y,z,w
+    
+    logging.debug(f"TurtleBot4 Odom listener: {odom.pose.pose.orientation}")
+    
     angles = euler_from_quaternion(x, y, z, w)
 
     g.yaw_now = (
@@ -99,9 +94,6 @@ class MoveZenohConnector(ActionConnector[MoveInput]):
         super().__init__(config)
 
         self.session = None
-        self.is_command_executing = False
-        self.command_execution_time = 0
-        self.command_timeout = 2.0
 
         self.angle_tolerance = 5.0
         self.distance_tolerance = 0.05  # m
@@ -125,7 +117,8 @@ class MoveZenohConnector(ActionConnector[MoveInput]):
             self.session = zenoh.open(zenoh.Config())
             logging.info("Zenoh client opened")
             logging.info(f"TurtleBot4 listeners starting with URID: {URID}")
-            self.odom = self.session.declare_subscriber(f"{URID}/c3/odom", listener)
+            self.odom = self.session.declare_subscriber(
+                f"{URID}/c3/odom", listener)
             self.hazard = self.session.declare_subscriber(
                 f"{URID}/c3/hazard_detection", listenerHazard
             )
@@ -156,7 +149,7 @@ class MoveZenohConnector(ActionConnector[MoveInput]):
             return
 
         if g.x == 0.0:
-            # this value is never precisely zero except while
+            # this value is never precisely zero EXCEPT while
             # booting and waiting for data to arrive
             logging.info("Waiting for location data")
             return
@@ -165,15 +158,13 @@ class MoveZenohConnector(ActionConnector[MoveInput]):
             logging.info(f"Zenoh command: {output_interface.action}")
             # turn 90 Deg to the left (CCW)
             target_yaw = g.yaw_now - 90.0
-            if target_yaw <= -180.00:
-                target_yaw += 360.0
+            if target_yaw <= -180.0: target_yaw += 360.0
             self.pending_movements.put([0.0, target_yaw, "turn_left"])
         elif output_interface.action == "turn right":
             logging.info(f"Zenoh command: {output_interface.action}")
             # turn 90 Deg to the right (CW)
             target_yaw = g.yaw_now + 90.0
-            if target_yaw >= 180.00:
-                target_yaw -= 360.0
+            if target_yaw >= 180.0: target_yaw -= 360.0
             self.pending_movements.put([0.0, target_yaw, "turn_right"])
         elif output_interface.action == "move forwards":
             self.pending_movements.put([0.5, 0.0, "advance", g.x, g.y])
@@ -207,16 +198,15 @@ class MoveZenohConnector(ActionConnector[MoveInput]):
             with self.pending_movements.mutex:
                 self.pending_movements.queue.clear()
             logging.info(f"Should be empty: {self.pending_movements}")
-            self.pending_movements.put([0.5, 0.0, "back", g.x, g.y])
+            # self.pending_movements.put([0.5, 0.0, "back", g.x, g.y])
+            # this jams the TB4 because it overlaps with the low level recoil action
             if g.hazard == "TURN_RIGHT":
                 target_yaw = g.yaw_now + 90.0
-                if target_yaw >= 180.00:
-                    target_yaw -= 360.0
+                if target_yaw >= 180.0: target_yaw -= 360.0
                 self.pending_movements.put([0.0, target_yaw, "turn_right"])
             elif g.hazard == "TURN_LEFT":
                 target_yaw = g.yaw_now - 90.0
-                if target_yaw <= -180.00:
-                    target_yaw += 360.0
+                if target_yaw <= -180.0: target_yaw += 360.0
                 self.pending_movements.put([0.0, target_yaw, "turn_left"])
             logging.info(f"Should have avoidance: {self.pending_movements}")
 
