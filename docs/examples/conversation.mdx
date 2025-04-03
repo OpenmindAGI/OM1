@@ -13,12 +13,24 @@ This example uses your `default` audio in (microphone) and your `default` audio 
 It will request permission to on your audio. Allow permissions.
 </Info>
 
-#### Command
+### Install OM1
+Before your tutorial, please [install OM1](/getting-started/get-started)
+
+### Configure OM1 API key
+Locate config file in `config/conversation.json5` and update your `api_key` to your [OM1 API key](https://portal.openmind.org/).
+
+```
+"api_key": "openmind_free",
+```
+
+Apply [your OM1 API key](https://portal.openmind.org/)
+
+### Conversation with OM1
 ```
 uv run src/run.py conversation
 ```
 
-#### Response
+### Response
 ```
 WARNING:root:Unitree SDK not found. Please install the Unitree SDK to use this plugin.
 WARNING:root:Unitree SDK not found. Please install the Unitree SDK to use this plugin.
@@ -41,9 +53,9 @@ INFO:root:Detected ASR message: hello hello
 
 ```
 
-#### Code Explanation
-<Steps>
-<Step title="Missing Unitree SDK"> 
+### Code Explanation
+
+#### Missing Unitree SDK
 ```
 WARNING:root:Unitree SDK not found. Please install the Unitree SDK to use this plugin.
 WARNING:root:Unitree SDK not found. Please install the Unitree SDK to use this plugin.
@@ -55,80 +67,72 @@ WARNING:root:Unitree SDK not found. Please install the Unitree SDK to use this p
 You will be able to speak to the LLM and it will generate voice outputs.
 </Info>
 
-## Hardware Audio Drivers
+**Hardware Audio Drivers**
 
-</Step>
-<Step title="Audio Input Detection and Selection"> 
-    ```
-    INFO:om1_speech:Found 7 audio devices
-    INFO:om1_speech:Default input device: MacBook Pro Microphone (1)
-    INFO:om1_speech:Selected input device: MacBook Pro Microphone (1)
-    ```
+#### Audio Input Detection and Selection
+```
+INFO:om1_speech:Found 7 audio devices
+INFO:om1_speech:Default input device: MacBook Pro Microphone (1)
+INFO:om1_speech:Selected input device: MacBook Pro Microphone (1)
+```
     - The system detects 7 audio devices (microphones/speakers).
     - The default input device is selected: MacBook Pro Microphone (1).
     - This suggests speech recognition or voice input functionality.
-</Step>
-<Step title="WebSocket Connection Established"> 
- ```
-    INFO:om1_utils:WebSocket client thread started
+
+#### WebSocket Connection Established
+```
+INFO:om1_utils:WebSocket client thread started
     INFO:om1_utils:Connected to wss://api-asr.openmind.org
     INFO:om1_utils:Connection established
 ```
 - A WebSocket client thread starts.
 - It successfully connects to wss://api-asr.openmind.org, which appears to be an Automatic Speech Recognition (ASR) service (real-time voice-to-text processing).
 - Connection established, meaning speech recognition is now active.
-</Step>
-<Step title="Audio Processing Starts"> 
- ```
-    INFO:om1_speech:Started audio processing thread
+
+#### Audio Processing Starts
+```
+INFO:om1_speech:Started audio processing thread
     INFO:om1_speech:Started audio stream with device 1
     INFO:om1_utils:Registered message callback
 ```
 - The script starts processing audio input from the selected microphone (device 1).
 - It also registers a callback function to handle messages received via WebSocket.
-</Step>
-<Step title=" OpenAI Client Initialization"> 
+
+#### OpenAI Client Initialization
  ```
     INFO:root:Initializing OpenAI client with {'base_url': 'https://api.openmind.org/api/core/openai', 'api_key': 'om1_live_57c93cb779732cd5e45a2e3c7a5f7ce4d526f8269d9986ef3d5f084b2db2f69b456f67da22fc2ece'}
  ```
 - The script initializes an OpenAI-based client for handling conversational AI.
 - It connects to https://api.openmind.org/api/core/openai, suggesting it's using OpenAI's LLM API (likely for chatbot responses).
 - The API key is logged (security risk ⚠️ – API keys should not be exposed in logs).
-</Step>
-<Step title="Audio Output Device Detection"> 
- ```
-    INFO:om1_speech:Found 7 audio devices
+
+#### Audio Output Device Detection
+```
+INFO:om1_speech:Found 7 audio devices
     INFO:om1_speech:Device 0: LG FHD
     INFO:om1_speech:Max Output Channels: 2
     INFO:om1_speech:Selected output device: LG FHD at index 0
     INFO:om1_speech:Successfully opened audio stream
 ```
 
-<CodeGroup>
-	For Mac:
 	```bash Mac
 	brew install portaudio
 	```
-
-	For Linux:
 	```bash Linux
 	sudo apt-get update
 	sudo apt-get install portaudio19-dev python-all-dev
 	```
-</CodeGroup>
 
 - The system detects audio output devices.
 - It selects LG FHD as the output device (a monitor or external speaker).
 - Audio streaming is successfully opened, meaning the system can play sound.
-</Step>
-<Step title="Speech Recognition Captured Input"> 
+
+#### Speech Recognition Captured Input
 ```
-    INFO:root:Detected ASR message: hello hello
+INFO:root:Detected ASR message: hello hello
 ```
 - The system successfully recognized and transcribed speech input (hello hello).
 - This confirms that the ASR (Automatic Speech Recognition) system is working.
-</Step>
-</Steps>
 
 ## Enumerating your audio
 

@@ -1,11 +1,7 @@
 ---
-title: Quick Start
-description: "Get started with Openmind OS (OM1)"
+title: Installation
+description: "Learn how to install, set up and configure OM1 on your robots."
 ---
-
-## How To Use The Spot Agent
-
-The `Spot` agent uses your webcam to label objects and sends those captions to `OpenAI 4o`. The LLM then returns `movement`, `speech`, and `face` commands, which are displayed in `WebSim`. `WebSim` also shows basic timing and other debug information.
 
 ## System Requirements
 
@@ -17,7 +13,7 @@ The `Spot` agent uses your webcam to label objects and sends those captions to `
 ### Hardware
 
 - Memory (RAM): 8GB
-- Storage: 10GB
+- Storage: 16GB
 - Webcam: 1080p
 - Speakers
 - Microphone
@@ -32,12 +28,15 @@ The `Spot` agent uses your webcam to label objects and sends those captions to `
 
 Ensure you have the following installed on your machine:
 
-#### Homebrew (Package Manager for macOS)
+#### Package Manager
 
-If Homebrew is not installed, run:
-```bash
+```bash Mac
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
+
+``` bash Linux
+sudo apt-get update && sudo apt-get upgrade -y
+``` 
 
 #### UV (A Rust and Python package manager)
 
@@ -49,17 +48,15 @@ brew install uv
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-#### Hardware audio drivers
+#### PortAudio Library
 
 This will let you speak to the LLM and it will generate voice outputs. On Mac and Linux, you need `portaudio`.
 
-For Mac:
-```bash Mac Audio Drivers
+```bash Mac
 brew install portaudio
 ```
 
-For Linux:
-```bash Linux Audio Drivers
+```bash Linux
 sudo apt-get update
 sudo apt-get install portaudio19-dev python-all-dev
 ```
