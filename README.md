@@ -28,12 +28,9 @@ cd OM1
 git submodule update --init
 ```
 
-2. Install Rust Python package manager `uv`
+2. We use [uv](https://docs.astral.sh/uv/) to manage Python dependencies. See the [uv installation instructions](https://docs.astral.sh/uv/getting-started/installation/) to set it up.
 
-* On Mac, use `brew install uv`.
-* On Linux, use `curl -LsSf https://astral.sh/uv/install.sh | sh`.
-
-3. Install `portaudio`
+3. Install `portaudio` - [portaudio](https://www.portaudio.com/)
 
 * On Mac, use `brew install portaudio`
 * On Linux, use `sudo apt-get install portaudio19-dev python-all-dev`
