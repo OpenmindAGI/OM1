@@ -1,0 +1,8 @@
+# Core dependencies
+json5
+jsonschema>=4.23.0
+python-dotenv>=1.0.1
+typer>=0.15.1
+
+# Optional: OM1 project has more dependencies that can be found in pyproject.toml
+# This file only contains the minimum requirements for configuration validation 
