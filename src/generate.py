@@ -2,7 +2,6 @@ import aiohttp
 import json
 import os
 
-# Add this method to your CortexRuntime class
 async def generate_response(self, conversation_log):
     """
     Generate a response using the OpenMind API based on the conversation log.

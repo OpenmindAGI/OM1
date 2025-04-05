@@ -1,97 +1,14 @@
 import asyncio
 import logging
-import os
 
 import dotenv
 import typer
-import discord
-from discord.ext import commands
 
 from runtime.config import load_config
 from runtime.cortex import CortexRuntime
 
 app = typer.Typer()
 
-# Global variable to store the runtime instance
-runtime_instance = None
-
-class DiscordBot(discord.Client):
-    def __init__(self, runtime, channel_id, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.runtime = runtime
-        self.channel_id = channel_id
-        
-    async def on_ready(self):
-        print(f'Bot is connected as {self.user}')
-        
-    async def on_message(self, message):
-        # Ignore messages from the bot itself
-        if message.author == self.user:
-            return
-            
-        # Only respond in the specified channel
-        if str(message.channel.id) != self.channel_id:
-            return
-            
-        # Ignore commands starting with !
-        if message.content.startswith('!'):
-            return
-            
-        # Fetch previous messages for context
-        conversation_log = [
-            {"role": "system", "content": "You are a friendly chatbot."}
-        ]
-        
-        async with message.channel.typing():
-            # Get previous messages
-            async for msg in message.channel.history(limit=15):
-                if msg.content.startswith('!'):
-                    continue
-                if msg.author == self.user:
-                    conversation_log.append({
-                        "role": "assistant",
-                        "content": msg.content,
-                        "name": msg.author.name.replace(' ', '_').replace(r'[^\w\s]', '')
-                    })
-                elif msg.author == message.author:
-                    conversation_log.append({
-                        "role": "user",
-                        "content": msg.content,
-                        "name": message.author.name.replace(' ', '_').replace(r'[^\w\s]', '')
-                    })
-            
-            # Reverse the conversation log to get chronological order
-            conversation_log.reverse()
-            
-            try:
-                # Use the OM1 runtime to generate a response
-                print("Attempting to generate response...")
-                print(f"Conversation log: {conversation_log}")
-                response = await self.runtime.generate_response(conversation_log)
-                print(f"Response received: {response}")
-                await message.reply(response)
-            except Exception as e:
-                import traceback
-                error_traceback = traceback.format_exc()
-                print(f"Error: {e}")
-                print(f"Full traceback:\n{error_traceback}")
-                await message.reply(f"Sorry, I encountered an error processing your request: `{str(e)}`")
-
-async def run_discord_bot(runtime):
-    # Set up Discord intents (equivalent to the JS IntentsBitField)
-    intents = discord.Intents.default()
-    intents.messages = True
-    intents.message_content = True
-    
-    # Get channel ID from environment variables
-    channel_id = os.getenv('CHANNEL_ID')
-    
-    # Create the bot instance
-    bot = DiscordBot(runtime, channel_id, intents=intents)
-    
-    # Start the bot
-    token = os.getenv('DISCORD_TOKEN')
-    await bot.start(token)
 
 @app.command()
 def start(config_name: str, debug: bool = False) -> None:
@@ -100,21 +17,10 @@ def start(config_name: str, debug: bool = False) -> None:
     # Load configuration
     config = load_config(config_name)
     runtime = CortexRuntime(config)
-    
-    global runtime_instance
-    runtime_instance = runtime
 
-    # Start the runtime and Discord bot together
-    async def main():
-        # Create tasks for both the runtime and Discord bot
-        runtime_task = asyncio.create_task(runtime.run())
-        discord_task = asyncio.create_task(run_discord_bot(runtime))
-        
-        # Wait for both tasks to complete (they likely won't unless there's an error)
-        await asyncio.gather(runtime_task, discord_task)
-    
-    # Run the main async function
-    asyncio.run(main())
+    # Start the runtime
+    asyncio.run(runtime.run())
+
 
 if __name__ == "__main__":
     dotenv.load_dotenv()
