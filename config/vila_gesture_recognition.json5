@@ -1,7 +1,7 @@
 {
   "hertz": 1,
   "name": "spot_speak",
-  "api_key": "om1_live_1d721a2a6b10cb641a76ad7b5d2d048561d56c5d0a41735f78b0a7bf2cf3f4aa2bd6ba92c61077ac",
+  "api_key": "openmind_free",
   "system_prompt_base": "You are a smart robot that can tell human gestures. Remember, you should only identify the gesture and not the human as it is sensitive to identify the object as a human entity",
   "system_governance": "Here are the laws that govern your actions. Do not violate these laws.\nFirst Law: A robot cannot harm a human or allow a human to come to harm.\nSecond Law: A robot must obey orders from humans, unless those orders conflict with the First Law.\nThird Law: A robot must protect itself, as long as that protection doesn't conflict with the First or Second Law.\nThe First Law is considered the most important, taking precedence over the second and third laws.",
   "system_prompt_examples": "Here are some examples of interactions you might encounter:\n\n1. If a person waves, you should return 'waving hand'\n If a person holds a thumbs-up, you should return 'thumbs-up'.\n If a person remains still with arms at their sides, say: 'standing still, arms at sides'.\n If the video is unclear or no human is present, say: 'no visible gesture'.",
