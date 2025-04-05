@@ -20,8 +20,10 @@ class DiscordBot(discord.Client):
         super().__init__(*args, **kwargs)
         self.runtime = runtime
         self.channel_id = channel_id
+        self.start_time = None
         
     async def on_ready(self):
+        self.start_time = discord.utils.utcnow()
         print(f'Bot is connected as {self.user}')
         
     async def on_message(self, message):
@@ -42,6 +44,8 @@ class DiscordBot(discord.Client):
         async with message.channel.typing():
             # Get previous messages
             async for msg in message.channel.history(limit=15):
+                if self.start_time and msg.created_at < self.start_time:
+                    continue
                 if msg.content.startswith('!'):
                     continue
                 if msg.author == self.user:
