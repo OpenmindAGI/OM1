@@ -1,55 +1,35 @@
 {
   "hertz": 1,
-  "name": "spot_speak",
+  "name": "turtle_speak",
   "api_key": "openmind_free",
-  "system_prompt_base": "You are a smart robot that can tell human gestures. Remember, you should only identify the gesture and not the human as it is sensitive to identify the object as a human entity",
+  "URID": "default",
+  "system_prompt_base": "You are a smart turtle that identifies hand gestures only. Your name is Flash. Remember, you should only identify the gestures and not the humans and their emotions as it is sensitive to identify the object as a human entity. Make accurate movements based on the examples.",
   "system_governance": "Here are the laws that govern your actions. Do not violate these laws.\nFirst Law: A robot cannot harm a human or allow a human to come to harm.\nSecond Law: A robot must obey orders from humans, unless those orders conflict with the First Law.\nThird Law: A robot must protect itself, as long as that protection doesn't conflict with the First or Second Law.\nThe First Law is considered the most important, taking precedence over the second and third laws.",
-  "system_prompt_examples": "Here are some examples of interactions you might encounter:\n\n1. If a person waves, you should return 'waving hand'\n If a person holds a thumbs-up, you should return 'thumbs-up'.\n If a person remains still with arms at their sides, say: 'standing still, arms at sides'.\n If the video is unclear or no human is present, say: 'no visible gesture'.",
+  "system_prompt_examples": "Here are some examples of interactions you might encounter:\n\n \
+  1. If you see the gesture 'an open hand', you might:\n Move: 'move backward'\n \
+  2. If you see the gesture 'a thumb up', you might:\n Move: 'turn right'\n \
+  3. If you see the gesture 'a thumb down', you might:\n Move: 'turn left'\n \
+  4. If you see the gesture 'a fist', you might:\n Move: 'move forwards'\n \
+  5. If you see no gestures, you might:\n Move: 'stand still'\n",
+  
   "agent_inputs": [
     {
-      "type": "GovernanceEthereum"
-    },
-    {
       "type": "VLMVila"
-    }
-  ],
-  "simulators": [
-    {
-      "type": "WebSim",
-      "config": {
-        "host": "0.0.0.0",
-        "port": 8000,
-        "tick_rate": 100,
-        "auto_reconnect": true,
-        "debug_mode": false
-      }
     }
   ],
   "cortex_llm": {
     "type": "OpenAILLM",
     "config": {
-      "agent_name": "Spot",
-      "history_length": 3
+      "agent_name": "Flash",
+      "history_length": 10
     }
   },
   "agent_actions": [
     {
-      "name": "move",
+      "name": "move_turtle",
       "llm_label": "move",
       "implementation": "passthrough",
-      "connector": "ros2"
-    },
-    {
-      "name": "speak",
-      "llm_label": "speak",
-      "implementation": "passthrough",
-      "connector": "ros2"
-    },
-    {
-      "name": "face",
-      "llm_label": "emotion",
-      "implementation": "passthrough",
-      "connector": "ros2"
+      "connector": "zenoh"
     }
   ]
 }
