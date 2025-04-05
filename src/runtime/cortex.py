@@ -1,6 +1,8 @@
 import asyncio
 import logging
 
+from runtime.evaluation_logger import AgentEvaluationLogger
+
 from actions.orchestrator import ActionOrchestrator
 from fuser import Fuser
 from inputs.orchestrator import InputOrchestrator
@@ -31,7 +33,7 @@ class CortexRuntime:
     simulator_orchestrator: SimulatorOrchestrator
     sleep_ticker_provider: SleepTickerProvider
 
-    def __init__(self, config: RuntimeConfig):
+    def __init__(self, config: RuntimeConfig, debug_once=False):
         """
         Initialize the CortexRuntime with provided configuration.
 
@@ -47,6 +49,14 @@ class CortexRuntime:
         self.sleep_ticker_provider = SleepTickerProvider()
         self.io_provider = IOProvider()
         self.speech_duty_cycle = 0
+
+        # For Dev purposes only - Limit the number of ticks to 1
+        # and runs the cortex once
+        self.debug_once = debug_once
+
+    
+        self.eval_logger = AgentEvaluationLogger() 
+
 
     async def run(self) -> None:
         """
@@ -102,11 +112,17 @@ class CortexRuntime:
         -------
         None
         """
-        while True:
-            if not self.sleep_ticker_provider.skip_sleep:
-                await self.sleep_ticker_provider.sleep(1 / self.config.hertz)
+
+        # Dev purposes only - Limit the number of ticks to 1
+        if self.debug_once:
+            # Run only once for debugging purposes
             await self._tick()
-            self.sleep_ticker_provider.skip_sleep = False
+        else:
+            while True:
+                if not self.sleep_ticker_provider.skip_sleep:
+                    await self.sleep_ticker_provider.sleep(1 / self.config.hertz)
+                await self._tick()
+                self.sleep_ticker_provider.skip_sleep = False
 
     async def _tick(self) -> None:
         """
@@ -165,3 +181,15 @@ class CortexRuntime:
         else:
             # do not send speech to speaker but only to simulator
             await self.action_orchestrator.promise(commands_silent)
+            
+        # Custom Logger for Evaluation
+        # Log the evaluation tick with prompt, output, and actions
+        self.eval_logger.log_tick(
+        prompt=prompt,
+        output=output,
+        actions=[command.dict() for command in output.commands],
+        meta={
+            "agent": self.config.name,
+            "duty_cycle": self.speech_duty_cycle
+    }
+)
