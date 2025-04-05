@@ -16,7 +16,7 @@ def start(config_name: str, debug: bool = False) -> None:
 
     # Load configuration
     config = load_config(config_name)
-    runtime = CortexRuntime(config)
+    runtime = CortexRuntime(config, debug_once=True)
 
     # Start the runtime
     asyncio.run(runtime.run())
