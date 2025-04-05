@@ -165,3 +165,37 @@ class CortexRuntime:
         else:
             # do not send speech to speaker but only to simulator
             await self.action_orchestrator.promise(commands_silent)
+
+    async def generate_response(self, conversation_log):
+        """
+        Generate a response using the OM1 model based on the conversation log.
+            
+        Returns
+        -------
+        A string containing the model's response
+        """
+        try:
+            # Extract the latest user message
+            user_message = None
+            for message in reversed(conversation_log):
+                if message["role"] == "user":
+                    user_message = message["content"]
+                    break
+            
+            if not user_message:
+                return "I couldn't find a user message to respond to."
+            
+            output = await self.config.cortex_llm.ask(user_message)
+
+            if output is None:
+                logging.warning("No output from LLM")
+                return
+
+            return f"{output.commands[0].value}"
+            
+        except Exception as e:
+            # Log the error for debugging
+            import traceback
+            print(f"Error in generate_response: {e}")
+            print(traceback.format_exc())
+            raise  # Re-raise the exception so the caller can handle it
