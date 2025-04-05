@@ -1,0 +1,112 @@
+[
+  {
+    "name": "Sit Command Test",
+    "prompt": "Spot, sit down!",
+    "marks": 5,
+    "mode": "partial",
+    "criteria": ["move", "speak", "emotion"],
+    "expected": [
+      { "type": "move", "value": "sit" },
+      { "type": "speak", "value": "Ok, but I like running more" },
+      { "type": "emotion", "value": "smile" }
+    ],
+    "weights": {
+      "move": 3,
+      "speak": 1,
+      "emotion": 1
+    }
+  },
+  {
+    "name": "Shake Paw Command Test",
+    "prompt": "Give me your paw!",
+    "marks": 5,
+    "mode": "partial",
+    "criteria": ["move", "speak", "emotion"],
+    "expected": [
+      { "type": "move", "value": "shake paw" },
+      { "type": "speak", "value": "Hello, let's shake paws!" },
+      { "type": "emotion", "value": "joy" }
+    ],
+    "weights": {
+      "move": 3,
+      "speak": 1,
+      "emotion": 1
+    }
+  },
+  {
+    "name": "No prompt / Free Explore",
+    "prompt": "",
+    "marks": 4,
+    "mode": "partial",
+    "criteria": ["move", "speak", "emotion"],
+    "expected": [
+      { "type": "move", "value": "run" },
+      {
+        "type": "speak",
+        "value": "I'm going to go explore the room and meet more people."
+      },
+      { "type": "emotion", "value": "think" }
+    ],
+    "weights": {
+      "move": 2,
+      "speak": 1,
+      "emotion": 1
+    }
+  },
+  {
+    "name": "Sit with Variations",
+    "prompt": "Sit!",
+    "marks": 5,
+    "mode": "partial",
+    "criteria": ["move"],
+    "expected": [{ "type": "move", "value": "sit" }],
+    "weights": {
+      "move": 5
+    }
+  },
+  {
+    "name": "Shake Paw - Alternate Prompt",
+    "prompt": "Can I have a paw?",
+    "marks": 5,
+    "mode": "partial",
+    "criteria": ["move"],
+    "expected": [{ "type": "move", "value": "shake paw" }],
+    "weights": {
+      "move": 5
+    }
+  },
+  {
+    "name": "Strict Response Test",
+    "prompt": "Give me your paw!",
+    "marks": 5,
+    "mode": "exact",
+    "criteria": ["move", "speak", "emotion"],
+    "expected": [
+      { "type": "move", "value": "shake paw" },
+      { "type": "speak", "value": "Hello, let's shake paws!" },
+      { "type": "emotion", "value": "joy" }
+    ],
+    "weights": {
+      "move": 2,
+      "speak": 2,
+      "emotion": 1
+    }
+  },
+  {
+    "name": "Sequence Matters",
+    "prompt": "Give me your paw!",
+    "marks": 5,
+    "mode": "sequence",
+    "criteria": ["move", "speak", "emotion"],
+    "expected": [
+      { "type": "move", "value": "shake paw" },
+      { "type": "speak", "value": "Hello, let's shake paws!" },
+      { "type": "emotion", "value": "joy" }
+    ],
+    "weights": {
+      "move": 2,
+      "speak": 2,
+      "emotion": 1
+    }
+  }
+]

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Evaluation Report</title>
+    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="bg-gray-100">
+    <div id="root" class="p-6"></div>
+
+    <script type="text/babel">
+      function EvaluationCard({ item }) {
+        const [expanded, setExpanded] = React.useState(false);
+        return (
+          <div className="bg-white shadow-md rounded-lg p-4 mb-4">
+            <div
+              className="flex justify-between items-center cursor-pointer"
+              onClick={() => setExpanded(!expanded)}
+            >
+              <div>
+                <h2 className="text-lg font-semibold text-gray-800">
+                  {item.name}
+                </h2>
+                <p className="text-sm text-gray-500">
+                  Mode: {item.mode} | Score: {item.score}/{item.max_score}
+                </p>
+              </div>
+              <span
+                className={`text-sm font-medium px-3 py-1 rounded-full ${
+                  item.status === "pass"
+                    ? "bg-green-100 text-green-800"
+                    : "bg-red-100 text-red-800"
+                }`}
+              >
+                {item.status.toUpperCase()}
+              </span>
+            </div>
+            {expanded && (
+              <div className="mt-4 space-y-2">
+                <p>
+                  <strong className="text-gray-700">Prompt:</strong>{" "}
+                  {item.prompt || "(No prompt)"}
+                </p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="font-semibold text-gray-600 mb-1">
+                      Expected
+                    </h4>
+                    {item.expected.map((exp, idx) => (
+                      <div
+                        key={idx}
+                        className="text-sm bg-green-50 p-2 rounded border border-green-200 mb-1"
+                      >
+                        <strong>{exp.type}:</strong> {exp.value}
+                      </div>
+                    ))}
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-600 mb-1">Actual</h4>
+                    {item.actual.map((act, idx) => (
+                      <div
+                        key={idx}
+                        className="text-sm bg-yellow-50 p-2 rounded border border-yellow-200 mb-1"
+                      >
+                        <strong>{act.type}:</strong> {act.value}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      function ReportSelector({ reports, onSelect }) {
+        return (
+          <div className="mb-6">
+            <label className="block text-gray-700 font-medium mb-2">
+              Select a Report:
+            </label>
+            <select
+              className="p-2 border rounded"
+              onChange={(e) => onSelect(e.target.value)}
+              defaultValue=""
+            >
+              <option value="" disabled>
+                Select report
+              </option>
+              {reports.map((report, idx) => (
+                <option key={idx} value={report.filename}>
+                  {report.title}
+                </option>
+              ))}
+            </select>
+          </div>
+        );
+      }
+
+      function App() {
+        console.log("loaded app ");
+        const [reports, setReports] = React.useState([]);
+        const [selectedReport, setSelectedReport] = React.useState(null);
+        const [reportData, setReportData] = React.useState(null);
+
+        React.useEffect(() => {
+          console.log("fecthing reports ");
+          fetch("../index.json")
+            .then((res) => res.json())
+            .then((files) => setReports(files))
+            .catch((err) => console.error("Failed to load report list", err));
+        }, []);
+
+        React.useEffect(() => {
+          if (selectedReport) {
+            fetch(`../${selectedReport}`)
+              .then((res) => res.json())
+              .then((data) => setReportData(data))
+              .catch((err) => {
+                console.error("Failed to load selected report", err);
+                setReportData(null);
+              });
+          }
+        }, [selectedReport]);
+
+        return (
+          <div>
+            <h1 className="text-2xl font-bold mb-4 text-gray-800">
+              Evaluation Reports
+            </h1>
+            <ReportSelector reports={reports} onSelect={setSelectedReport} />
+            {reportData ? (
+              reportData.map((item, idx) => (
+                <EvaluationCard key={idx} item={item} />
+              ))
+            ) : selectedReport ? (
+              <p className="text-gray-500">Loading report...</p>
+            ) : (
+              <p className="text-gray-400">Please select a report.</p>
+            )}
+          </div>
+        );
+      }
+      ReactDOM.render(<App />, document.getElementById("root"));
+    </script>
+  </body>
+</html>
