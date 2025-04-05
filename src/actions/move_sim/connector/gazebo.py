@@ -41,6 +41,13 @@ class GazeboConnector(ActionConnector[MoveInput]):
 
     def __init__(self, config: ActionConfig):
         super().__init__(config)
+        robot_name = getattr(self.config, "robot_name", None)
+
+        if robot_name is None:
+            robot_name = "go2"
+            logging.info(f"Robot name not provided. Using default name: {robot_name}")
+
+        self.robot_name = robot_name
 
     async def connect(self, output_interface: MoveInput) -> None:
 
@@ -90,7 +97,7 @@ class GazeboConnector(ActionConnector[MoveInput]):
         velocity = VELOCITY_PRESETS[velocity_key]  # Get the Velocity object
 
         command = [
-            "gz", "topic", "-t", "/model/go2/cmd_vel", "-m", "gz.msgs.Twist", "-p",
+            "gz", "topic", "-t", f"/model/{self.robot_name}/cmd_vel", "-m", "gz.msgs.Twist", "-p",
             f"linear: {{x: {velocity.linear_x}, y: {velocity.linear_y}, z: {velocity.linear_z}}}, "
             f"angular: {{x: {velocity.angular_x}, y: {velocity.angular_y}, z: {velocity.angular_z}}}"
         ]
