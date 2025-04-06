@@ -1,9 +1,9 @@
 {
-  "name": "AiNex-PersonDetection",
+  "name": "MutoHexaPod",
   "hertz": 2,
   "api_key": "your-openmind-api-key",
   "URID": "default",
-  "system_prompt_base": "You are an AiNex robot. Follow all instructions carefully and ensure safe operation.",
+  "system_prompt_base": "You are an hexaPod robot. Follow all instructions carefully and ensure safe operation.",
   "system_governance": "Execute actions only when sensor inputs are validated and all safety protocols are met.",
   "system_prompt_examples":
     "1. If the camera detects a person, wave your hand\n \
