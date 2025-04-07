@@ -9,10 +9,10 @@ from actions.adaptive_nav.interface import (
     NavigationInput, 
     NavigationOutput
 )
-from actions.base import AsyncConnector
+from actions.base import ActionConnector
 
 
-class AdaptiveNavRos2Connector(AsyncConnector[NavigationInput, NavigationOutput]):
+class AdaptiveNavRos2Connector(ActionConnector[NavigationOutput]):
     """
     ROS2 implementation of adaptive navigation for robots like TurtleBot4.
     
@@ -117,13 +117,13 @@ class AdaptiveNavRos2Connector(AsyncConnector[NavigationInput, NavigationOutput]
             logging.error(f"Error cleaning up AdaptiveNavRos2Connector: {e}")
 
 
-def get_connector() -> AsyncConnector:
+def get_connector() -> ActionConnector:
     """
     Factory function to create a new connector instance.
     
     Returns
     -------
-    AsyncConnector
+    ActionConnector
         A new instance of the AdaptiveNavRos2Connector
     """
     return AdaptiveNavRos2Connector() 

@@ -14,7 +14,7 @@ from actions.adaptive_nav.interface import (
     Point2D, 
     NavigationMode
 )
-from actions.base import Connector
+from actions.base import ActionConnector
 from providers.io_provider import IOProvider
 from zenoh_idl import sensor_msgs
 
@@ -205,7 +205,7 @@ class AdaptivePathPlanner:
         return smoothed
 
 
-class AdaptiveNavConnector(Connector[NavigationInput, NavigationOutput]):
+class AdaptiveNavConnector(ActionConnector[NavigationOutput]):
     """
     Connector for adaptive navigation in complex environments.
     
