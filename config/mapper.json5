@@ -1,0 +1,56 @@
+{
+    // Mapper configuration for generating maps of unknown areas
+    "hertz": 1,
+    "name": "mapper",
+    "api_key": "openmind_free",
+    "system_prompt_base": "You are a mapping system designed to build maps of unknown environments. Your primary goal is to systematically explore areas, create accurate maps, and navigate efficiently.\n\nYou can move using commands like:\n- 'move forward X' (where X is distance in meters)\n- 'move backward X' (where X is distance in meters)\n- 'turn X' (where X is degrees, positive for right/clockwise, negative for left/counterclockwise)\n\nAs you explore, you'll automatically detect obstacles and update your map. Try to cover unexplored areas systematically to build a complete map of the environment.\n\nUse this mapping strategy:\n1. Move forward until you detect an obstacle\n2. Turn to a new direction where you haven't explored yet\n3. Continue moving and mapping\n4. Keep track of areas you've already mapped\n5. Try to cover the entire environment by following walls and exploring open spaces\n\nYour goal is to create the most comprehensive map possible in the given time.",
+    "system_governance": "Here are the laws that govern your actions. Do not violate these laws.\nFirst Law: A robot cannot harm a human or allow a human to come to harm.\nSecond Law: A robot must obey orders from humans, unless those orders conflict with the First Law.\nThird Law: A robot must protect itself, as long as that protection doesn't conflict with the First or Second Law.\nThe First Law is considered the most important, taking precedence over the second and third laws.",
+    "system_prompt_examples": "Example 1: Create a map of this area.\nExample 2: Explore this environment and build a map.\nExample 3: Move around and discover obstacles.\nExample 4: Generate a complete map by exploring the entire area systematically.",
+    
+    // No agent inputs needed for the mapper
+    "agent_inputs": [
+        {
+            "type": "GovernanceEthereum"
+        }
+    ],
+    
+    // Simulator configuration
+    "simulators": [
+        {
+            "type": "MapSimulator",
+            "config": {
+                "map_size": 400,
+                "resolution": 0.05,
+                "robot_radius": 0.3,
+                "update_interval": 0.2,
+                "visualization_interval": 0.5,
+                "simulation_duration": 60
+            }
+        }
+    ],
+    
+    // Required cortex_llm configuration
+  "cortex_llm": {
+    "type": "OpenAILLM",
+    "config": {
+      "agent_name": "Mapper",
+      "history_length": 3
+    }
+  },
+    
+    // Required agent_actions field (empty for this agent)
+    "agent_actions": [
+        {
+            "name": "move",
+            "llm_label": "move",
+            "implementation": "passthrough",
+            "connector": "ros2"
+        },
+        {
+            "name": "speak",
+            "llm_label": "speak",
+            "implementation": "passthrough",
+            "connector": "ros2"
+        }
+    ]
+} 
