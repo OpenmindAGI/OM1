@@ -8,6 +8,7 @@ dependencies = [
     "scipy",
     "matplotlib",
     "json5",
+    "jsonschema>=4.23.0",
     "pycdr2",
     "eclipse-zenoh",
     "audiosegment",
