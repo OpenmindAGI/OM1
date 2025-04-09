@@ -148,7 +148,7 @@ class CortexRuntime:
         if ("Voice INPUT" in prompt) or ("WalletCoinbase" in prompt):
             # always respond to voice input
             await self.action_orchestrator.promise(output.commands)
-        elif self.config.name == "spot_speak":
+        elif "spot" in self.config.name:
             # spot, the speaking dog
             await self.action_orchestrator.promise(output.commands)
         elif self.config.name == "turtle_speak":
