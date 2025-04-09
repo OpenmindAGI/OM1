@@ -57,7 +57,9 @@ intensity_treshold = 1
 vectorM2 = np.zeros(1080)
 vectorM1 = np.zeros(1080)
 
+# 
 URID = "OM742d35Cc6634"
+URID = "OM123435Cc1234"
 
 print(
     f"\n\n***********************\n***********************\nUsing {URID} as the URID - please make sure this is correct\none for your robot otherwise this script will not receive any data.\n***********************\n***********************\n"
