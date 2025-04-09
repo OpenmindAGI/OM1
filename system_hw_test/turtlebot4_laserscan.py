@@ -45,9 +45,9 @@ gap = 5
 ax[1].plot([0, 227 - gap], [50, 50], "-", color="red", linewidth=3.0)[0]
 ax[1].plot([227 + gap, 453 - gap], [50, 50], "-", color="red", linewidth=3.0)[0]
 ax[1].plot([453 + gap, 680], [50, 50], "-", color="red", linewidth=3.0)[0]
-ax[1].annotate("Left", xytext=(100, 89), xy=(0, 0.5))
-ax[1].annotate("Front", xytext=(320, 89), xy=(0, 0.5))
-ax[1].annotate("Right", xytext=(550, 89), xy=(0, 0.5))
+ax[1].annotate("Left", xytext=(100, 49), xy=(0, 0.5))
+ax[1].annotate("Front", xytext=(320, 49), xy=(0, 0.5))
+ax[1].annotate("Right", xytext=(550, 49), xy=(0, 0.5))
 arrow_list = []
 
 intensity_treshold = 1
@@ -57,7 +57,7 @@ intensity_treshold = 1
 vectorM2 = np.zeros(1080)
 vectorM1 = np.zeros(1080)
 
-URID = "OM123435Cc1234"
+URID = "OM742d35Cc6634"
 
 print(
     f"\n\n***********************\n***********************\nUsing {URID} as the URID - please make sure this is correct\none for your robot otherwise this script will not receive any data.\n***********************\n***********************\n"
