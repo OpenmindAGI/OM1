@@ -1,0 +1,34 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+        "move": {"type": "string"},
+        "speak": {
+            "oneOf": [
+                {"type": "string"},
+                {
+                    "type": "object",
+                    "required": ["sentence"],
+                    "properties": {
+                        "sentence": {"type": "string"}
+                    }
+                }
+            ]
+        },
+        "face": {"type": "string"},
+        "emotion": {"type": "string"},
+        "tweet": {
+            "oneOf": [
+                {"type": "string"},
+                {
+                    "type": "object",
+                    "required": ["sentence"],
+                    "properties": {
+                        "sentence": {"type": "string"}
+                    }
+                }
+            ]
+        },
+        "car control": {"type": "string"}
+    }
+}
