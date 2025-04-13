@@ -16,50 +16,11 @@
 ## Architecture Overview
   ![Artboard 1@4x 1 (1)](https://github.com/user-attachments/assets/14e9b916-4df7-4700-9336-2983c85be311)
 
-## Quick Start
+## Installation
 
 Let's run the first AI agent named Spot on OM1. The Spot agent uses your webcam to capture and label objects. These text captions are then sent to `OpenAI 4o`, a large language model (LLM) which then returns `movement`, `speech` and `face` action commands. These commands are displayed on WebSim along with basic timing and other debugging information.
 
-1. Clone the repo.
-
-```bash clone repo
-git clone https://github.com/OpenmindAGI/OM1.git
-cd OM1
-git submodule update --init
-```
-
-2. Install Rust Python package manager `uv`
-
-* On Mac, use `brew install uv`.
-* On Linux, use `curl -LsSf https://astral.sh/uv/install.sh | sh`.
-
-3. Install `portaudio`
-
-* On Mac, use `brew install portaudio`
-* On Linux, use `sudo apt-get install portaudio19-dev python-all-dev`
-
-4. Set the configuration variables. 
-
-Locate the `config` folder and add your Openmind API key in `/config/spot.json`. If you do not already have one, you can obtain a free access key at https://portal.openmind.org/.  _Note:_ Using the placeholder key **openmind-free** will generate errors.
-
-```bash set api key
-# /config/spot.json
-...
-"api_key": "om1_live_e4252f1cf005af..."
-...
-```
-
-5. Run the `spot` agent.
-
-```bash run spot
-uv run src/run.py spot
-```
-
-6. WebSim to check input and output
-
-Go to [http://localhost:8000](http://localhost:8000) to see real time logs along with the input and output in the terminal. For easy debugging, add `--debug` to see additional logging information.
-
-**Congratulations!** - you just got started with OM1 and can now explore its capabilities.
+Detailed instruction please refer to [Installation](https://docs.openmind.org/getting-started/get-started).
 
 ## What's Next?
 
