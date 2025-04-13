@@ -14,9 +14,7 @@ description: "Learn how to install, set up and configure OM1 on your robots."
 
 - Memory (RAM): 8GB
 - Storage: 16GB
-- Webcam: 1080p
-- Speakers
-- Microphone
+- Camera, speakers, microphone etc as robots sensors
 
 ### Software
 
@@ -61,6 +59,19 @@ sudo apt-get update
 sudo apt-get install portaudio19-dev python-all-dev
 ```
 
+#### ffmpeg
+
+FFmpeg is the leading multimedia framework, able to decode, encode, transcode, mux, demux, stream, filter and play pretty much anything that humans and machines have created.
+
+```bash Mac
+brew install ffmpeg
+``` 
+
+```bash Linux
+sudo apt-get update
+sudo apt-get install ffmpeg
+``` 
+
 ### Installation and Setup
 
 1. Clone the repository
@@ -92,6 +103,12 @@ Run the following command to start the Spot Agent:
 ```bash
 uv run src/run.py spot
 ```
+
+4. WebSim to check input and output
+
+Go to [http://localhost:8000](http://localhost:8000) to see real time logs along with the input and output in the terminal. For easy debugging, add `--debug` to see additional logging information.
+
+**Congratulations!** - you just got started with OM1 and can now explore its capabilities.
 
 Some necessary packages will be installed during this process, the first time you run the command. This might take a little time. Please be patient. Then you will see the system come to life:
 
