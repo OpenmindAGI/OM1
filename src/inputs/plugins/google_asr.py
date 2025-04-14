@@ -11,6 +11,14 @@ from providers.asr_provider import ASRProvider
 from providers.io_provider import IOProvider
 from providers.sleep_ticker_provider import SleepTickerProvider
 
+LANGUAGE_CODE_MAP: dict = {
+    "english": "en-US",
+    "chinese": "cmn-Hans-CN",
+    "german": "de-DE",
+    "french": "fr-FR",
+    "japanese": "ja-JP",
+}
+
 
 class GoogleASRInput(FuserInput[str]):
     """
@@ -48,12 +56,24 @@ class GoogleASRInput(FuserInput[str]):
         microphone_device_id = getattr(self.config, "microphone_device_id", None)
         microphone_name = getattr(self.config, "microphone_name", None)
 
+        language = getattr(self.config, "language", "english").strip().lower()
+
+        if language not in LANGUAGE_CODE_MAP:
+            logging.error(
+                f"Language {language} not supported. Current supported languages are : {list(LANGUAGE_CODE_MAP.keys())}. Defaulting to English"
+            )
+            language = "english"
+
+        language_code = LANGUAGE_CODE_MAP.get(language, "en-US")
+        logging.info(f"Using language code {language_code} for Google ASR")
+
         self.asr: ASRProvider = ASRProvider(
             rate=rate,
             chunk=chunk,
             ws_url=base_url,
             device_id=microphone_device_id,
             microphone_name=microphone_name,
+            language_code=language_code,
         )
         self.asr.start()
         self.asr.register_message_callback(self._handle_asr_message)
