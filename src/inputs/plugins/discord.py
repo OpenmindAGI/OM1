@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from queue import Empty, Queue
-from typing import AsyncIterator, List, Optional, Dict, Any
+from typing import AsyncIterator, List, Optional, Dict, Any, Union
 
 # Import discord.py
 import discord
@@ -107,7 +107,7 @@ class DiscordInput(FuserInput[str]):
             print(f"[{idx+1}] [{source}] {msg['author']}: {msg['content']}")
         print("========================\n")
 
-    async def raw_to_text(self, raw_input: Optional[str] = None):
+    async def raw_to_text(self, raw_input: Optional[str] = None) -> str:
         """Convert raw input to text format and add to buffer.
 
         Parameters
@@ -136,7 +136,7 @@ class DiscordInput(FuserInput[str]):
 
         return ""
 
-    async def start(self):
+    async def start(self) -> None:
         """Start the Discord bot."""
         if not self.bot_token:
             logging.error("Discord bot token not provided")
@@ -175,8 +175,19 @@ class DiscordInput(FuserInput[str]):
         except Empty:
             return None
             
-    async def send_message(self, content):
-        """Send a message to the configured Discord channel."""
+    async def send_message(self, content: str) -> bool:
+        """Send a message to the configured Discord channel.
+        
+        Parameters
+        ----------
+        content : str
+            The message content to send
+            
+        Returns
+        -------
+        bool
+            Whether the message was sent successfully
+        """
         if not self.is_running:
             logging.error("Discord bot is not running")
             return False
@@ -185,15 +196,28 @@ class DiscordInput(FuserInput[str]):
             if not self.channel_id:
                 logging.error("No channel_id configured")
                 return False
+            
+            # Try to convert channel_id to integer with proper error handling
+            try:
+                channel_id_int = int(self.channel_id)
+                channel = self.bot.get_channel(channel_id_int)
                 
-            channel = self.bot.get_channel(int(self.channel_id))
-            if not channel:
-                # Try to fetch the channel if not found in cache
-                try:
-                    channel = await self.bot.fetch_channel(int(self.channel_id))
-                except:
-                    logging.error(f"Channel {self.channel_id} not found")
-                    return False
+                if not channel:
+                    # Try to fetch the channel if not found in cache
+                    try:
+                        channel = await self.bot.fetch_channel(channel_id_int)
+                    except discord.NotFound:
+                        logging.error(f"Channel {self.channel_id} not found")
+                        return False
+                    except discord.Forbidden:
+                        logging.error(f"No permission to access channel {self.channel_id}")
+                        return False
+                    except discord.HTTPException as e:
+                        logging.error(f"Failed to fetch channel {self.channel_id}: {str(e)}")
+                        return False
+            except ValueError:
+                logging.error(f"Channel ID '{self.channel_id}' is not a valid integer")
+                return False
                     
             if channel:
                 await channel.send(content)
@@ -208,6 +232,7 @@ class DiscordInput(FuserInput[str]):
                 logging.info(f"Sent message: {content}")
                 self.print_conversation_log()
                 return True
+            return False
         except Exception as e:
             logging.error(f"Error sending message: {str(e)}")
             return False
@@ -229,8 +254,19 @@ DiscordInput CONVERSATION
 """
         return result
 
-    async def speak(self, text):
-        """Handle speaking action by sending to Discord."""
+    async def speak(self, text: Union[str, Dict[str, Any]]) -> bool:
+        """Handle speaking action by sending to Discord.
+        
+        Parameters
+        ----------
+        text : Union[str, Dict[str, Any]]
+            The text to send or a dictionary containing an 'action' key
+            
+        Returns
+        -------
+        bool
+            Whether the message was sent successfully
+        """
         if isinstance(text, dict) and 'action' in text:
             # Handle when receiving dict from passthrough
             content = text['action']
@@ -243,8 +279,14 @@ DiscordInput CONVERSATION
         logging.info(f"Discord message sent: {content}, success: {success}")
         return success
 
-    async def initialize_with_query(self, query: str):
-        """Initialize with a query - not used for Discord but required by interface"""
+    async def initialize_with_query(self, query: str) -> None:
+        """Initialize with a query - not used for Discord but required by interface
+        
+        Parameters
+        ----------
+        query : str
+            The query to initialize with
+        """
         logging.info(f"[DiscordInput] Initializing with query: {query}")
         
         # Store system message in history
