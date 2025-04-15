@@ -71,6 +71,13 @@ class DiscordInput(FuserInput[str]):
             if self.channel_id and str(message.channel.id) != str(self.channel_id):
                 return
             
+            # Store the message in history
+            self.message_history.append({
+                "author": message.author.name,
+                "content": message.content,
+                "is_bot": False
+            })
+            
             # Add message to buffer
             msg_content = f"{message.author.name}: {message.content}"
             self.message_buffer.put_nowait(msg_content)
@@ -79,6 +86,9 @@ class DiscordInput(FuserInput[str]):
             
             # Process commands
             await self.bot.process_commands(message)
+            
+            # Print conversation log after each message
+            self.print_conversation_log()
 
     async def __aenter__(self):
         """Async context manager entry"""
@@ -88,6 +98,14 @@ class DiscordInput(FuserInput[str]):
         """Async context manager exit"""
         if self.is_running:
             await self.bot.close()
+
+    def print_conversation_log(self):
+        """Print the current conversation log to the console."""
+        print("\n=== CONVERSATION LOG ===")
+        for idx, msg in enumerate(self.message_history):
+            source = "BOT" if msg.get("is_bot", False) else "USER"
+            print(f"[{idx+1}] [{source}] {msg['author']}: {msg['content']}")
+        print("========================\n")
 
     async def raw_to_text(self, raw_input: Optional[str] = None):
         """Convert raw input to text format and add to buffer.
@@ -179,7 +197,16 @@ class DiscordInput(FuserInput[str]):
                     
             if channel:
                 await channel.send(content)
+                
+                # Store bot message in history
+                self.message_history.append({
+                    "author": self.bot.user.name if self.bot.user else "Bot",
+                    "content": content,
+                    "is_bot": True
+                })
+                
                 logging.info(f"Sent message: {content}")
+                self.print_conversation_log()
                 return True
         except Exception as e:
             logging.error(f"Error sending message: {str(e)}")
@@ -219,4 +246,13 @@ DiscordInput CONVERSATION
     async def initialize_with_query(self, query: str):
         """Initialize with a query - not used for Discord but required by interface"""
         logging.info(f"[DiscordInput] Initializing with query: {query}")
+        
+        # Store system message in history
+        self.message_history.append({
+            "author": "System",
+            "content": query,
+            "is_bot": True
+        })
+        
         self.message_buffer.put_nowait(f"System: {query}")
+        self.print_conversation_log()
