@@ -167,19 +167,26 @@ class DiscordInput(FuserInput[str]):
         asyncio.create_task(self.bot.start(self.bot_token))
         
         # Wait for bot to be ready with timeout
-        await self._wait_for_bot_ready()
+        started_successfully = await self._wait_for_bot_ready()
         
-        # Register with action connector if successfully started
-        if self.is_running:
+        # Register with action connector only if successfully started
+        if started_successfully:
             await self._register_with_connector()
+        else:
+            logging.error("Discord bot failed to start properly, skipping connector registration")
 
-    async def _wait_for_bot_ready(self, timeout_seconds: int = 30) -> None:
+    async def _wait_for_bot_ready(self, timeout_seconds: int = 30) -> bool:
         """Wait for the bot to be ready with a timeout.
         
         Parameters
         ----------
         timeout_seconds : int
             Maximum time to wait in seconds
+            
+        Returns
+        -------
+        bool
+            True if bot started successfully within timeout, False otherwise
         """
         start_time = asyncio.get_event_loop().time()
         while not self.is_running:
@@ -187,12 +194,14 @@ class DiscordInput(FuserInput[str]):
             # Timeout after specified seconds
             if asyncio.get_event_loop().time() - start_time > timeout_seconds:
                 logging.error(f"Timed out waiting for Discord bot to start after {timeout_seconds} seconds")
-                return
-    
+                return False
+                
+        return True
+
     async def _register_with_connector(self) -> None:
         """Register this client with the action connector."""
         try:
-            # Attempt to import and register without creating a hard dependency
+            # Attempt to import and register connector
             module = __import__('actions.speak.connector.discord_message', fromlist=['register_discord_client'])
             register_func = getattr(module, 'register_discord_client', None)
             if register_func:
