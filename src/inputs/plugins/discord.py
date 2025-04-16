@@ -10,14 +10,6 @@ from discord.ext import commands
 from inputs.base import SensorConfig
 from inputs.base.loop import FuserInput
 
-# Try to import the Discord connector registration
-try:
-    from actions.speak.connector.discord_message import register_discord_client
-    HAS_CONNECTOR = True
-except ImportError:
-    HAS_CONNECTOR = False
-    logging.warning("Discord message connector not available, bot won't respond automatically")
-
 class DiscordInput(FuserInput[str]):
     """Discord integration input handler for chatting with OM1."""
 
@@ -42,17 +34,18 @@ class DiscordInput(FuserInput[str]):
         self.bot_token = getattr(config, "bot_token", None)
         self.channel_id = getattr(config, "channel_id", None)
         self.message_history: List[Dict[str, Any]] = []
+        # Flag to track if the last received message mentioned the bot
+        self.last_message_was_mention = False
         
         # Create Discord client with all intents
         intents = discord.Intents.default()
         intents.message_content = True  # Need to enable this to read message content
+        intents.members = True          # Enable access to member objects in messages for mention detection
         self.bot = commands.Bot(command_prefix="!", intents=intents)
         self.is_running = False
         
-        # Register this instance to receive messages from the connector
-        if HAS_CONNECTOR:
-            register_discord_client(self)
-            logging.info("Discord input registered with connector")
+        # Setup is_registered flag for action connector
+        self.is_registered = False
         
         # Set up bot event handlers
         @self.bot.event
@@ -71,21 +64,34 @@ class DiscordInput(FuserInput[str]):
             if self.channel_id and str(message.channel.id) != str(self.channel_id):
                 return
             
+            # Check if the bot is mentioned in the message or if it's a direct message
+            is_mentioned = self.bot.user in message.mentions or isinstance(message.channel, discord.DMChannel)
+            
+            # Update the mention flag
+            self.last_message_was_mention = is_mentioned
+            
             # Store the message in history
             self.message_history.append({
                 "author": message.author.name,
                 "content": message.content,
-                "is_bot": False
+                "is_bot": False,
+                "mentioned_bot": is_mentioned
             })
             
-            # Add message to buffer
-            msg_content = f"{message.author.name}: {message.content}"
-            self.message_buffer.put_nowait(msg_content)
-            self.buffer.append(msg_content)
-            logging.info(f"Received message: {msg_content}")
+            # Only process messages when the bot is mentioned
+            if is_mentioned:
+                # Add message to buffer, indicating the bot was mentioned
+                msg_content = f"{message.author.name}: {message.content}"
+                self.message_buffer.put_nowait(msg_content)
+                self.buffer.append(msg_content)
+                logging.info(f"Received message with mention: {msg_content}")
+            else:
+                # Log message without adding to buffer
+                logging.debug(f"Skipping message without mention: {message.author.name}: {message.content}")
             
-            # Process commands
-            await self.bot.process_commands(message)
+            # No longer automatically process commands - only respond to mentions
+            if is_mentioned:
+                await self.bot.process_commands(message)
             
             # Print conversation log after each message
             self.print_conversation_log()
@@ -104,7 +110,8 @@ class DiscordInput(FuserInput[str]):
         print("\n=== CONVERSATION LOG ===")
         for idx, msg in enumerate(self.message_history):
             source = "BOT" if msg.get("is_bot", False) else "USER"
-            print(f"[{idx+1}] [{source}] {msg['author']}: {msg['content']}")
+            mention_indicator = " [MENTIONED]" if msg.get("mentioned_bot", False) else ""
+            print(f"[{idx+1}] [{source}]{mention_indicator} {msg['author']}: {msg['content']}")
         print("========================\n")
 
     async def raw_to_text(self, raw_input: Optional[str] = None) -> str:
@@ -155,6 +162,18 @@ class DiscordInput(FuserInput[str]):
             if asyncio.get_event_loop().time() - start_time > 30:
                 logging.error("Timed out waiting for Discord bot to start")
                 return
+                
+        # Try to register with action connector if it's available
+        try:
+            # Attempt to import and register without creating a hard dependency
+            module = __import__('actions.speak.connector.discord_message', fromlist=['register_discord_client'])
+            register_func = getattr(module, 'register_discord_client', None)
+            if register_func:
+                register_func(self)
+                self.is_registered = True
+                logging.info("Discord input registered with connector")
+        except (ImportError, AttributeError):
+            logging.warning("Discord message connector not available, bot won't respond automatically")
 
     async def listen(self) -> AsyncIterator[str]:
         """Listen for new Discord messages."""
@@ -178,6 +197,9 @@ class DiscordInput(FuserInput[str]):
     async def send_message(self, content: str) -> bool:
         """Send a message to the configured Discord channel.
         
+        This method is maintained for compatibility with the action connector.
+        Only sends messages in response to mentions.
+        
         Parameters
         ----------
         content : str
@@ -188,6 +210,11 @@ class DiscordInput(FuserInput[str]):
         bool
             Whether the message was sent successfully
         """
+        # Don't send a message if the last message didn't mention the bot
+        if not self.last_message_was_mention:
+            logging.info("Ignoring message send request - last message didn't mention the bot")
+            return False
+            
         if not self.is_running:
             logging.error("Discord bot is not running")
             return False
@@ -229,6 +256,9 @@ class DiscordInput(FuserInput[str]):
                     "is_bot": True
                 })
                 
+                # Reset the mention flag after sending a response
+                self.last_message_was_mention = False
+                
                 logging.info(f"Sent message: {content}")
                 self.print_conversation_log()
                 return True
@@ -242,9 +272,11 @@ class DiscordInput(FuserInput[str]):
         if not self.buffer:
             return None
 
-        # Get the last few messages from the buffer
-        recent_messages = self.buffer[-10:] if len(self.buffer) > 10 else self.buffer
-        content = "\n".join(recent_messages)
+        # Only return the most recent message to the agent
+        if len(self.buffer) > 0:
+            content = self.buffer[-1]
+        else:
+            content = ""
 
         result = f"""
 DiscordInput CONVERSATION
@@ -253,31 +285,6 @@ DiscordInput CONVERSATION
 // END
 """
         return result
-
-    async def speak(self, text: Union[str, Dict[str, Any]]) -> bool:
-        """Handle speaking action by sending to Discord.
-        
-        Parameters
-        ----------
-        text : Union[str, Dict[str, Any]]
-            The text to send or a dictionary containing an 'action' key
-            
-        Returns
-        -------
-        bool
-            Whether the message was sent successfully
-        """
-        if isinstance(text, dict) and 'action' in text:
-            # Handle when receiving dict from passthrough
-            content = text['action']
-        else:
-            # Handle direct string input
-            content = text
-            
-        # Actually send the message
-        success = await self.send_message(content)
-        logging.info(f"Discord message sent: {content}, success: {success}")
-        return success
 
     async def initialize_with_query(self, query: str) -> None:
         """Initialize with a query - not used for Discord but required by interface
