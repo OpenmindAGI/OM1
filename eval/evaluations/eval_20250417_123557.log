@@ -1,0 +1,25 @@
+[2025-04-17T07:05:58.504435]
+Prompt:
+Sit!
+
+Output:
+{
+  "commands": [
+    {
+      "type": "action",
+      "value": "Sit"
+    }
+  ]
+}
+
+Actions:
+  - action: Sit
+
+Meta:
+{
+  "agent": "spot_speak",
+  "duty_cycle": 0
+}
+
+--------------------------------------------------------------------------------
+

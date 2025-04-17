@@ -1,0 +1,140 @@
+[2025-04-17T07:08:25.840833]
+Prompt:
+Spot, sit down!
+
+Output:
+{
+  "commands": [
+    {
+      "type": "action",
+      "value": "sit down"
+    }
+  ]
+}
+
+Actions:
+  - action: sit down
+
+Meta:
+{
+  "agent": "spot_speak",
+  "duty_cycle": 0
+}
+
+--------------------------------------------------------------------------------
+
+[2025-04-17T07:08:26.788510]
+Prompt:
+Give me your paw!
+
+Output:
+{
+  "commands": [
+    {
+      "type": "action",
+      "value": "offer paw"
+    },
+    {
+      "type": "action",
+      "value": "engage with user"
+    }
+  ]
+}
+
+Actions:
+  - action: offer paw
+  - action: engage with user
+
+Meta:
+{
+  "agent": "spot_speak",
+  "duty_cycle": 0
+}
+
+--------------------------------------------------------------------------------
+
+[2025-04-17T07:08:28.053103]
+Prompt:
+
+
+Output:
+{
+  "commands": [
+    {
+      "type": "analyze",
+      "value": "environment temperature and humidity levels"
+    },
+    {
+      "type": "navigate",
+      "value": "towards the exit"
+    },
+    {
+      "type": "record",
+      "value": "sensed data for further analysis"
+    },
+    {
+      "type": "alert",
+      "value": "user about potential hazards in the area"
+    }
+  ]
+}
+
+Actions:
+  - analyze: environment temperature and humidity levels
+  - navigate: towards the exit
+  - record: sensed data for further analysis
+  - alert: user about potential hazards in the area
+
+Meta:
+{
+  "agent": "spot_speak",
+  "duty_cycle": 0
+}
+
+--------------------------------------------------------------------------------
+
+[2025-04-17T07:08:29.187323]
+Prompt:
+Sit!
+
+Output:
+{
+  "commands": [
+    {
+      "type": "Speak",
+      "value": "Spot sensed the command to sit."
+    },
+    {
+      "type": "Action",
+      "value": "Sit"
+    }
+  ]
+}
+
+Actions:
+  - Speak: Spot sensed the command to sit.
+  - Action: Sit
+
+Meta:
+{
+  "agent": "spot_speak",
+  "duty_cycle": 0
+}
+
+--------------------------------------------------------------------------------
+
+[2025-04-17T07:08:30.266222]
+Prompt:
+Can I have a paw?
+
+Output:
+{
+  "commands": [
+    {
+      "type": "speak",
+      "value": "Sure! Here you go. \ud83d\udc3e How can I help you today?"
+    }
+  ]
+}
+
+Actions:

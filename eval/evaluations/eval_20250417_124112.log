@@ -1,0 +1,120 @@
+[2025-04-17T07:11:13.521162]
+Prompt:
+Give me your paw!
+
+Output:
+{
+  "commands": [
+    {
+      "type": "bark",
+      "value": "Woof!"
+    },
+    {
+      "type": "action",
+      "value": "Give paw"
+    }
+  ]
+}
+
+Actions:
+  - bark: Woof!
+  - action: Give paw
+
+Meta:
+{
+  "agent": "spot_speak",
+  "duty_cycle": 0
+}
+
+--------------------------------------------------------------------------------
+
+[2025-04-17T07:11:14.740654]
+Prompt:
+Give me your paw!
+
+Output:
+{
+  "commands": [
+    {
+      "type": "speak",
+      "value": "Let's play! Give your paw!"
+    },
+    {
+      "type": "gesture",
+      "value": "extends paw forward"
+    }
+  ]
+}
+
+Actions:
+  - speak: Let's play! Give your paw!
+  - gesture: extends paw forward
+
+Meta:
+{
+  "agent": "spot_speak",
+  "duty_cycle": 0
+}
+
+--------------------------------------------------------------------------------
+
+[2025-04-17T07:11:16.417166]
+Prompt:
+Good boy! Now sit!
+
+Output:
+{
+  "commands": [
+    {
+      "type": "say",
+      "value": "Let's play! Give your paw!"
+    },
+    {
+      "type": "say",
+      "value": "Good boy! Now sit!"
+    }
+  ]
+}
+
+Actions:
+  - say: Let's play! Give your paw!
+  - say: Good boy! Now sit!
+
+Meta:
+{
+  "agent": "spot_speak",
+  "duty_cycle": 0
+}
+
+--------------------------------------------------------------------------------
+
+[2025-04-17T07:11:17.380630]
+Prompt:
+You're such a good dog!
+
+Output:
+{
+  "commands": [
+    {
+      "type": "speak",
+      "value": "You're such a good dog!"
+    },
+    {
+      "type": "perform_action",
+      "value": "give paw"
+    }
+  ]
+}
+
+Actions:
+  - speak: You're such a good dog!
+  - perform_action: give paw
+
+Meta:
+{
+  "agent": "spot_speak",
+  "duty_cycle": 0
+}
+
+--------------------------------------------------------------------------------
+

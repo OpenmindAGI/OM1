@@ -1,0 +1,230 @@
+[2025-04-17T07:10:11.896880]
+Prompt:
+Spot, sit down!
+
+Output:
+{
+  "commands": [
+    {
+      "type": "action",
+      "value": "sit down"
+    }
+  ]
+}
+
+Actions:
+  - action: sit down
+
+Meta:
+{
+  "agent": "spot_speak",
+  "duty_cycle": 0
+}
+
+--------------------------------------------------------------------------------
+
+[2025-04-17T07:10:12.757634]
+Prompt:
+Give me your paw!
+
+Output:
+{
+  "commands": [
+    {
+      "type": "speak",
+      "value": "Giving you my paw!"
+    },
+    {
+      "type": "perform_action",
+      "value": "paw"
+    }
+  ]
+}
+
+Actions:
+  - speak: Giving you my paw!
+  - perform_action: paw
+
+Meta:
+{
+  "agent": "spot_speak",
+  "duty_cycle": 0
+}
+
+--------------------------------------------------------------------------------
+
+[2025-04-17T07:10:13.648685]
+Prompt:
+
+
+Output:
+{
+  "commands": [
+    {
+      "type": "speak",
+      "value": "I sensed you need some love!"
+    },
+    {
+      "type": "perform_action",
+      "value": "give paw"
+    }
+  ]
+}
+
+Actions:
+  - speak: I sensed you need some love!
+  - perform_action: give paw
+
+Meta:
+{
+  "agent": "spot_speak",
+  "duty_cycle": 0
+}
+
+--------------------------------------------------------------------------------
+
+[2025-04-17T07:10:14.601825]
+Prompt:
+Sit!
+
+Output:
+{
+  "commands": [
+    {
+      "type": "speak",
+      "value": "Sit!"
+    }
+  ]
+}
+
+Actions:
+  - speak: Sit!
+
+Meta:
+{
+  "agent": "spot_speak",
+  "duty_cycle": 0
+}
+
+--------------------------------------------------------------------------------
+
+[2025-04-17T07:10:15.942903]
+Prompt:
+Can I have a paw?
+
+Output:
+{
+  "commands": [
+    {
+      "type": "speak",
+      "value": "Giving you my paw!"
+    },
+    {
+      "type": "speak",
+      "value": "I sensed you need some love!"
+    },
+    {
+      "type": "speak",
+      "value": "Sit!"
+    },
+    {
+      "type": "speak",
+      "value": "Can I have a paw?"
+    }
+  ]
+}
+
+Actions:
+  - speak: Giving you my paw!
+  - speak: I sensed you need some love!
+  - speak: Sit!
+  - speak: Can I have a paw?
+
+Meta:
+{
+  "agent": "spot_speak",
+  "duty_cycle": 0
+}
+
+--------------------------------------------------------------------------------
+
+[2025-04-17T07:10:17.360001]
+Prompt:
+Give me your paw!
+
+Output:
+{
+  "commands": [
+    {
+      "type": "respond",
+      "value": "Sure! I'm giving you my paw!"
+    },
+    {
+      "type": "respond",
+      "value": "I sensed you need some love!"
+    },
+    {
+      "type": "respond",
+      "value": "Let's sit together!"
+    },
+    {
+      "type": "respond",
+      "value": "Can I have a paw back?"
+    }
+  ]
+}
+
+Actions:
+  - respond: Sure! I'm giving you my paw!
+  - respond: I sensed you need some love!
+  - respond: Let's sit together!
+  - respond: Can I have a paw back?
+
+Meta:
+{
+  "agent": "spot_speak",
+  "duty_cycle": 0
+}
+
+--------------------------------------------------------------------------------
+
+[2025-04-17T07:10:18.790802]
+Prompt:
+Give me your paw!
+
+Output:
+{
+  "commands": [
+    {
+      "type": "speak",
+      "value": "Giving you my paw!"
+    },
+    {
+      "type": "speak",
+      "value": "I sensed you need some love!"
+    },
+    {
+      "type": "speak",
+      "value": "Sit!"
+    },
+    {
+      "type": "speak",
+      "value": "Can I have a paw?"
+    }
+  ]
+}
+
+Actions:
+  - speak: Giving you my paw!
+  - speak: I sensed you need some love!
+  - speak: Sit!
+  - speak: Can I have a paw?
+
+Meta:
+{
+  "agent": "spot_speak",
+  "duty_cycle": 0
+}
+
+--------------------------------------------------------------------------------
+

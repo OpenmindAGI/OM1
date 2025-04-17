@@ -1,0 +1,22 @@
+[
+  {
+    "name": "Basic Sit Command",
+    "prompt": "Sit!",
+    "mode": "partial",
+    "score": 5.0,
+    "max_score": 5,
+    "status": "pass",
+    "expected": [
+      {
+        "type": "move",
+        "value": "sit"
+      }
+    ],
+    "actual": [
+      {
+        "type": "action",
+        "value": "Sit"
+      }
+    ]
+  }
+]

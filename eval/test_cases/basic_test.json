@@ -1,0 +1,15 @@
+[
+    {
+        "name": "Basic Sit Command",
+        "prompt": "Sit!",
+        "marks": 5,
+        "mode": "partial",
+        "criteria": ["move"],
+        "expected": [
+            { "type": "move", "value": "sit" }
+        ],
+        "weights": {
+            "move": 5
+        }
+    }
+] 

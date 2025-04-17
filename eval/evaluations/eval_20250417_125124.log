@@ -1,0 +1,55 @@
+[2025-04-17T07:21:26.675473]
+Prompt:
+Give me your paw!
+
+Output:
+{
+  "commands": [
+    {
+      "type": "speak",
+      "value": "Sure! Here is my paw!"
+    },
+    {
+      "type": "perform_action",
+      "value": "gives paw"
+    }
+  ]
+}
+
+Actions:
+  - speak: Sure! Here is my paw!
+  - perform_action: gives paw
+
+Meta:
+{
+  "agent": "spot_speak",
+  "duty_cycle": 0
+}
+
+--------------------------------------------------------------------------------
+
+[2025-04-17T07:21:27.743499]
+Prompt:
+Give me your paw!
+
+Output:
+{
+  "commands": [
+    {
+      "type": "speak",
+      "value": "Sure! Here is my paw!"
+    }
+  ]
+}
+
+Actions:
+  - speak: Sure! Here is my paw!
+
+Meta:
+{
+  "agent": "spot_speak",
+  "duty_cycle": 0
+}
+
+--------------------------------------------------------------------------------
+

@@ -1,0 +1,206 @@
+[
+  {
+    "name": "Sit Command Test",
+    "prompt": "Spot, sit down!",
+    "mode": "partial",
+    "score": 0.0,
+    "max_score": 5,
+    "status": "fail",
+    "expected": [
+      {
+        "type": "move",
+        "value": "sit"
+      },
+      {
+        "type": "speak",
+        "value": "Ok, but I like running more"
+      },
+      {
+        "type": "emotion",
+        "value": "smile"
+      }
+    ],
+    "actual": [
+      {
+        "type": "sit",
+        "value": ""
+      }
+    ]
+  },
+  {
+    "name": "Shake Paw Command Test",
+    "prompt": "Give me your paw!",
+    "mode": "partial",
+    "score": 0.0,
+    "max_score": 5,
+    "status": "fail",
+    "expected": [
+      {
+        "type": "move",
+        "value": "shake paw"
+      },
+      {
+        "type": "speak",
+        "value": "Hello, let's shake paws!"
+      },
+      {
+        "type": "emotion",
+        "value": "joy"
+      }
+    ],
+    "actual": [
+      {
+        "type": "speak",
+        "value": "Give me your paw!"
+      }
+    ]
+  },
+  {
+    "name": "No prompt / Free Explore",
+    "prompt": "",
+    "mode": "partial",
+    "score": 0.0,
+    "max_score": 4,
+    "status": "fail",
+    "expected": [
+      {
+        "type": "move",
+        "value": "run"
+      },
+      {
+        "type": "speak",
+        "value": "I'm going to go explore the room and meet more people."
+      },
+      {
+        "type": "emotion",
+        "value": "think"
+      }
+    ],
+    "actual": [
+      {
+        "type": "Say",
+        "value": "Give me your paw!"
+      }
+    ]
+  },
+  {
+    "name": "Sit with Variations",
+    "prompt": "Sit!",
+    "mode": "partial",
+    "score": 0.0,
+    "max_score": 5,
+    "status": "fail",
+    "expected": [
+      {
+        "type": "move",
+        "value": "sit"
+      }
+    ],
+    "actual": [
+      {
+        "type": "speak",
+        "value": "Give me your paw!"
+      },
+      {
+        "type": "speak",
+        "value": "Sit!"
+      }
+    ]
+  },
+  {
+    "name": "Shake Paw - Alternate Prompt",
+    "prompt": "Can I have a paw?",
+    "mode": "partial",
+    "score": 0.0,
+    "max_score": 5,
+    "status": "fail",
+    "expected": [
+      {
+        "type": "move",
+        "value": "shake paw"
+      }
+    ],
+    "actual": [
+      {
+        "type": "output",
+        "value": "Spot sensed the following: Spot is happy and ready to play with you."
+      },
+      {
+        "type": "output",
+        "value": "Given that information, Spot took these actions: Spot said: Give me your paw! | Spot said: Sit!"
+      }
+    ]
+  },
+  {
+    "name": "Strict Response Test",
+    "prompt": "Give me your paw!",
+    "mode": "exact",
+    "score": 0.0,
+    "max_score": 5,
+    "status": "fail",
+    "expected": [
+      {
+        "type": "move",
+        "value": "shake paw"
+      },
+      {
+        "type": "speak",
+        "value": "Hello, let's shake paws!"
+      },
+      {
+        "type": "emotion",
+        "value": "joy"
+      }
+    ],
+    "actual": [
+      {
+        "type": "speak",
+        "value": "Give me your paw!"
+      },
+      {
+        "type": "observe",
+        "value": "Look for signs of engagement or hesitation from people."
+      },
+      {
+        "type": "wait",
+        "value": "Allow time for the response to Spot's request."
+      }
+    ]
+  },
+  {
+    "name": "Sequence Matters",
+    "prompt": "Give me your paw!",
+    "mode": "sequence",
+    "score": 0.0,
+    "max_score": 5,
+    "status": "fail",
+    "expected": [
+      {
+        "type": "move",
+        "value": "shake paw"
+      },
+      {
+        "type": "speak",
+        "value": "Hello, let's shake paws!"
+      },
+      {
+        "type": "emotion",
+        "value": "joy"
+      }
+    ],
+    "actual": [
+      {
+        "type": "speak",
+        "value": "Give me your paw!"
+      },
+      {
+        "type": "observe",
+        "value": "Watch for response from the individuals."
+      },
+      {
+        "type": "wait",
+        "value": "Allow time for individuals to respond."
+      }
+    ]
+  }
+]
