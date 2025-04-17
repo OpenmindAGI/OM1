@@ -48,7 +48,7 @@ class Message:
     message: str
 
 
-class SerialReader(FuserInput[str]):
+class GPSMagSerialReader(FuserInput[str]):
     """
     Reads GPS and Magnetometer data from serial port.
     Parses lines like:
@@ -107,21 +107,32 @@ class SerialReader(FuserInput[str]):
                     cardinal_abbr = parts[3]
                     direction = CARDINAL_MAP.get(cardinal_abbr, cardinal_abbr)
                     msg = f"You are facing {direction}."
+                    self.io_provider.add_dynamic_variable("direction", direction)
                 else:
                     msg = f"Unable to parse heading: {raw_input}"
 
             elif raw_input.startswith("YPR:"):
                 yaw, pitch, roll = map(str.strip, raw_input[4:].split(","))
                 msg = f"Orientation is Yaw: {yaw}°, Pitch: {pitch}°, Roll: {roll}°."
+                self.io_provider.add_dynamic_variable("yaw", yaw)
+                self.io_provider.add_dynamic_variable("pitch", pitch)
+                self.io_provider.add_dynamic_variable("roll", roll)
 
             elif raw_input.startswith("GPS:"):
                 try:
                     parts = raw_input[4:].split(",")
-                    lat = parts[0]
-                    lon = parts[1]
+                    lat = float(parts[0][:-1])
+                    lon = float(parts[1][:-1])
                     heading = parts[3].split(":")[1]
-                    alt = parts[4].split(":")[1]
-                    sats = parts[5].split(":")[1]
+                    alt = float(parts[4].split(":")[1])
+                    sats = int(parts[5].split(":")[1])
+
+                    self.io_provider.add_dynamic_variable("latitude", lat)
+                    self.io_provider.add_dynamic_variable("longitude", lon)
+                    self.io_provider.add_dynamic_variable("altitude", alt)
+                    self.io_provider.add_dynamic_variable("heading", heading)
+                    self.io_provider.add_dynamic_variable("sats", sats)
+
                     msg = (
                         f"Current location is {lat}, {lon} at {alt} meters altitude, "
                         f"heading {heading}°, with {sats} satellites locked."
