@@ -9,6 +9,21 @@ from discord.ext import commands
 from inputs.base import SensorConfig
 from inputs.base.loop import FuserInput
 
+class DiscordBotWrapper:
+    """Simple wrapper for Discord bot to provide to action connector."""
+    def __init__(self, bot, channel_id):
+        self.bot = bot
+        self.channel_id = channel_id
+        self.last_message_was_mention = False
+
+    def update_mention_status(self, was_mentioned):
+        """Update whether the last message mentioned the bot."""
+        self.last_message_was_mention = was_mentioned
+        
+    def reset_mention_status(self):
+        """Reset the mention status after sending a message."""
+        self.last_message_was_mention = False
+
 class DiscordInput(FuserInput[str]):
     """Discord integration input handler for chatting with OM1."""
 
@@ -41,6 +56,7 @@ class DiscordInput(FuserInput[str]):
         # Bot setup
         self.is_running = False
         self.is_registered = False
+        self.wrapper = None
         self._setup_bot()
         
     def _setup_bot(self):
@@ -83,6 +99,10 @@ class DiscordInput(FuserInput[str]):
         
         # Update the mention flag
         self.last_message_was_mention = is_mentioned
+        
+        # Update the wrapper's mention status if it exists
+        if self.wrapper:
+            self.wrapper.update_mention_status(is_mentioned)
         
         # Store the message in history
         self.message_history.append({
@@ -197,7 +217,7 @@ class DiscordInput(FuserInput[str]):
                 return False
                 
         return True
-
+    
     async def _register_with_connector(self) -> None:
         """Register this client with the action connector."""
         try:
@@ -205,7 +225,8 @@ class DiscordInput(FuserInput[str]):
             module = __import__('actions.speak.connector.discord_message', fromlist=['register_discord_client'])
             register_func = getattr(module, 'register_discord_client', None)
             if register_func:
-                register_func(self)
+                self.wrapper = DiscordBotWrapper(self.bot, self.channel_id)
+                register_func(self.wrapper)
                 self.is_registered = True
                 logging.info("Discord input registered with connector")
         except (ImportError, AttributeError):
@@ -228,89 +249,6 @@ class DiscordInput(FuserInput[str]):
             message = self.message_buffer.get_nowait()
             return message
         except Empty:
-            return None
-            
-    async def send_message(self, content: str) -> bool:
-        """Send a message to the configured Discord channel.
-        
-        This method is maintained for compatibility with the action connector.
-        Only sends messages in response to mentions.
-        
-        Parameters
-        ----------
-        content : str
-            The message content to send
-            
-        Returns
-        -------
-        bool
-            Whether the message was sent successfully
-        """
-        # Don't send a message if the last message didn't mention the bot
-        if not self.last_message_was_mention:
-            logging.info("Ignoring message send request - last message didn't mention the bot")
-            return False
-            
-        if not self.is_running:
-            logging.error("Discord bot is not running")
-            return False
-            
-        if not self.channel_id:
-            logging.error("No channel_id configured")
-            return False
-        
-        try:
-            channel = await self._get_channel()
-            if not channel:
-                return False
-                
-            await channel.send(content)
-            
-            # Store bot message in history
-            self.message_history.append({
-                "author": self.bot.user.name if self.bot.user else "Bot",
-                "content": content,
-                "is_bot": True
-            })
-            
-            # Reset the mention flag after sending a response
-            self.last_message_was_mention = False
-            
-            logging.info(f"Sent message: {content}")
-            self.print_conversation_log()
-            return True
-        except Exception as e:
-            logging.error(f"Error sending message: {str(e)}")
-            return False
-    
-    async def _get_channel(self) -> Optional[discord.abc.Messageable]:
-        """Get the Discord channel for sending messages.
-        
-        Returns
-        -------
-        Optional[discord.abc.Messageable]
-            The channel object or None if not found/accessible
-        """
-        try:
-            channel_id_int = int(self.channel_id)
-            channel = self.bot.get_channel(channel_id_int)
-            
-            if not channel:
-                # Try to fetch the channel if not found in cache
-                try:
-                    channel = await self.bot.fetch_channel(channel_id_int)
-                except discord.NotFound:
-                    logging.error(f"Channel {self.channel_id} not found")
-                    return None
-                except discord.Forbidden:
-                    logging.error(f"No permission to access channel {self.channel_id}")
-                    return None
-                except discord.HTTPException as e:
-                    logging.error(f"Failed to fetch channel {self.channel_id}: {str(e)}")
-                    return None
-            return channel
-        except ValueError:
-            logging.error(f"Channel ID '{self.channel_id}' is not a valid integer")
             return None
 
     def formatted_latest_buffer(self) -> Optional[str]:
