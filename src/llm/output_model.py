@@ -1,4 +1,6 @@
-from pydantic import BaseModel, Field
+from typing import Any, Dict
+
+from pydantic import BaseModel, Field, model_validator
 
 
 class Command(BaseModel):
@@ -15,6 +17,24 @@ class Command(BaseModel):
 
     type: str = Field(..., description="The type of action")
     value: str = Field(..., description="The action argument")
+
+    @model_validator(mode="before")
+    @classmethod
+    def parse_command_format(cls, data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Validates and transforms the input data.
+        If data is a dict with a single key-value pair (e.g., {"move": "wag tail"}),
+        it will be transformed to {"type": "move", "value": "wag tail"}.
+        """
+        if (
+            isinstance(data, dict)
+            and len(data) == 1
+            and "type" not in data
+            and "value" not in data
+        ):
+            key, value = next(iter(data.items()))
+            return {"type": key, "value": value}
+        return data
 
 
 class CortexOutputModel(BaseModel):
