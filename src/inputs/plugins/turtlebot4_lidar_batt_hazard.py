@@ -7,7 +7,7 @@ from typing import List, Optional
 import numpy as np
 import zenoh
 from numpy import array
-from scipy.ndimage.filters import gaussian_filter1d
+from scipy.ndimage import gaussian_filter1d
 from scipy.signal import find_peaks
 
 from inputs.base import SensorConfig
