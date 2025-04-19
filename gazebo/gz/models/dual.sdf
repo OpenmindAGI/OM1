@@ -114,27 +114,29 @@
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
       </plugin>
-      <plugin filename="ComponentInspector" name="Component inspector">
-        <gz-gui>
-          <property type="string" key="state">docked</property>
-        </gz-gui>
-      </plugin>
-      <plugin filename="EntityTree" name="Entity tree">
-        <gz-gui>
-          <property type="string" key="state">docked</property>
-        </gz-gui>
-      </plugin>
-      <plugin filename="ImageDisplay" name="Image Display">
+
+      <plugin filename="ImageDisplay" name="Image Display A">
         <gz-gui>
           <title>RGB camera</title>
           <property key="state" type="string">floating</property>
           <property type="double" key="width">350</property>
           <property type="double" key="height">315</property>
         </gz-gui>
-        <topic>/world/dog_world/model/go2/link/camera_link/sensor/camera/image</topic>
+        <topic>/world/dog_world/model/spot_a/link/camera_link/sensor/camera/image</topic>
         <topic_picker>false</topic_picker>
       </plugin>
-      <plugin filename="Teleop" name="Teleop">
+      <plugin filename="ImageDisplay" name="Image Display B">
+        <gz-gui>
+          <title>RGB camera</title>
+          <property key="state" type="string">floating</property>
+          <property type="double" key="width">350</property>
+          <property type="double" key="height">315</property>
+        </gz-gui>
+        <topic>/world/dog_world/model/spot_b/link/camera_link/sensor/camera/image</topic>
+        <topic_picker>false</topic_picker>
+      </plugin>
+
+      <plugin filename="Teleop" name="Teleop A">
           <gz-gui>
               <property key="x" type="double">0</property>
               <property key="y" type="double">0</property>
@@ -142,9 +144,18 @@
               <property key="height" type="double">900</property>
               <property key="state" type="string">docked</property>
           </gz-gui>
-          <topic>/model/go2/cmd_vel</topic>
+          <topic>/model/spot_a/cmd_vel</topic>
       </plugin>
-
+      <plugin filename="Teleop" name="Teleop B">
+          <gz-gui>
+              <property key="x" type="double">0</property>
+              <property key="y" type="double">0</property>
+              <property key="width" type="double">400</property>
+              <property key="height" type="double">900</property>
+              <property key="state" type="string">docked</property>
+          </gz-gui>
+          <topic>/model/spot_b/cmd_vel</topic>
+      </plugin>
     </gui>
 
     <light type="directional" name="sun">
@@ -162,7 +173,16 @@
     </light>
 
     <include>
-      <pose>0.0 0 0.5 0 -0 0</pose>
+      <pose>-1.5 0 0.45 0 0 0</pose>
+      <name>spot_a</name>
+      <uri>
+        model://gz/models/urdf/go2.sdf
+      </uri>
+    </include>
+
+    <include>
+      <pose>1.5 0 0.55 0 0 3.14</pose>
+      <name>spot_b</name>
       <uri>
         model://gz/models/urdf/go2.sdf
       </uri>
@@ -170,12 +190,12 @@
 
     <include>
       <name>Armchair_01</name>
-      <pose>-2.74 0.7 0.0 0 0 -0.77</pose>
+      <pose>-2.74 -0.13 0.0 0 0 -0.77</pose>
       <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Armchair</uri>
     </include>
     <include>
       <name>Armchair_02</name>
-      <pose>-2.62 -0.7 0.0 0 0 -1.75</pose>
+      <pose>-2.62 -1.44 0.0 0 0 -1.75</pose>
       <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Armchair</uri>
     </include>
     <include>
@@ -184,7 +204,7 @@
       <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Bathtub</uri>
     </include>
     <include>
-      <pose>0.5 3.5 0.0 0 0 1.57</pose>
+      <pose>1.5 3.5 0.0 0 0 3.14</pose>
       <name>Bed</name>
       <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Bed</uri>
     </include>
@@ -214,7 +234,7 @@
       <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Dining Chair</uri>
     </include>
     <include>
-      <pose>-0.55 -3.89 0.0 0 0 0</pose>
+      <pose>-0.25 -3.89 0.0 0 0 0</pose>
       <name>Fridge</name>
       <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Refrigerator</uri>
     </include>

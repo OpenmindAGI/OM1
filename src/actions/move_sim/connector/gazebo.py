@@ -43,6 +43,13 @@ class GazeboConnector(ActionConnector[MoveInput]):
 
     def __init__(self, config: ActionConfig):
         super().__init__(config)
+        robot_name = getattr(self.config, "robot_name", None)
+
+        if robot_name is None:
+            robot_name = "go2"
+            logging.info(f"Robot name not provided. Using default name: {robot_name}")
+
+        self.robot_name = robot_name
 
     async def connect(self, output_interface: MoveInput) -> None:
 
