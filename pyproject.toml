@@ -60,6 +60,9 @@ dev = [
 pythonpath = ["src"]
 asyncio_mode = "auto"
 norecursedirs = ["src/unitree", "system_hw_test", "gazebo"]
+markers = [
+    "integration: marks tests as integration tests",
+]
 
 [tool.black]
 line-length = 88
