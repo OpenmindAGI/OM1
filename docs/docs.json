@@ -46,13 +46,20 @@
           {
             "group": "Robot Integration",
             "pages": [
-              "robotics/unitree_go2_quadruped",
               "robotics/unitree_g1_humanoid",
-              "robotics/turtlebot4_zenoh",
+              "robotics/unitree_go2_quadruped",   
+              "robotics/motion_planning_unitree_go2",                         
               "robotics/tesla_dimo",
               "examples/gazebo",
               "robotics/gps_compass",
               "robotics/coinbase-x402"
+            ]
+          },{
+            "group": "TurtleBot4",
+            "pages": [
+              "robotics/turtlebot4_zenoh",
+              "robotics/motion_planning_lidarA1M8",
+              "robotics/motion_planning_turtlebot4"              
             ]
           },
           {
