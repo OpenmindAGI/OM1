@@ -3,41 +3,11 @@ title: Unitree G1 Humanoid
 description: "Unitree G1 Humanoid"
 ---
 
-- [Useful links and Reading](#useful-links-and-reading)
-- [Basic Command](#basic-command)
-  * [Installation on Mac](#installation-on-mac)
-    + [List CycloneDDS Topics on Mac](#list-cyclonedds-topics-on-mac)
-  * [Installation on Linux](#installation-on-linux)
-- [ORIN/G1: System Description](#orin-g1--system-description)
-  * [ORIN: Set default input and output Audio devices](#orin--set-default-input-and-output-audio-devices)
-- [Control via Unitree Hand Controller](#control-via-unitree-hand-controller)
-- [Boot from Chair](#boot-from-chair)
-- [Special DEBUG state](#special-debug-state)
-- [Using the Internal Orin](#using-the-internal-orin)
-- [Fixing the broken CycloneDDS installation on the Nvidia Orin](#fixing-the-broken-cyclonedds-installation-on-the-nvidia-orin)
-- [CycloneDDS Testing and Usage on your Development Computer](#cyclonedds-testing-and-usage-on-your-development-computer)
-- [Terminal based setup of Bluetooth audio devices](#terminal-based-setup-of-bluetooth-audio-devices)
-
-## Useful links and Reading 
-
-https://support.unitree.com/home/en/G1_developer
-https://github.com/unitreerobotics/avp_teleoperate
-
-C++ SDK
-https://github.com/unitreerobotics/unitree_sdk2
-
-Python SDK
-https://github.com/unitreerobotics/unitree_sdk2_python
-
 ## Basic Command 
 
-Run
-
-```bash Run Robot
-uv run src/run.py unitree_g1_humanoid
-```
-
 ### Installation on Mac
+
+More details for installation OM1, refer to [OM1 Installation](https://docs.openmind.org/getting-started/get-started).
 
 ```bash
 brew install uv portaudio cmake
@@ -115,6 +85,12 @@ Then add the optional Python CycloneDDS module to OM1:
 
 ```bash
 uv pip install -r pyproject.toml --extra dds
+```
+
+#### Launch OM1.
+
+```bash Run Robot
+uv run src/run.py unitree_g1_humanoid
 ```
 
 ### Installation on Linux
@@ -481,3 +457,14 @@ trust <MAC>
 pair <MAC>
 connect <MAC>
 ```
+
+## Useful links and Reading 
+
+https://support.unitree.com/home/en/G1_developer
+https://github.com/unitreerobotics/avp_teleoperate
+
+C++ SDK
+https://github.com/unitreerobotics/unitree_sdk2
+
+Python SDK
+https://github.com/unitreerobotics/unitree_sdk2_python

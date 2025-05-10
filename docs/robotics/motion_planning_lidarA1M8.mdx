@@ -21,6 +21,15 @@ sensor_mounting_angle = 180.0  # corrects for how sensor is mounted
 angles_blanked = [[-180.0, -160.0], [32.0, 46.6]] 
 ```
 
+### How to determine the `sensor_mounting_angle` and the `angles_blanked`
+
+- `sensor_mounting_angle`: The sensor_mounting_angle refers to the angle between the LIDAR sensor’s scanning plane and the horizontal plane of your robot or platform. This parameter is crucial for accurately interpreting the sensor’s data within your system’s coordinate framework.
+
+NOTE: sensor_mounting_angle could be read from the LIDAR physically and here is how to read it: (Original image from https://docs.donkeycar.com/assets/lidar_angle.png)
+![sensor_mounting_angle](/assets/lidar_angle.png)
+
+- `angles_blanked`: This isn’t a standard parameter in the official RPLIDAR documentation or SDK. However, in various applications and software integrations, it often refers to specific angular sectors where LIDAR data is intentionally ignored or filtered out.
+
 ## Unitree RPLidar
 
 Determine the serial port the sensor is using:
@@ -37,6 +46,12 @@ uv run rptest.py --serial /dev/cu.usbserial-0001
 ```
 
 ## TurtleBot4
+
+By default, the TurtleBot4 is configured to use the RPLidar A1M8. You can verify this by running:
+
+```bash
+ls -l /dev/RPLIDAR
+```
 
 Connect to the `scan` Zenoh topic. Provide the robot's URID, such as `OM742d35Cc6634` as an argument:
 
