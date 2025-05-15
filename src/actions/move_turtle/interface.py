@@ -9,10 +9,8 @@ class MovementAction(str, Enum):
     TURN_RIGHT = "turn right"
     MOVE_FORWARDS = "move forwards"
     MOVE_BACK = "move back"
-    AVOID_LEFT_OBSTACLE = "avoid left obstacle"
-    AVOID_FRONT_OBSTACLE = "avoid front obstacle"
-    AVOID_RIGHT_OBSTACLE = "avoid right obstacle"
     STAND_STILL = "stand still"
+
 
 @dataclass
 class MoveInput:

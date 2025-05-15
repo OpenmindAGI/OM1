@@ -1,0 +1,177 @@
+import logging
+import time
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass
+
+import requests
+
+from .singleton import singleton
+
+
+@dataclass
+class BatteryStatus:
+    """
+    Data class to represent the battery status of a teleops system.
+    """
+
+    battery_level: float
+    temperature: float
+    voltage: float
+    timestamp: str
+    charging_status: bool = False
+
+    def to_dict(self) -> dict:
+        """
+        Convert the BatteryStatus object to a dictionary.
+
+        Returns
+        -------
+        dict
+            Dictionary representation of the BatteryStatus object.
+        """
+        return {
+            "battery_level": self.battery_level,
+            "charging_status": self.charging_status,
+            "temperature": self.temperature,
+            "voltage": self.voltage,
+            "timestamp": self.timestamp,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "BatteryStatus":
+        """
+        Populate the BatteryStatus object from a dictionary.
+
+        Parameters
+        ----------
+        data : dict
+            Dictionary containing battery status information.
+        """
+        return cls(
+            battery_level=data.get("battery_level", 0.0),
+            charging_status=data.get("charging_status", False),
+            temperature=data.get("temperature", 0.0),
+            voltage=data.get("voltage", 0.0),
+            timestamp=data.get("timestamp", time.time()),
+        )
+
+
+@dataclass
+class TeleopsStatus:
+    """
+    Data class to represent the status of the teleops system.
+    """
+
+    update_time: str
+    battery_status: BatteryStatus
+    machine_name: str = "unknown"
+    video_status: bool = False
+
+    def to_dict(self) -> dict:
+        """
+        Convert the TeleopsStatus object to a dictionary.
+
+        Returns
+        -------
+        dict
+            Dictionary representation of the TeleopsStatus object.
+        """
+        return {
+            "machine_name": self.machine_name,
+            "update_time": self.update_time,
+            "battery_status": self.battery_status.to_dict(),
+            "video_status": self.video_status,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "TeleopsStatus":
+        """
+        Populate the TeleopsStatus object from a dictionary.
+
+        Parameters
+        ----------
+        data : dict
+            Dictionary containing teleops status information.
+        """
+        return cls(
+            update_time=data.get("update_time", str(time.time())),
+            battery_status=BatteryStatus.from_dict(data.get("battery_status", {})),
+            machine_name=data.get("machine_name", "unknown"),
+            video_status=data.get("video_status", False),
+        )
+
+
+@singleton
+class StatusProvider:
+    """
+    Status provider reports the status of the machine.
+    """
+
+    def __init__(
+        self,
+        api_key: str = None,
+        base_url: str = "https://api.openmind.org/api/core/teleops/status",
+    ):
+        """
+        Initialize the StatusProvider.
+
+        Parameters
+        ----------
+        api_key : str
+            API key for authentication. Default is None.
+        base_url : str
+            Base URL for the teleops status API. Default is
+            "https://api.openmind.org/api/core/teleops/status".
+        """
+        self.api_key = api_key
+        self.base_url = base_url
+        self.executor = ThreadPoolExecutor(max_workers=1)
+
+    def get_status(self) -> dict:
+        """
+        Get the status of the machine.
+        """
+        pass
+
+    def _share_status_worker(self, status: TeleopsStatus):
+        """
+        Worker function to share the status of the machine.
+        This function runs in a separate thread to avoid blocking the main thread.
+
+        Parameters
+        ----------
+        status : TeleopsStatus
+            The status of the machine to be shared.
+        """
+        if self.api_key is None or self.api_key == "":
+            logging.error("API key is missing. Cannot share status.")
+            return
+
+        try:
+            request = requests.post(
+                self.base_url,
+                headers={"Authorization": f"Bearer {self.api_key}"},
+                json=status.to_dict(),
+            )
+
+            if request.status_code == 200:
+                logging.debug(f"Status shared successfully: {request.json()}")
+            else:
+                logging.error(
+                    f"Failed to share status: {request.status_code} - {request.text}"
+                )
+        except Exception as e:
+            logging.error(f"Error sharing status: {str(e)}")
+
+    def share_status(self, status: TeleopsStatus):
+        """
+        Share the status of the machine.
+        This function submits the status sharing task to a thread pool executor
+        to run in a separate thread.
+
+        Parameters
+        ----------
+        status : TeleopsStatus
+            The status of the machine to be shared.
+        """
+        self.executor.submit(self._share_status_worker, status)

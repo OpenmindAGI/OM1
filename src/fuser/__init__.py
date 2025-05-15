@@ -67,10 +67,13 @@ class Fuser:
 
         # Combine all inputs, memories, and configurations into a single prompt
         system_prompt = (
-            self.config.system_prompt_base
+            "BASIC CONTEXT:\n"
+            + self.config.system_prompt_base
             + "\n"
+            + "\nLAWS:\n"
             + self.config.system_governance
             + "\n"
+            + "\nEXAMPLES:\n"
             + self.config.system_prompt_examples
         )
 
@@ -81,8 +84,10 @@ class Fuser:
         # since they are flowing from the outside world
         if "Universal Laws" in inputs_fused:
             system_prompt = (
-                self.config.system_prompt_base
+                "BASIC CONTEXT:\n"
+                + self.config.system_prompt_base
                 + "\n"
+                + "\nEXAMPLES:\n"
                 + self.config.system_prompt_examples
             )
 
@@ -104,6 +109,13 @@ class Fuser:
         fused_prompt = f"{system_prompt}\n\n{inputs_fused}\n\nAVAILABLE ACTIONS:\n{actions_fused}\n\n{question_prompt}"
 
         logging.debug(f"FINAL PROMPT: {fused_prompt}")
+
+        # Record the global prompt, actions and inputs
+        self.io_provider.set_fuser_system_prompt(f"{system_prompt}")
+        self.io_provider.set_fuser_inputs(inputs_fused)
+        self.io_provider.set_fuser_available_actions(
+            f"AVAILABLE ACTIONS:\n{actions_fused}\n\n{question_prompt}"
+        )
 
         # Record the timestamp of the output
         self.io_provider.fuser_end_time = time.time()

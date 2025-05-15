@@ -20,9 +20,8 @@ class TeslaInput:
 @dataclass
 class DIMOTesla(Interface[TeslaInput, TeslaInput]):
     """
-    A Tesla movement to be performed by the agent.
-
-    Effect: Allows the agent to move.
+    A Tesla action to be performed by the agent.
+    Effect: Allows the agent to interact with a car.
     """
 
     input: TeslaInput

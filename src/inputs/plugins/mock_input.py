@@ -206,7 +206,7 @@ class MockInput(FuserInput[str]):
             return None
 
         result = f"""
-{self.descriptor_for_LLM} INPUT
+INPUT: {self.descriptor_for_LLM} 
 // START
 {self.messages[-1]}
 // END

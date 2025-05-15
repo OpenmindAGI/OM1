@@ -3,29 +3,54 @@ title: TurtleBot4 Basic Setup
 description: "TurtleBot4 Basic Setup"
 ---
 
-- [Basic Commands](#basic-commands)
-- [Identity and Keys](#identity-and-keys)
-- [Suggested Operating System Versions](#suggested-operating-system-versions)
-- [TurtleBot4 Set Up](#turtlebot4-set-up)
-  * [Enable full motion control](#enable-full-motion-control)
-- [Run OM1 on the Internal RPi4](#run-om1-on-the-internal-rpi4)
-- [Run OM1 on an External Development Computer (e.g. Mac Laptop)](#run-om1-on-an-external-development-computer--eg-mac-laptop-)
-  * [Interacting with TurtleBot4 from a Remote Computer using Zenoh](#interacting-with-turtlebot4-from-a-remote-computer-using-zenoh)
+- [Required Operating System Versions](#required-operating-system-versions)
+  * [Required software for the Turtlebot4's Raspberry Pi:](#required-software-for-the-turtlebot4-s-raspberry-pi-)
+  * [Required software for the Turtlebot4's Create3:](#required-software-for-the-turtlebot4-s-create3-)
+- [Prepare the TurtleBot4](#prepare-the-turtlebot4)
+- [Identity and API Keys](#identity-and-api-keys)
+- [Configure the TurtleBot4](#configure-the-turtlebot4)
+  * [Configure the TurtleBot4's Internal RPi4](#configure-the-turtlebot4-s-internal-rpi4)
+  * [Configure the TurtleBot4's Internal Create3](#configure-the-turtlebot4-s-internal-create3)
+  * [Install docker and configure the docker-compose.yaml file](#install-docker-and-configure-the-docker-composeyaml-file)
+- [OM1 Installation and launch](#om1-installation-and-launch)
+  * [Running OM1 on the Internal RPi4](#running-om1-on-the-internal-rpi4)
+  * [Running OM1 on your laptop](#running-om1-on-your-laptop)
+  * [Interacting with TurtleBot4 from a Remote Computer using Zenoh and the command line](#interacting-with-turtlebot4-from-a-remote-computer-using-zenoh-and-the-command-line)
+    + [Steer the TurtleBot4 with your keyboard:](#steer-the-turtlebot4-with-your-keyboard-)
+- [Read TurtleBot4 Laserscan Data](#read-turtlebot4-laserscan-data)
 - [Expected ROS2 Topics for a Correctly Configured System](#expected-ros2-topics-for-a-correctly-configured-system)
 - [Building the Docker Dual Bridge Images](#building-the-docker-dual-bridge-images)
 - [Debugging Commands](#debugging-commands)
+- [Establishing basic networking and connectivity.](#establishing-basic-networking-and-connectivity)
 
+## Required Operating System Versions
 
-## Basic Commands
+OM1 supports TurtleBot4 running ROS2 Humble and Create3 with H.2.6.
 
-Run
-```bash Run Robot
-uv run src/run.py turtlebot4
-```
+### Required software for the Turtlebot4's Raspberry Pi:
 
-## Identity and Keys
+- Ubuntu 22.04.4 LTS (GNU/Linux 5.15.0-1073-raspi aarch64) - combined with turtlebot4 humble image.
+- [turtlebot4_standard_humble_1.0.4.img (2024-08-19 16:59 2.2G)](http://download.ros.org/downloads/turtlebot4/turtlebot4_standard_humble_1.0.4.zip), 
 
-**API_KEY** Go to [portal](portal.openmind.org) to get a free API key. Enter this API key in the "api_key" field in the `/config/turtlebot4.json5` file. You can also provide this API key via your .env - just enter it as:
+- Note: choose turtlebot4 lite image file if your turtlebot4 is lite version.
+
+### Required software for the Turtlebot4's Create3:
+
+- Create3 firmware:
+[H.2.6 (Humble)](https://github.com/iRobotEducation/create3_docs/releases/download/H.2.6/Create3-H.2.6.swu)
+
+- Note: **Important: Make sure your Raspberry Pi 4 is running Ubuntu 22.04.4 LTS (Turtlebot4 Humble image) and that the Create 3 is running H.2.6/Create3-H.2.6.swu**. Among other possible problems, running Ubuntu 24 will create compatibility issues with the version of ROS2 and CycloneDDS on the Create 3. 
+
+## Prepare the TurtleBot4
+
+1. Flash the correct TurtleBot4 image to an SD card (if needed).
+2. Upgrade/downgrade the Create3 firmware to H.2.6 (if needed).
+3. Insert the SD card into the TurtleBot4 and power it on.
+4. Set up your TurtleBot4 following the [Basic Setup](https://turtlebot.github.io/turtlebot4-user-manual/setup/basic.html#robot). 
+
+## Identity and API Keys
+
+**API_KEY** Go to [portal](https://portal.openmind.org/) to get a free API key for the OM1 apis. Enter this API key in the "api_key" field in the `/config/turtlebot4.json5` file. You can also provide this API key via your `.env` - just enter it as:
 
 ```bash
 OM_API_KEY=om1_live_e4252f1cf005af...
@@ -39,38 +64,17 @@ Enter the URID in the "URID" field in the `/config/turtlebot4.json5` file. You c
 URID=OM742d35Cc6634 # yours will be different!
 ```
 
-## Suggested Operating System Versions
+- Note: for testing you can use any short string as the URID, as long as it's unique for each robot within a team of robots all using the same local network. 
 
-The TurtleBot4 contains two entirely separate computers, the Raspberry Pi (RPi) and the Create3. These computers are accessed in different ways, run different software, and have different roles. Different combinations of software versions running on those computers give somewhat differing capabilities.
+## Configure the TurtleBot4
 
-**Raspberry Pi**\
-Ubuntu 22.04.4 LTS (GNU/Linux 5.15.0-1073-raspi aarch64)\
-[turtlebot4_standard_humble_1.0.4.img (2024-08-19 16:59 2.2G)](http://download.ros.org/downloads/turtlebot4/turtlebot4_standard_humble_1.0.4.zip)
+Once the TurtleBot4 is set up, you can configure it as follows:
 
-Suitable images can be installed via a [flashed SD card](https://turtlebot.github.io/turtlebot4-user-manual/setup/basic.html). Note that instructions given are needlessly complex - basically, download the image, unzip it, flash a SD card with that image using your favorite tool/platform (e.g. for mac use the Disk Utility to unmount the drive and then `sudo dcfldd if=tb.img sizeprobe=if bs=1M of=/dev/disk4`), insert the flashed SD card into the RPi, and turn it on.
+- Configure the RPi4 through `turtlebot4-setup`
+- Configure the Create3 through web server
+- Install docker and configure the `docker-compose.yaml` file 
 
-**Create3**\
-[H.2.6 (Humble)](https://github.com/iRobotEducation/create3_docs/releases/download/H.2.6/Create3-H.2.6.swu)
-
-## TurtleBot4 Set Up
-
-OM1 connects to TurtleBot4 using Zenoh. To correctly set up your TurtleBot4, follow these steps.
-
-1. Set up your TurtleBot4 following the [Basic Setup](https://turtlebot.github.io/turtlebot4-user-manual/setup/basic.html).
-
-2. Then, become familiar with the TurtleBot4 ecosystem - there are extensive educational materials to help you get started. 
-
-3. If you are not familiar with the TurtleBot4, please see the excellent [documentation](https://turtlebot.github.io/turtlebot4-user-manual/).
-
-NOTE: Please update the Raspberry Pi's OS (use `sudo apt update && sudo apt upgrade`).
-
-NOTE: Please update the TurtleBot4's internal Create3 computer to `iRobot® Create® 3 Release H.2.6` via the Create3's html "Update" page.
-
-NOTE: Make sure to remember the TurtleBots' IP address in your local network. If you do not know it, scan your local network for "Raspberry Pi".
-
-NOTE: In the remainder of this writeup, we assume you are generally familiar with the ROS2/TurtleBot4 ecosystem, including ssh-ing to the Raspberry Pi command line, the use of the `turtlebot4-setup` program, and interacting with the internal Create3 via its webpage at IP:8080. 
-
-2. As you have just experienced first-hand, there are numerous issues connecting to a TurtleBot4 in a university/enterprise network. To solve many of those, we follow the dual Zenoh bridge approach developed by [theconstruct.ai](www.theconstruct.ai), which is to give the Raspberry Pi and the Create3 their own ROS2 DOMAIN_IDs, and then use Zenoh bridges to filter message traffic between the RPi and the Create3. This allows you to filter messages on a per topic level (see the `config_create3.json5` file for an example of how this is done).
+### Configure the TurtleBot4's Internal RPi4
 
 Make the following `ROS_DOMAIN_ID` changes to the TurtleBot4. Use the `turtlebot4-setup` tool to access `ROS Setup:Bash Setup` and set it to the following:
 
@@ -82,7 +86,11 @@ RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 CYCLONEDDS_URI=[] # Empty
 ```
 
-Click "Save", "Esc", and then "Apply Settings". The TurtleBot4 will reboot. Once the reboot is complete (wait for chime, 1 min), access the Create3's App config page at its web server (e.g. `192.168.1.XXX:8080/ros-config`). Change the ROS_DOMAIN_ID to 1. The correct settings are:
+Click "Save", "Esc", and then "Apply Settings". The TurtleBot4 will reboot. 
+
+### Configure the TurtleBot4's Internal Create3
+
+Once the reboot is complete (wait for chime, 1 min), access the Create3's App config page at its web server (e.g. `192.168.1.XXX:8080/ros-config`). Change the ROS_DOMAIN_ID to 1. The correct settings are:
 
 ```
 ROS 2 Domain ID (default 0): 1
@@ -91,11 +99,14 @@ ROS 2 Namespace: /_your_robot_URID_/c3
 RMW_IMPLEMENTATION: rmv_cyclonedds_cpp
 ```
 
-Note the use of the "/c3" to create an unique namespace for the c3.
+- Note: you are using the "/c3" prefix to create an unique namespace for the c3.
+- Note: _your_robot_URID_ is the URID of your robot.  
 
 Click `Save` and _Restart Application_.
 
-NOTE: Do not forget to click _Restart Application_, otherwise the changes will not be applied. Wait for chime (1 min) indicating Create3 reboot.
+- Note: Do not forget to click _Restart Application_, otherwise the changes will not be applied. Wait for chime (1 min) indicating Create3 reboot.
+
+### Install docker and configure the docker-compose.yaml file 
 
 Finally, on the TurtleBot4's RPi, [install Docker](https://docs.docker.com/engine/install/ubuntu/) and run `sudo docker compose -f docker-compose.yaml up -d`. The `docker-compose` should be:
 
@@ -108,62 +119,25 @@ services:
     restart: always # Ensures the container restarts on reboot
 ```
 
-The TurtleBot4 will now be more stable, can discover other computers running Zenoh, send them Zenoh messages, and also, accept Zenoh messages and forward them to ROS2.
+The TurtleBot4 will now be more stable, can discover other computers running **Zenoh**, send them **Zenoh** messages, and also, accept **Zenoh** messages and forward them to **ROS2**.
 
-3. On the TurtleBot4 command line, test the system:
+## OM1 Installation and launch
 
+You can install and run OM1 
+
+- on your laptop, or
+- onboard the Raspberry Pi on the TurtleBot4
+
+### Running OM1 on the Internal RPi4
+
+For fully autonomous use, install OM1 on the Turtlebot4's Raspberry Pi. On the RPi terminal command line, follow these [instructions](/getting-started/raspberrypi). When you see all the right topics listed in `ros2 topic list`, your TurtleBot4 is set up and you are ready to install OM1.
+
+* Install `uv` - Python package manager.   
 ```bash
-ros2 topic list
-ros2 action list
-ros2 topic echo /$URID/pi/scan
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-To spin the robot, for example, on the TurtleBot4 command line issue:
-
-```bash
-ros2 topic pub -r 1 /$URID/c3/cmd_vel geometry_msgs/msg/Twist "linear:
-  x: 0.1
-  y: 0.0
-  z: 0.0
-angular:
-  x: 0.0
-  y: 0.0
-  z: 0.0"
-```
-
-The `-r 10` refers to the publish rate. This rate setting greatly affects the smoothness of the motion, but also, to a lesser degree, the distance traveled. The central idea behind TB4 movement control is that if you:
-
-* publish `twist` messages **above** a critical rate (of about 1.7Hz), then the TB4 executes smooth movement at the target velocity (after an early transient while it is accelerating). For example, if you run `topic pub -r 10` with a 0.5 m/s velocity for two seconds, then the robot will smoothly travel about 1 m.
-
-* publish `twist` messages **below** the critical rate (of about 1.7Hz), then the TB4 executes jerky cycles consisting of acceleration, reaching target velocity, followed by deceleration to zero after a `max_duration` timeout. For example, if you run `topic pub -r 1` with a 0.5 m/s velocity for two seconds, then the robot will travel about 0.6 m in a series of stops and starts. The specific setting of the fixed timeout period hardcoded into the Create3 firmware is currently unknown.
-
-To debug movement, use `ros2 topic info /$URID/pi/cmd_vel --verbose`.
-
-### Enable full motion control
-
-To enable full range of motion, set `/$URID/c3/motion_control safety_override` to the desired value. This removes the cliff protection, which limits backwards movements to 1 cm. 
-
-The best way to change this setting is via the Create3's App config page at its web server (e.g. `192.168.1.XXX:8080/ros-config`). In the `Application ROS 2 Parameters File` window, add your Create3 ROS2 namespace, such as `/OM123435Cc1234/c3/` and then select your desired `safety_override options`. For example, an `Application ROS 2 Parameters File` could look like this:
-
-```
-/OM123435Cc1234/c3/motion_control:
-  ros__parameters:
-    # safety_override options are 
-    # "none" - standard safety profile, robot cannot backup more than an inch because of lack of cliff protection in rear, max speed 0.306m/s
-    # "backup_only" - allow backup without cliff safety, but keep cliff safety forward and max speed at 0.306m/s
-    # "full" - no cliff safety, robot will ignore cliffs and set max speed to 0.46m/s
-    safety_override: "full"
-```
-
-## Run OM1 on the Internal RPi4
-
-**Important: Make sure your Raspberry Pi 4 is running Ubuntu 22.04.4 LTS and that the Create 3 is running H.2.6/Create3-H.2.6.swu** (see [Suggested Operating System Versions](#suggested-operating-system-versions)). Among other possible problems, running Ubuntu 24 will create compatibility issues with the version of ROS2 and CycloneDDS on the Create 3. 
-
-On the RPi terminal command line, follow instructions 1 - 3 above. When you see all the right topics listed in `ros2 topic list`, your TurtleBot4 is set up and you are ready to install OM1.
-
-* Install `uv` - use `curl -LsSf https://astral.sh/uv/install.sh | sh`.
-
-* Install `portaudio` and other dependencies
+* Install `portaudio`, `ffmpeg` and other dependencies
 
 ```bash
 sudo apt install pulseaudio pulseaudio-utils ffmpeg portaudio19-dev python-all-dev
@@ -175,12 +149,7 @@ sudo apt install pulseaudio pulseaudio-utils ffmpeg portaudio19-dev python-all-d
 
 * Connect a speaker to RPi with a 3.5 mm audio patch cable (or use bluetooth, depending on your pain threshold and patience with debugging bluetooth issues).
 
-* Create a `.env` file
-
-```bash
-cp env.example .env
-```
-and then use `vim` to set your `OM_API_KEY` and `URID`
+* Make sure [Identity and Keys](#identity-and-keys) are set correctly.
 
 * Set Default Input and Output Audio devices
 
@@ -201,35 +170,43 @@ pactl set-default-source alsa_input.usb-046d_C270_HD_WEBCAM_2CD9A910-02.mono-fal
 pactl set-default-sink alsa_output.platform-bcm2835_audio.stereo-fallback
 ```
 
-* Boot OM1
+* Launch OM1
 
-Finally, run
-
-```bash Run Robot
+```bash
 uv run src/run.py turtlebot4
 ```
 
-On the RPi4, there will be a lengthy delay before OM1 runs. 
+On the RPi4, there will be a lengthy delay before OM1 runs the first time you invoke this command. 
 
-## Run OM1 on an External Development Computer (e.g. Mac Laptop)
+### Running OM1 on your laptop
 
-Install Zenoh on your Mac, PC, or Linux box, following [Installing the Zenoh router](https://zenoh.io/docs/getting-started/installation/)
+Install OM1 and Zenoh on your laptop, following [Install OM1 on your laptop](/getting-started/get-started) and [Installing the Zenoh router](https://zenoh.io/docs/getting-started/installation/).
+
+Then, run OM1:  
+
+```bash
+uv run src/run.py turtlebot4
+```
 
 Please make sure that your development machine (e.g. your laptop) is running the same version of the Zenoh bridge (e.g. 1.2.1) as the RPi otherwise you will get errors.
 
-Set up OM1 on your machine, for example, following the `spot` example. Then, run
+- Note: when you run OM1 on your laptop, OM1 will use your laptop's microphone, speaker, and camera inputs/outputs, rather than the sensors on the TurtleBot4. 
 
-```bash Run Robot
-uv run src/run.py turtlebot4
+### Interacting with TurtleBot4 from a Remote Computer using Zenoh and the command line
+
+This is useful for debugging. Inside `system_hw_test`, there are several scripts for you to interact with the TurtleBot4. For all these scripts, please provide/update the topic names to include your specific namespace. If you do not update the namespaces, the scripts will fail. 
+
+#### Steer the TurtleBot4 with your keyboard:
+
+Before running the script, make sure you have the correct topic names.   
+Change the [URID topic name in turtlebot4_keyboard_movement.py](https://github.com/OpenmindAGI/OM1/blob/c6f0d118bf16c9201403ae459111d4cacc3830dd/system_hw_test/turtlebot4_keyboard_movement.py#L40C9-L40C33) to include your specific namespace: 
+
+```bash
+self.cmd_vel = "<your_namespace>/pi/cmd_vel"
 ```
 
-Congratulations - Your laptop is now controlling the TurtleBot4!
+Then run the script.
 
-### Interacting with TurtleBot4 from a Remote Computer using Zenoh
-
-Inside `system_hw_test`, there are several scripts for you to interact with the TurtleBot4. For all these scripts, please provide/update the topic names to include your specific namespace. If you do not update the namespaces, the scripts will fail. 
-
-Steer the TurtleBot4 with your keyboard:
 ```bash
 uv run turtlebot4_keyboard_movement.py
 ```
@@ -238,14 +215,12 @@ uv run turtlebot4_keyboard_movement.py
 * A - Turn Left
 * D - Turn Right
 
-Read TurtleBot4 laser scan, collision, and battery data:
-```bash
-uv run turtlebot4_laserscan.py
-```
+## Read TurtleBot4 Laserscan Data
 
-Read TurtleBot4 Camera PREVIEW (250x250RGB) data:
+Connect to the `scan` Zenoh topic. Provide the robot's URID, such as `OM742d35Cc6634` as an argument:
+
 ```bash
-uv run turtlebot4_camera_opencv.py
+uv run rptest.py --URID OM123435Cc1234
 ```
 
 ## Expected ROS2 Topics for a Correctly Configured System
@@ -334,3 +309,15 @@ sudo apt install v4l-utils
 v4l2-ctl --list-devices
 v4l2-ctl -d /dev/video0 --stream-mmap --all
 ```
+
+## Establishing basic networking and connectivity. 
+
+For many development tasks, you will need to ssh to the RPi on the TB4. 
+
+```bash
+ssh ubuntu@192.168.1.116
+```
+
+The password is `turtlebot4`.
+
+Once on the command line, you can use `turtlebot4-setup` to configure ROS2, the wifi, etc. 

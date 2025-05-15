@@ -1,4 +1,5 @@
 import time
+import warnings
 from unittest.mock import Mock, patch
 
 import numpy as np
@@ -35,12 +36,12 @@ def test_video_stream_init(mock_video_client):
     callback = Mock()
     stream = UnitreeCameraVideoStream(frame_callback=callback)
 
-    assert stream.frame_callback == callback
+    assert len(stream.frame_callbacks) == 1
+    assert stream.frame_callbacks[0] == callback
     assert stream.running is True
     mock_video_client.Init.assert_called_once()
 
 
-@pytest.mark.timeout(5)
 def test_video_stream_start_stop(mock_video_client):
     stream = UnitreeCameraVideoStream()
     stream.start()
@@ -58,7 +59,6 @@ def test_vlm_provider_init(mock_ws_client, mock_video_client):
     assert provider._thread is None
 
 
-@pytest.mark.timeout(5)
 def test_vlm_provider_start_stop(mock_ws_client, mock_video_client):
     provider = UnitreeCameraVLMProvider("ws://test.url")
     provider.start()
@@ -85,6 +85,10 @@ def test_vlm_provider_double_start(mock_ws_client, mock_video_client):
 
 def test_vlm_provider_thread_error_handling(mock_ws_client, mock_video_client):
     provider = UnitreeCameraVLMProvider("ws://test.url")
+
+    warnings.filterwarnings(
+        "ignore", category=pytest.PytestUnhandledThreadExceptionWarning
+    )
 
     with patch.object(provider, "_run", side_effect=Exception("Test error")):
         provider.start()

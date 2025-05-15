@@ -25,13 +25,13 @@
         "tab": "Guides",
         "groups": [
           {
-            "group": "Getting Started",
+            "group": "Overview",
             "pages": [
               "getting-started/introduction",
-              "getting-started/get-started",
-              "getting-started/raspberrypi",
+              "getting-started/get-started",              
+              "getting-started/configuration",
               "getting-started/architecture",
-              "getting-started/configuration"
+              "getting-started/faq"
             ]
           },
           {
@@ -40,24 +40,26 @@
               "examples/conversation",
               "examples/llm_models",
               "examples/smart_toy",
-              "examples/gazebo"
+              "getting-started/raspberrypi"
             ]
           },
           {
-            "group": "Robotics",
+            "group": "Robot Integration",
             "pages": [
               "robotics/unitree_go2_quadruped",
               "robotics/unitree_g1_humanoid",
               "robotics/turtlebot4_zenoh",
               "robotics/tesla_dimo",
-              "robotics/asimov_governance",
-              "robotics/coinbase_hackathon"
+              "examples/gazebo",
+              "robotics/gps_compass",
+              "robotics/coinbase-x402"
             ]
           },
           {
-            "group": "Development",
-            "pages": [
-              "development/intro"
+            "group": "Others",
+            "pages": [  
+              "robotics/asimov_governance",
+              "robotics/coinbase_hackathon"              
             ]
           }
         ]
@@ -77,6 +79,7 @@
             "group": "Core Endpoints",
             "pages": [
               "api-reference/endpoints/llm",
+              "api-reference/endpoints/multi_llm",
               "api-reference/endpoints/elevenlabs_tts",
               "api-reference/endpoints/riva_tts"
             ]
@@ -94,7 +97,6 @@
     ],
     "global": {
       "anchors": [
-        
         {
           "anchor": "Research",
           "href": "https://www.openmind.org/research",

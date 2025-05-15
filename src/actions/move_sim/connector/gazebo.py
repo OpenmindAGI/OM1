@@ -16,6 +16,7 @@ class Velocity:
     angular_y: float
     angular_z: float
 
+
 # Predefined velocity commands
 VELOCITY_PRESETS = {
     "stand still": Velocity(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
@@ -30,6 +31,7 @@ VELOCITY_PRESETS = {
     "move right": Velocity(0.0, -0.15, 0.0, 0.0, 0.0, 0.0),
 }
 
+
 class GazeboConnector(ActionConnector[MoveInput]):
     """
     A connector that publishes Move messages using Gazebo Topics.
@@ -41,6 +43,13 @@ class GazeboConnector(ActionConnector[MoveInput]):
 
     def __init__(self, config: ActionConfig):
         super().__init__(config)
+        robot_name = getattr(self.config, "robot_name", None)
+
+        if robot_name is None:
+            robot_name = "go2"
+            logging.info(f"Robot name not provided. Using default name: {robot_name}")
+
+        self.robot_name = robot_name
 
     async def connect(self, output_interface: MoveInput) -> None:
 
@@ -84,15 +93,23 @@ class GazeboConnector(ActionConnector[MoveInput]):
             velocity_key (str): Key from VELOCITY_PRESETS dictionary.
         """
         if velocity_key not in VELOCITY_PRESETS:
-            logging.info(f"WARNING: Preset '{velocity_key}' not found. Defaulting to stand still")
+            logging.info(
+                f"WARNING: Preset '{velocity_key}' not found. Defaulting to stand still"
+            )
             velocity_key = "stand still"
 
         velocity = VELOCITY_PRESETS[velocity_key]  # Get the Velocity object
 
         command = [
-            "gz", "topic", "-t", "/model/go2/cmd_vel", "-m", "gz.msgs.Twist", "-p",
+            "gz",
+            "topic",
+            "-t",
+            "/model/go2/cmd_vel",
+            "-m",
+            "gz.msgs.Twist",
+            "-p",
             f"linear: {{x: {velocity.linear_x}, y: {velocity.linear_y}, z: {velocity.linear_z}}}, "
-            f"angular: {{x: {velocity.angular_x}, y: {velocity.angular_y}, z: {velocity.angular_z}}}"
+            f"angular: {{x: {velocity.angular_x}, y: {velocity.angular_y}, z: {velocity.angular_z}}}",
         ]
 
         try:
@@ -100,6 +117,6 @@ class GazeboConnector(ActionConnector[MoveInput]):
             logging.info(f"Velocity command sent: {velocity}")
         except subprocess.CalledProcessError as e:
             logging.error(f"Error sending velocity command: {e}")
-            
+
     def tick(self) -> None:
         time.sleep(0.1)

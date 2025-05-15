@@ -30,6 +30,8 @@ class ASRProvider:
         The audio sample rate for the audio stream; used the system default if None
     chunk : int
         The audio chunk size for the audio stream; used the 200ms default if None
+    language_code : str
+        The language code for language in the audio stream; used the en-US default if None
     """
 
     def __init__(
@@ -39,6 +41,7 @@ class ASRProvider:
         microphone_name: Optional[str] = None,
         rate: Optional[int] = None,
         chunk: Optional[int] = None,
+        language_code: Optional[str] = None,
     ):
         """
         Initialize the ASR Provider.
@@ -55,6 +58,8 @@ class ASRProvider:
             The audio sample rate for the audio stream; used the system default if None
         chunk : int
             The audio chunk size for the audio stream; used the 200ms default if None
+        language_code : str
+            The language code for language in the audio stream; used the en-US default if None
         """
         self.running: bool = False
         self.ws_client: ws.Client = ws.Client(url=ws_url)
@@ -64,6 +69,7 @@ class ASRProvider:
             device=device_id,
             device_name=microphone_name,
             audio_data_callback=self.ws_client.send_message,
+            language_code=language_code,
         )
         self._thread: Optional[threading.Thread] = None
 

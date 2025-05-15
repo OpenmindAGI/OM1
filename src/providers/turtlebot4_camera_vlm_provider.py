@@ -2,7 +2,7 @@ import base64
 import logging
 import threading
 import time
-from typing import Callable, Optional
+from typing import Callable, List, Optional, Tuple
 
 import cv2
 import numpy as np
@@ -11,28 +11,6 @@ from om1_utils import ws
 from om1_vlm import VideoStream
 
 from .singleton import singleton
-
-# Resize target for video stream
-# TARGET_WIDTH = 640
-# TARGET_HEIGHT = 480
-
-# start with a random image
-image = np.random.rand(250, 250, 3)
-
-
-def listener(sample):
-    bytesI = sample.payload.to_bytes()
-    logging.debug(f"TurtleBot4 listener received {len(sample.payload)}")
-    if bytesI and len(bytesI) == 187576:
-        X = np.frombuffer(bytesI, dtype=np.uint8)
-        # The first 76 numbers are some sort of metadata header?
-        Xc = X[76:187576]
-        rgb = np.reshape(Xc, (250, 250, 3))
-        global image
-        # update the global image
-        image = rgb
-        # for easy debug
-        cv2.imwrite("turtlebot.jpg", rgb)
 
 
 class TurtleBot4CameraVideoStream(VideoStream):
@@ -50,17 +28,75 @@ class TurtleBot4CameraVideoStream(VideoStream):
     https://github.com/turtlebot/turtlebot4/issues/335#issuecomment-1900339747
     """
 
-    def __init__(self, frame_callback=None, fps=30, URID="default"):
+    def __init__(
+        self,
+        frame_callback: Optional[Callable[[str], None]] = None,
+        frame_callbacks: Optional[List[Callable[[str], None]]] = None,
+        fps: Optional[int] = 30,
+        resolution: Optional[Tuple[int, int]] = (640, 480),
+        jpeg_quality: int = 70,
+        URID: str = "default",
+        debug: bool = False,
+    ):
+        """
+        Initialize the TurtleBot4 Camera Video Stream.
 
-        super().__init__(frame_callback, fps)
-
-        self.session = None
+        Parameters
+        ----------
+        frame_callback : callable, optional
+            A callback function to process video frames.
+        frame_callbacks : list of callables, optional
+            A list of callback functions to process video frames.
+        fps : int, optional
+            Frames per second for the video stream. Default is 30.
+        resolution : tuple of int, optional
+            The resolution for the video stream. Default is (640, 480).
+        jpeg_quality : int, optional
+            The JPEG quality for the video stream. Default is 70.
+        URID : str, optional
+            The URID for the Zenoh session. Default is "default".
+        debug : bool, optional
+            Enable debug mode for writing images to local files. Default is False.
+        """
+        super().__init__(
+            frame_callback=frame_callback,
+            frame_callbacks=frame_callbacks,
+            fps=fps,
+            resolution=resolution,
+            jpeg_quality=jpeg_quality,
+        )
 
         self.session = zenoh.open(zenoh.Config())
-        logging.info(f"TurtleBot4 Camera listener starting with URID: {URID}")
         topic = f"{URID}/pi/oakd/rgb/preview/image_raw"
-        logging.info(f"Topic: {topic}")
-        self.camera = self.session.declare_subscriber(topic, listener)
+        logging.info(
+            f"TurtleBot4 Camera listener starting with URID: {URID} and topic: {topic}"
+        )
+        self.camera = self.session.declare_subscriber(topic, self.camera_listener)
+
+        self.lock = threading.Lock()
+        self.image = None
+        self.debug = debug
+
+    def camera_listener(self, sample: zenoh.Sample):
+        """
+        Zenoh listener for incoming camera samples.
+
+        Parameters
+        ----------
+        sample : zenoh.Sample
+            The incoming sample from the Zenoh session.
+        """
+        bytesI = sample.payload.to_bytes()
+        logging.debug(f"TurtleBot4 listener received {len(sample.payload)}")
+        if bytesI and len(bytesI) == 187576:
+            X = np.frombuffer(bytesI, dtype=np.uint8)
+            # The first 76 numbers are some sort of metadata header?
+            Xc = X[76:187576]
+            rgb = np.reshape(Xc, (250, 250, 3))
+            with self.lock:
+                self.image = rgb
+            if self.debug:
+                cv2.imwrite("turtlebot.jpg", rgb)
 
     def on_video(self):
         """
@@ -70,44 +106,33 @@ class TurtleBot4CameraVideoStream(VideoStream):
         and sends them through the callback if registered.
         """
         logging.info("TurtleBot Camera Video Stream")
+
+        frame_time = 1.0 / self.fps
+        last_frame_time = time.perf_counter()
+
         while self.running:
             try:
-                # code, data = self.video_client.GetImageSample()
-                # if code == 0:
-                #     # Convert to numpy image
-                #     image_data = np.frombuffer(bytes(data), dtype=np.uint8)
-                #     image = cv2.imdecode(image_data, cv2.IMREAD_COLOR)
-                #     if image is not None:
-                #         # Calculate new dimensions maintaining aspect ratio
-                #         height, width = image.shape[:2]
-                #         ratio = width / height
-                #         if width > height:
-                #             new_width = TARGET_WIDTH
-                #             new_height = int(TARGET_WIDTH / ratio)
-                #         else:
-                #             new_height = TARGET_HEIGHT
-                #             new_width = int(TARGET_HEIGHT * ratio)
+                with self.lock:
+                    image = self.image
 
-                global image
-                # Resize image
-                # do not know what the needed size is?
-                new_height = 480
-                new_width = 480
-                resized_image = cv2.resize(
-                    image, (new_width, new_height), interpolation=cv2.INTER_AREA
-                )
-                # for debug purposes
-                cv2.imwrite("turtlebot4_debug.jpg", resized_image)
-                _, buffer = cv2.imencode(
-                    ".jpg", resized_image, [cv2.IMWRITE_JPEG_QUALITY, 70]
-                )
-                frame_data = base64.b64encode(buffer).decode("utf-8")
+                if image is not None:
+                    resized_image = cv2.resize(
+                        image, self.resolution, interpolation=cv2.INTER_AREA
+                    )
+                    _, buffer = cv2.imencode(".jpg", resized_image, self.encode_quality)
+                    frame_data = base64.b64encode(buffer).decode("utf-8")
 
-                if self.frame_callback:
-                    self.frame_callback(frame_data)
+                    if self.frame_callbacks:
+                        for frame_callback in self.frame_callbacks:
+                            frame_callback(frame_data)
 
-                # Control frame rate
-                time.sleep(self.frame_delay)
+                    with self.lock:
+                        self.image = None
+
+                elapsed_time = time.perf_counter() - last_frame_time
+                if elapsed_time < frame_time:
+                    time.sleep(frame_time - elapsed_time)
+                last_frame_time = time.perf_counter()
 
             except Exception as e:
                 logging.error(f"Error in video processing loop: {e}")
@@ -121,19 +146,21 @@ class TurtleBot4CameraVLMProvider:
     """
     VLM Provider that handles audio streaming and websocket communication.
 
-     This class implements a singleton pattern to manage camera input streaming
-     and websocket communication for vlm services. It runs in a separate thread
-     to handle continuous vlm processing.
-
-     Parameters
-     ----------
-     ws_url : str
-         The websocket URL for the VLM service connection.
-     fps : int
-         Frames per second for the video stream.
+    This class implements a singleton pattern to manage camera input streaming
+    and websocket communication for vlm services. It runs in a separate thread
+    to handle continuous vlm processing.
     """
 
-    def __init__(self, ws_url: str, fps: int = 5, URID: str = "default"):
+    def __init__(
+        self,
+        ws_url: str,
+        fps: int = 15,
+        resolution: Optional[Tuple[int, int]] = (480, 480),
+        jpeg_quality: int = 70,
+        URID: str = "default",
+        stream_url: Optional[str] = None,
+        debug: bool = False,
+    ):
         """
         Initialize the VLM Provider.
 
@@ -141,11 +168,31 @@ class TurtleBot4CameraVLMProvider:
         ----------
         ws_url : str
             The websocket URL for the VLM service connection.
+        fps : int, optional
+            The fps for the VLM service connection. Default is 15.
+        resolution : tuple of int, optional
+            The resolution for the video stream. Default is (480, 480).
+        jpeg_quality : int, optional
+            The JPEG quality for the video stream. Default is 70.
+        URID : str, optional
+            The URID for the Zenoh session. Default is "default".
+        stream_url : str, optional
+            The URL for the video stream. If not provided, defaults to None.
+        debug : bool, optional
+            Enable debug mode for writing images to local files. Default is False.
         """
         self.running: bool = False
         self.ws_client: ws.Client = ws.Client(url=ws_url)
+        self.stream_ws_client: Optional[ws.Client] = (
+            ws.Client(url=stream_url) if stream_url else None
+        )
         self.video_stream: VideoStream = TurtleBot4CameraVideoStream(
-            self.ws_client.send_message, fps=fps, URID=URID
+            self.ws_client.send_message,
+            fps=fps,
+            resolution=resolution,
+            jpeg_quality=jpeg_quality,
+            URID=URID,
+            debug=debug,
         )
         self._thread: Optional[threading.Thread] = None
 
@@ -176,6 +223,14 @@ class TurtleBot4CameraVLMProvider:
         self._thread = threading.Thread(target=self._run, daemon=True)
         self._thread.start()
 
+        if self.stream_ws_client:
+            self.stream_ws_client.start()
+            self.video_stream.register_frame_callback(
+                self.stream_ws_client.send_message
+            )
+
+        logging.info("TurtleBot4 Camera VLM provider started")
+
     def _run(self):
         """
         Main loop for the VLM provider.
@@ -187,7 +242,7 @@ class TurtleBot4CameraVLMProvider:
             try:
                 time.sleep(0.1)
             except Exception as e:
-                logging.error(f"Error in VLM provider: {e}")
+                logging.error(f"Error in TurtleBot4 Camera VLM provider: {e}")
 
     def stop(self):
         """
@@ -200,3 +255,6 @@ class TurtleBot4CameraVLMProvider:
             self.video_stream.stop()
             self.ws_client.stop()
             self._thread.join()
+
+        if self.stream_ws_client:
+            self.stream_ws_client.stop()

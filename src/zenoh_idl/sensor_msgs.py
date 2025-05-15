@@ -196,3 +196,10 @@ class LaserScan(IdlStruct, typename="LaserScan"):
     range_max: float32
     ranges: List[float32]
     intensities: List[float32]
+
+
+@dataclass
+class DockStatus(IdlStruct, typename="DockStatus"):
+    header: Header
+    docker_visible: bool
+    is_docked: bool

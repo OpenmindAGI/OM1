@@ -206,3 +206,55 @@ def add_meta(
         config["URID"] = g_URID
     # logging.info(f"config after {config}")
     return config
+
+
+def build_runtime_config_from_test_case(config: dict) -> RuntimeConfig:
+    api_key = config.get("api_key")
+    g_ut_eth = config.get("unitree_ethernet")
+    g_URID = config.get("URID")
+
+    agent_inputs = [
+        load_input(inp["type"])(
+            config=SensorConfig(
+                **add_meta(inp.get("config", {}), api_key, g_ut_eth, g_URID)
+            )
+        )
+        for inp in config.get("agent_inputs", [])
+    ]
+    cortex_llm = load_llm(config["cortex_llm"]["type"])(
+        config=LLMConfig(
+            **add_meta(
+                config["cortex_llm"].get("config", {}), api_key, g_ut_eth, g_URID
+            )
+        ),
+        output_model=CortexOutputModel,
+    )
+    simulators = [
+        load_simulator(sim["type"])(
+            config=SimulatorConfig(
+                name=sim["type"],
+                **add_meta(sim.get("config", {}), api_key, g_ut_eth, g_URID),
+            )
+        )
+        for sim in config.get("simulators", [])
+    ]
+    agent_actions = [
+        load_action(
+            {
+                **action,
+                "config": add_meta(action.get("config", {}), api_key, g_ut_eth, g_URID),
+            }
+        )
+        for action in config.get("agent_actions", [])
+    ]
+    return RuntimeConfig(
+        hertz=config.get("hertz", 1),
+        name=config.get("name", "TestAgent"),
+        system_prompt_base=config.get("system_prompt_base", ""),
+        system_governance=config.get("system_governance", ""),
+        system_prompt_examples=config.get("system_prompt_examples", ""),
+        agent_inputs=agent_inputs,
+        cortex_llm=cortex_llm,
+        simulators=simulators,
+        agent_actions=agent_actions,
+    )

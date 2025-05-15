@@ -21,7 +21,7 @@ class FaceInput:
 class Face(Interface[FaceInput, FaceInput]):
     """
     A facial expression to be performed by the agent.
-    Effect: Performs a given facial expression.
+    Effect: Shows a given facial expression.
     """
 
     input: FaceInput
