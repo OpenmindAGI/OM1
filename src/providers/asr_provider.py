@@ -22,6 +22,8 @@ class ASRProvider:
     ----------
     ws_url : str
         The websocket URL for the ASR service connection.
+    stream_url : str, optional
+        The URL for the audio stream. If not provided, defaults to None.
     device_id : int
         The device ID of the chosen microphone; used the system default if None
     microphone_name : str
@@ -37,6 +39,7 @@ class ASRProvider:
     def __init__(
         self,
         ws_url: str,
+        stream_url: Optional[str] = None,
         device_id: Optional[int] = None,
         microphone_name: Optional[str] = None,
         rate: Optional[int] = None,
@@ -63,6 +66,9 @@ class ASRProvider:
         """
         self.running: bool = False
         self.ws_client: ws.Client = ws.Client(url=ws_url)
+        self.stream_ws_client: Optional[ws.Client] = (
+            ws.Client(url=stream_url) if stream_url else None
+        )
         self.audio_stream: AudioInputStream = AudioInputStream(
             rate=rate,
             chunk=chunk,
@@ -100,6 +106,14 @@ class ASRProvider:
         self._thread = threading.Thread(target=self._run, daemon=True)
         self._thread.start()
 
+        if self.stream_ws_client:
+            self.stream_ws_client.start()
+            self.video_stream.register_frame_callback(
+                self.stream_ws_client.send_message
+            )
+
+        logging.info("ASR provider started")
+
     def _run(self):
         """
         Internal method to run the provider's main processing loop.
@@ -129,3 +143,6 @@ class ASRProvider:
             self.audio_stream.stop()
             self.ws_client.stop()
             self._thread.join(timeout=5)
+
+        if self.stream_ws_client:
+            self.stream_ws_client.stop()
