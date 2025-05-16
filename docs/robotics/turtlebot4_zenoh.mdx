@@ -4,37 +4,37 @@ description: "TurtleBot4 Basic Setup"
 ---
 
 - [Required Operating System Versions](#required-operating-system-versions)
-  * [Required software for the Turtlebot4's Raspberry Pi:](#required-software-for-the-turtlebot4-s-raspberry-pi-)
-  * [Required software for the Turtlebot4's Create3:](#required-software-for-the-turtlebot4-s-create3-)
+  * [Required software for the Turtlebot4's Raspberry Pi](#required-software-for-the-turtlebot4’s-raspberry-pi)
+  * [Required software for the Turtlebot4's Create3](#required-software-for-the-turtlebot4’s-create3)
 - [Prepare the TurtleBot4](#prepare-the-turtlebot4)
 - [Identity and API Keys](#identity-and-api-keys)
 - [Configure the TurtleBot4](#configure-the-turtlebot4)
-  * [Configure the TurtleBot4's Internal RPi4](#configure-the-turtlebot4-s-internal-rpi4)
-  * [Configure the TurtleBot4's Internal Create3](#configure-the-turtlebot4-s-internal-create3)
-  * [Install docker and configure the docker-compose.yaml file](#install-docker-and-configure-the-docker-composeyaml-file)
+  * [Configure the TurtleBot4's Internal RPi4](#configure-the-turtlebot4’s-internal-rpi4)
+  * [Configure the TurtleBot4's Internal Create3](#configure-the-turtlebot4’s-internal-create3)
+  * [Install docker and configure the docker-compose.yaml file](#install-docker-and-configure-the-docker-compose-yaml-file)
 - [OM1 Installation and launch](#om1-installation-and-launch)
   * [Running OM1 on the Internal RPi4](#running-om1-on-the-internal-rpi4)
   * [Running OM1 on your laptop](#running-om1-on-your-laptop)
   * [Interacting with TurtleBot4 from a Remote Computer using Zenoh and the command line](#interacting-with-turtlebot4-from-a-remote-computer-using-zenoh-and-the-command-line)
-    + [Steer the TurtleBot4 with your keyboard:](#steer-the-turtlebot4-with-your-keyboard-)
+    + [Steer the TurtleBot4 with your keyboard](#steer-the-turtlebot4-with-your-keyboard)
 - [Read TurtleBot4 Laserscan Data](#read-turtlebot4-laserscan-data)
 - [Expected ROS2 Topics for a Correctly Configured System](#expected-ros2-topics-for-a-correctly-configured-system)
 - [Building the Docker Dual Bridge Images](#building-the-docker-dual-bridge-images)
 - [Debugging Commands](#debugging-commands)
-- [Establishing basic networking and connectivity.](#establishing-basic-networking-and-connectivity)
+- [Establishing basic networking and connectivity](#establishing-basic-networking-and-connectivity)
 
 ## Required Operating System Versions
 
 OM1 supports TurtleBot4 running ROS2 Humble and Create3 with H.2.6.
 
-### Required software for the Turtlebot4's Raspberry Pi:
+### Required software for the Turtlebot4's Raspberry Pi
 
 - Ubuntu 22.04.4 LTS (GNU/Linux 5.15.0-1073-raspi aarch64) - combined with turtlebot4 humble image.
 - [turtlebot4_standard_humble_1.0.4.img (2024-08-19 16:59 2.2G)](http://download.ros.org/downloads/turtlebot4/turtlebot4_standard_humble_1.0.4.zip), 
 
 - Note: choose turtlebot4 lite image file if your turtlebot4 is lite version.
 
-### Required software for the Turtlebot4's Create3:
+### Required software for the Turtlebot4's Create3
 
 - Create3 firmware:
 [H.2.6 (Humble)](https://github.com/iRobotEducation/create3_docs/releases/download/H.2.6/Create3-H.2.6.swu)
@@ -196,7 +196,7 @@ Please make sure that your development machine (e.g. your laptop) is running the
 
 This is useful for debugging. Inside `system_hw_test`, there are several scripts for you to interact with the TurtleBot4. For all these scripts, please provide/update the topic names to include your specific namespace. If you do not update the namespaces, the scripts will fail. 
 
-#### Steer the TurtleBot4 with your keyboard:
+#### Steer the TurtleBot4 with your keyboard
 
 Before running the script, make sure you have the correct topic names.   
 Change the [URID topic name in turtlebot4_keyboard_movement.py](https://github.com/OpenmindAGI/OM1/blob/c6f0d118bf16c9201403ae459111d4cacc3830dd/system_hw_test/turtlebot4_keyboard_movement.py#L40C9-L40C33) to include your specific namespace: 
@@ -310,7 +310,7 @@ v4l2-ctl --list-devices
 v4l2-ctl -d /dev/video0 --stream-mmap --all
 ```
 
-## Establishing basic networking and connectivity. 
+## Establishing basic networking and connectivity
 
 For many development tasks, you will need to ssh to the RPi on the TB4. 
 
