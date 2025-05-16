@@ -12,7 +12,7 @@ description: "Unitree Go2 EDU Quadruped (dog)"
 
 OM1 can control a Unitree Go2 EDU out of the box. This has been tested on Nvidia Orin, Mac Mini, and current (silicon) Mac laptops.
 
-## Step 1 - Establishing Ethernet and DDS Connectivity
+## Step 1 Establishing Ethernet and DDS Connectivity
 
 Connect the Unitree Go2 EDU to your development machine with an Ethernet cable. Open the network settings and find the network interface that is connected to the Go2 EDU. In the IPv4 settings, change the IPv4 mode to `manual`, set the address to `192.168.123.99`, and set the mask to `255.255.255.0`. After completion, click `apply` (or equivalent) and wait for the network to reconnect. Provide the name of the network adapter in the `"unitree_ethernet": "en0"` entry in the `unitree_go2.config` file.
 
@@ -159,11 +159,11 @@ alive: 1453e55f:a4d5babe:aec670aa:6c0a9bff rt/uslam/localization/cloud_world sen
 alive: 1a6535ff:d7346fd8:87885024:9a136972 rt/programming_actuator/feedback std_msgs::msg::dds_::String_
 ```
 
-## Step 2 - Add the Python CycloneDDS module
+## Step 2 Add the Python CycloneDDS module
 
 Add the `dds` python module to your code base: `uv pip install -r pyproject.toml --extra dds`.
 
-## Step 3 - Connect an Xbox controller
+## Step 3 Connect an Xbox controller
 
 On Mac, **make sure that your Xbox controller is running the most recent firmware**, otherwise you will be able to pair but not connect to the controller. You will need a PC with `Xbox Accessories` to update the Xbox controller's firmware. Many Mac OS updates hose support for the Xbox controller, which is then fixed (after some delay) via an Xbox firmware update. On Mac, you will also need to install `hidapi` (`brew install hidapi`). 
 
@@ -177,7 +177,7 @@ sudo apt-get update
 sudo apt-get install python-dev libusb-1.0-0-dev libudev-dev libhidapi-dev
 ```
 
-## Step 4 - Controlling the Quadruped
+## Step 4 Controlling the Quadruped
 
 Run
 ```bash Run Robot

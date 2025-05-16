@@ -4,13 +4,13 @@ description: "TurtleBot4 Basic Setup"
 ---
 
 - [Required Operating System Versions](#required-operating-system-versions)
-  * [Required software for the Turtlebot4's Raspberry Pi](#required-software-for-the-turtlebot4’s-raspberry-pi)
-  * [Required software for the Turtlebot4's Create3](#required-software-for-the-turtlebot4’s-create3)
+  * [Required software for the Turtlebot4's Raspberry Pi](#required-software-for-the-turtlebot4-raspberry-pi)
+  * [Required software for the Turtlebot4's Create3](#required-software-for-the-turtlebot4-create3)
 - [Prepare the TurtleBot4](#prepare-the-turtlebot4)
 - [Identity and API Keys](#identity-and-api-keys)
 - [Configure the TurtleBot4](#configure-the-turtlebot4)
-  * [Configure the TurtleBot4's Internal RPi4](#configure-the-turtlebot4’s-internal-rpi4)
-  * [Configure the TurtleBot4's Internal Create3](#configure-the-turtlebot4’s-internal-create3)
+  * [Configure the TurtleBot4's Internal RPi4](#configure-the-turtlebot4-internal-rpi4)
+  * [Configure the TurtleBot4's Internal Create3](#configure-the-turtlebot4-internal-create3)
   * [Install docker and configure the docker-compose.yaml file](#install-docker-and-configure-the-docker-compose-yaml-file)
 - [OM1 Installation and launch](#om1-installation-and-launch)
   * [Running OM1 on the Internal RPi4](#running-om1-on-the-internal-rpi4)
@@ -27,14 +27,14 @@ description: "TurtleBot4 Basic Setup"
 
 OM1 supports TurtleBot4 running ROS2 Humble and Create3 with H.2.6.
 
-### Required software for the Turtlebot4's Raspberry Pi
+### Required software for the Turtlebot4 Raspberry Pi
 
 - Ubuntu 22.04.4 LTS (GNU/Linux 5.15.0-1073-raspi aarch64) - combined with turtlebot4 humble image.
 - [turtlebot4_standard_humble_1.0.4.img (2024-08-19 16:59 2.2G)](http://download.ros.org/downloads/turtlebot4/turtlebot4_standard_humble_1.0.4.zip), 
 
 - Note: choose turtlebot4 lite image file if your turtlebot4 is lite version.
 
-### Required software for the Turtlebot4's Create3
+### Required software for the Turtlebot4 Create3
 
 - Create3 firmware:
 [H.2.6 (Humble)](https://github.com/iRobotEducation/create3_docs/releases/download/H.2.6/Create3-H.2.6.swu)
@@ -74,7 +74,7 @@ Once the TurtleBot4 is set up, you can configure it as follows:
 - Configure the Create3 through web server
 - Install docker and configure the `docker-compose.yaml` file 
 
-### Configure the TurtleBot4's Internal RPi4
+### Configure the TurtleBot4 Internal RPi4
 
 Make the following `ROS_DOMAIN_ID` changes to the TurtleBot4. Use the `turtlebot4-setup` tool to access `ROS Setup:Bash Setup` and set it to the following:
 
@@ -88,7 +88,7 @@ CYCLONEDDS_URI=[] # Empty
 
 Click "Save", "Esc", and then "Apply Settings". The TurtleBot4 will reboot. 
 
-### Configure the TurtleBot4's Internal Create3
+### Configure the TurtleBot4 Internal Create3
 
 Once the reboot is complete (wait for chime, 1 min), access the Create3's App config page at its web server (e.g. `192.168.1.XXX:8080/ros-config`). Change the ROS_DOMAIN_ID to 1. The correct settings are:
 
@@ -106,7 +106,7 @@ Click `Save` and _Restart Application_.
 
 - Note: Do not forget to click _Restart Application_, otherwise the changes will not be applied. Wait for chime (1 min) indicating Create3 reboot.
 
-### Install docker and configure the docker-compose.yaml file 
+### Install docker and configure the docker compose yaml file 
 
 Finally, on the TurtleBot4's RPi, [install Docker](https://docs.docker.com/engine/install/ubuntu/) and run `sudo docker compose -f docker-compose.yaml up -d`. The `docker-compose` should be:
 
