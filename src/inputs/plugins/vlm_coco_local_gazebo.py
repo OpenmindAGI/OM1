@@ -94,6 +94,8 @@ class VLM_COCO_Local_Gazebo(FuserInput[Image.Image]):
 
         self.cam_third = 0  # This will be updated for _process_image is called
 
+        self.topic = getattr(self.config, "topic", "/camera")
+
     def _parse_text_message(self, text_data):
         """
         Parses a text-formatted protobuf message (with escaped binary data)
@@ -172,7 +174,7 @@ class VLM_COCO_Local_Gazebo(FuserInput[Image.Image]):
         """
         try:
             result = subprocess.run(
-                ["gz", "topic", "-e", "-t", "/camera", "-n", "1"],
+                ["gz", "topic", "-e", "-t", self.topic, "-n", "1"],
                 capture_output=True,
                 text=True,
                 timeout=5,  # Avoid indefinite hangs
@@ -185,7 +187,9 @@ class VLM_COCO_Local_Gazebo(FuserInput[Image.Image]):
             return result.stdout
 
         except subprocess.TimeoutExpired:
-            logging.error("Subprocess timed out while fetching message from /camera.")
+            logging.error(
+                f"Subprocess timed out while fetching message from {self.topic}."
+            )
             return None
 
         except FileNotFoundError:
@@ -357,7 +361,7 @@ class VLM_COCO_Local_Gazebo(FuserInput[Image.Image]):
         logging.info(f"VLM_COCO_Local_Gazebo: {latest_message.message}")
 
         result = f"""
-{self.descriptor_for_LLM} INPUT
+INPUT: {self.descriptor_for_LLM} 
 // START
 {latest_message.message}
 // END

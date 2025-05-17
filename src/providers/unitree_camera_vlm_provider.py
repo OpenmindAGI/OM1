@@ -2,7 +2,7 @@ import base64
 import logging
 import threading
 import time
-from typing import Callable, Optional
+from typing import Callable, List, Optional, Tuple
 
 import cv2
 import numpy as np
@@ -20,11 +20,6 @@ except ImportError:
     VideoClient = None
 
 
-# Resize target for video stream
-TARGET_WIDTH = 640
-TARGET_HEIGHT = 480
-
-
 class UnitreeCameraVideoStream(VideoStream):
     """
     Video Stream class for Unitree Cameras.
@@ -33,8 +28,37 @@ class UnitreeCameraVideoStream(VideoStream):
     video streaming and processing.
     """
 
-    def __init__(self, frame_callback=None, fps=30):
-        super().__init__(frame_callback, fps)
+    def __init__(
+        self,
+        frame_callback: Optional[Callable[[str], None]] = None,
+        frame_callbacks: Optional[List[Callable[[str], None]]] = None,
+        fps: Optional[int] = 30,
+        resolution: Optional[Tuple[int, int]] = (640, 480),
+        jpeg_quality: int = 70,
+    ):
+        """
+        Initialize the Unitree Camera Video Stream.
+
+        Parameters
+        ----------
+        frame_callback : callable, optional
+            A callback function to process video frames.
+        frame_callbacks : list of callables, optional
+            A list of callback functions to process video frames.
+        fps : int, optional
+            Frames per second for the video stream.
+        resolution : tuple of int, optional
+            The resolution for the video stream.
+        jpeg_quality : int, optional
+            The JPEG quality for the video stream.
+        """
+        super().__init__(
+            frame_callback=frame_callback,
+            frame_callbacks=frame_callbacks,
+            fps=fps,
+            resolution=resolution,
+            jpeg_quality=jpeg_quality,
+        )
 
         self.video_client = VideoClient()
         self.video_client.Init()
@@ -47,6 +71,10 @@ class UnitreeCameraVideoStream(VideoStream):
         and sends them through the callback if registered.
         """
         logging.info("Starting Unitree Camera Video Stream")
+
+        frame_time = 1.0 / self.fps
+        last_frame_time = time.perf_counter()
+
         while self.running:
             try:
                 code, data = self.video_client.GetImageSample()
@@ -62,30 +90,33 @@ class UnitreeCameraVideoStream(VideoStream):
                         ratio = width / height
 
                         if width > height:
-                            new_width = TARGET_WIDTH
-                            new_height = int(TARGET_WIDTH / ratio)
+                            new_width = self.resolution[0]
+                            new_height = int(self.resolution[0] / ratio)
                         else:
-                            new_height = TARGET_HEIGHT
-                            new_width = int(TARGET_HEIGHT * ratio)
+                            new_height = self.resolution[1]
+                            new_width = int(self.resolution[1] * ratio)
 
                         # Resize image
                         resized_image = cv2.resize(
                             image, (new_width, new_height), interpolation=cv2.INTER_AREA
                         )
                         _, buffer = cv2.imencode(
-                            ".jpg", resized_image, [cv2.IMWRITE_JPEG_QUALITY, 70]
+                            ".jpg", resized_image, self.encode_quality
                         )
                         frame_data = base64.b64encode(buffer).decode("utf-8")
 
-                        if self.frame_callback:
-                            self.frame_callback(frame_data)
+                        if self.frame_callbacks:
+                            for frame_callback in self.frame_callbacks:
+                                frame_callback(frame_data)
                     else:
                         logging.warning("Failed to decode image")
                 else:
                     logging.error(f"Failed to get image sample, code: {code}")
 
-                # Control frame rate
-                time.sleep(self.frame_delay)
+                elapsed_time = time.perf_counter() - last_frame_time
+                if elapsed_time < frame_time:
+                    time.sleep(frame_time - elapsed_time)
+                last_frame_time = time.perf_counter()
 
             except Exception as e:
                 logging.error(f"Error in video processing loop: {e}")
@@ -99,19 +130,19 @@ class UnitreeCameraVLMProvider:
     """
     VLM Provider that handles audio streaming and websocket communication.
 
-     This class implements a singleton pattern to manage camera input streaming and websocket
-     communication for vlm services. It runs in a separate thread to handle
-     continuous vlm processing.
-
-     Parameters
-     ----------
-     ws_url : str
-         The websocket URL for the VLM service connection.
-     fps : int
-         Frames per second for the video stream.
+    This class implements a singleton pattern to manage camera input streaming and websocket
+    communication for vlm services. It runs in a separate thread to handle
+    continuous vlm processing.
     """
 
-    def __init__(self, ws_url: str, fps: int = 5):
+    def __init__(
+        self,
+        ws_url: str,
+        fps: int = 15,
+        resolution: Optional[Tuple[int, int]] = (640, 480),
+        jpeg_quality: int = 70,
+        stream_url: Optional[str] = None,
+    ):
         """
         Initialize the VLM Provider.
 
@@ -119,11 +150,25 @@ class UnitreeCameraVLMProvider:
         ----------
         ws_url : str
             The websocket URL for the VLM service connection.
+        fps : int, optional
+            The frames per second for the VLM service connection. Defaults to 15.
+        resolution : tuple of int, optional
+            The resolution for the video stream. Defaults to (640, 480).
+        jpeg_quality : int, optional
+            The JPEG quality for the video stream. Defaults to 70.
+        stream_url : str, optional
+            The URL for the video stream. If not provided, defaults to None.
         """
         self.running: bool = False
         self.ws_client: ws.Client = ws.Client(url=ws_url)
+        self.stream_ws_client: Optional[ws.Client] = (
+            ws.Client(url=stream_url) if stream_url else None
+        )
         self.video_stream: VideoStream = UnitreeCameraVideoStream(
-            self.ws_client.send_message, fps=fps
+            self.ws_client.send_message,
+            fps=fps,
+            resolution=resolution,
+            jpeg_quality=jpeg_quality,
         )
         self._thread: Optional[threading.Thread] = None
 
@@ -154,6 +199,14 @@ class UnitreeCameraVLMProvider:
         self._thread = threading.Thread(target=self._run, daemon=True)
         self._thread.start()
 
+        if self.stream_ws_client:
+            self.stream_ws_client.start()
+            self.video_stream.register_frame_callback(
+                self.stream_ws_client.send_message
+            )
+
+        logging.info("Unitree Camera VLM provider started")
+
     def _run(self):
         """
         Main loop for the VLM provider.
@@ -165,7 +218,7 @@ class UnitreeCameraVLMProvider:
             try:
                 time.sleep(0.1)
             except Exception as e:
-                logging.error(f"Error in VLM provider: {e}")
+                logging.error(f"Error in Unitree Camera VLM provider: {e}")
 
     def stop(self):
         """
@@ -178,3 +231,6 @@ class UnitreeCameraVLMProvider:
             self.video_stream.stop()
             self.ws_client.stop()
             self._thread.join()
+
+        if self.stream_ws_client:
+            self.stream_ws_client.stop()

@@ -25,6 +25,8 @@ def test_configs():
 
         cortex_llm = raw_config.get("cortex_llm", {})
         assert isinstance(cortex_llm, dict)
+        assert "type" in cortex_llm, f"'type' key missing in cortex_llm of {file_name}"
+        assert load_llm(cortex_llm["type"]) is not None
 
         simulators = raw_config.get("simulators", [])
         assert isinstance(simulators, list)
@@ -40,8 +42,6 @@ def test_configs():
 
         for action in agent_actions:
             assert_action_classes_exist(action)
-
-        assert load_llm(cortex_llm["type"]) is not None
 
 
 def assert_action_classes_exist(action_config):

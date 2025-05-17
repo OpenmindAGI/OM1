@@ -3,6 +3,7 @@ import threading
 import time
 from typing import Callable, Optional
 
+from om1_utils import ws
 from om1_vlm import VideoStream
 from openai import AsyncOpenAI
 
@@ -14,35 +15,42 @@ class VLMOpenAIProvider:
     """
     VLM Provider that handles video streaming and OpenAI API communication.
 
-     This class implementationements a singleton pattern to manage video input streaming and API
-     communication for vlm services. It runs in a separate thread to handle
-     continuous vlm processing.
-
-     Parameters
-     ----------
-     llm_config : LLMConfig
-         Configuration for the LLM service.
-     fps : int
-         Frames per second for the video stream.
+    This class implementationements a singleton pattern to manage video input streaming and API
+    communication for vlm services. It runs in a separate thread to handle
+    continuous vlm processing.
     """
 
-    def __init__(self, base_url: str, api_key: str, fps: int = 10):
+    def __init__(
+        self,
+        base_url: str,
+        api_key: str,
+        fps: int = 10,
+        stream_url: Optional[str] = None,
+    ):
         """
         Initialize the VLM Provider.
 
         Parameters
         ----------
-        llm_config : LLMConfig
-            Configuration for the LLM service.
+        base_url : str
+            The base URL for the OM API.
+        api_key : str
+            The API key for the OM API.
+        fps : int
+            The frames per second for the video stream.
+        stream_url : str, optional
+            The URL for the video stream. If not provided, defaults to None.
         """
         self.running: bool = False
         self.api_client: AsyncOpenAI = AsyncOpenAI(api_key=api_key, base_url=base_url)
+        self.stream_ws_client: Optional[ws.Client] = (
+            ws.Client(url=stream_url) if stream_url else None
+        )
         self.video_stream: VideoStream = VideoStream(
             frame_callback=self._process_frame, fps=fps
         )
         self._thread: Optional[threading.Thread] = None
         self.message_callback: Optional[Callable] = None
-        logging.info("VLM OpenAI Provider initialized")
 
     async def _process_frame(self, frame: str):
         """
@@ -110,7 +118,14 @@ class VLMOpenAIProvider:
         self.video_stream.start()
         self._thread = threading.Thread(target=self._run, daemon=True)
         self._thread.start()
-        logging.info("VLM LLM Provider started")
+
+        if self.stream_ws_client:
+            self.stream_ws_client.start()
+            self.video_stream.register_stream_callback(
+                self.stream_ws_client.send_message
+            )
+
+        logging.info("OpenAI VLM provider started")
 
     def _run(self):
         """
@@ -123,7 +138,7 @@ class VLMOpenAIProvider:
             try:
                 time.sleep(0.1)
             except Exception as e:
-                logging.error(f"Error in VLM provider: {e}")
+                logging.error(f"Error in OpenAI VLM provider: {e}")
 
     def stop(self):
         """
@@ -135,3 +150,6 @@ class VLMOpenAIProvider:
         if self._thread:
             self.video_stream.stop()
             self._thread.join(timeout=5)
+
+        if self.stream_ws_client:
+            self.stream_ws_client.stop()

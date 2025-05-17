@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import List
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 from fuser import Fuser
 from inputs.base import Sensor
@@ -33,23 +33,25 @@ class MockConfig:
 
 def test_fuser_initialization():
     config = MockConfig()
-    mock_io = Mock(spec=IOProvider)
-    with patch("fuser.IOProvider", return_value=mock_io):
+    io_provider = IOProvider()
+
+    with patch("fuser.IOProvider", return_value=io_provider):
         fuser = Fuser(config)
         assert fuser.config == config
-        assert fuser.io_provider == mock_io
+        assert fuser.io_provider == io_provider
 
 
 @patch("time.time")
 def test_fuser_timestamps(mock_time):
     mock_time.return_value = 1000
     config = MockConfig()
-    mock_io = Mock(spec=IOProvider)
-    with patch("fuser.IOProvider", return_value=mock_io):
+    io_provider = IOProvider()
+
+    with patch("fuser.IOProvider", return_value=io_provider):
         fuser = Fuser(config)
         fuser.fuse([], [])
-        assert mock_io.fuser_start_time == 1000
-        assert mock_io.fuser_end_time == 1000
+        assert io_provider.fuser_start_time == 1000
+        assert io_provider.fuser_end_time == 1000
 
 
 @patch("fuser.describe_action")
@@ -57,20 +59,28 @@ def test_fuser_with_inputs_and_actions(mock_describe):
     mock_describe.return_value = "action description"
     config = MockConfig(agent_actions=[MockAction("action1"), MockAction("action2")])
     inputs = [MockSensor()]
-    mock_io = Mock(spec=IOProvider)
+    io_provider = IOProvider()
 
-    with patch("fuser.IOProvider", return_value=mock_io):
+    with patch("fuser.IOProvider", return_value=io_provider):
         fuser = Fuser(config)
         result = fuser.fuse(inputs, [])
 
         system_prompt = (
-            "system prompt base"
+            "BASIC CONTEXT:\n"
+            + config.system_prompt_base
             + "\n"
-            + "system governance"
+            + "\nLAWS:\n"
+            + config.system_governance
             + "\n"
-            + "system prompt examples"
+            + "\nEXAMPLES:\n"
+            + config.system_prompt_examples
         )
-
         expected = f"{system_prompt}\n\ntest input\n\nAVAILABLE ACTIONS:\naction description\n\n\naction description\n\nWhat will you do? Command: "
         assert result == expected
         assert mock_describe.call_count == 2
+        assert io_provider.fuser_system_prompt == system_prompt
+        assert io_provider.fuser_inputs == "test input"
+        assert (
+            io_provider.fuser_available_actions
+            == "AVAILABLE ACTIONS:\naction description\n\n\naction description\n\nWhat will you do? Command: "
+        )

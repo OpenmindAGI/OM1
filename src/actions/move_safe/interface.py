@@ -23,7 +23,6 @@ class MoveInput:
 class Move(Interface[MoveInput, MoveInput]):
     """
     A movement to be performed by the agent.
-
     Effect: Allows the agent to move.
     """
 

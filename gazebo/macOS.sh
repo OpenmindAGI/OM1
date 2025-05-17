@@ -20,7 +20,7 @@ if [[ "$(uname)" != "Darwin" ]]; then
 fi
 
 # Check if gz (Gazebo Harmonic) is installed.
-if ! command -v gz &> /dev/null; then
+if ! command -v gz sim &> /dev/null; then
     echo "gz (Gazebo Harmonic) is not installed."
     read -p "Would you like to install Gazebo Harmonic using Homebrew? (y/n): " install_choice
     if [[ "$install_choice" =~ ^[Yy]$ ]]; then
@@ -43,8 +43,11 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 export GZ_SIM_RESOURCE_PATH="$SCRIPT_DIR"
 echo "GZ_SIM_RESOURCE_PATH set to: $GZ_SIM_RESOURCE_PATH"
 
+# Get the model file name from the first argument, default to model.sdf
+FILE_NAME="${1:-model.sdf}"
+
 # Define the model file path relative to the script directory.
-MODEL_FILE="$SCRIPT_DIR/gz/models/model.sdf"
+MODEL_FILE="$SCRIPT_DIR/gz/models/$FILE_NAME"
 if [ ! -f "$MODEL_FILE" ]; then
     echo "Error: Model file not found at $MODEL_FILE"
     exit 1

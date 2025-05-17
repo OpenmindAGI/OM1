@@ -107,7 +107,7 @@ class VLM_COCO_Local(FuserInput[Image.Image]):
                 f"Webcam pixel dimensions for COCO: {self.width}, {self.height}"
             )
 
-    async def _poll(self) -> Image.Image:
+    async def _poll(self) -> np.ndarray:
         """
         Poll for new image input.
 
@@ -116,8 +116,8 @@ class VLM_COCO_Local(FuserInput[Image.Image]):
 
         Returns
         -------
-        Image.Image
-            Generated or captured image
+        np.ndarray
+            Generated or captured image as a numpy array
         """
         await asyncio.sleep(0.5)
 
@@ -126,14 +126,14 @@ class VLM_COCO_Local(FuserInput[Image.Image]):
             ret, frame = self.cap.read()
             return frame
 
-    async def _raw_to_text(self, raw_input: Optional[Image.Image]) -> Optional[Message]:
+    async def _raw_to_text(self, raw_input: Optional[np.ndarray]) -> Optional[Message]:
         """
         Process raw image input to generate text description.
 
         Parameters
         ----------
-        raw_input : Image.Image
-            Input image to process
+        raw_input : np.ndarray
+            Input numpy array image to process
 
         Returns
         -------
@@ -203,13 +203,13 @@ class VLM_COCO_Local(FuserInput[Image.Image]):
         if sentence is not None:
             return Message(timestamp=time.time(), message=sentence)
 
-    async def raw_to_text(self, raw_input: Image.Image):
+    async def raw_to_text(self, raw_input: np.ndarray):
         """
         Convert raw image to text and update message buffer.
 
         Parameters
         ----------
-        raw_input : Image.Image
+        raw_input : np.ndarray
             Raw image to be processed
         """
         pending_message = await self._raw_to_text(raw_input)
@@ -237,7 +237,7 @@ class VLM_COCO_Local(FuserInput[Image.Image]):
         logging.info(f"VLM_COCO_Local: {latest_message.message}")
 
         result = f"""
-{self.descriptor_for_LLM} INPUT
+INPUT: {self.descriptor_for_LLM} 
 // START
 {latest_message.message}
 // END

@@ -40,7 +40,7 @@ def describe_action(action_name: str, llm_label: str) -> str:
 
     # Format the full docstring
     type_hints = "\n".join(f"{desc}" for name, desc in hints.items())
-    return f"command: {llm_label}\n{doc}\n    Arguments: {type_hints}"
+    return f"command: {llm_label}{doc}Arguments: {type_hints}"
 
 
 def load_action(

@@ -214,7 +214,7 @@ class LLMHistoryManager:
                 for input_type, input_info in self.io_provider.inputs.items():
                     logging.debug(f"LLM: {input_type}")
                     logging.debug(f"LLM: {input_info}")
-                    formatted_inputs += f"{input_type}: {input_info.input} | "
+                    formatted_inputs += f"{input_type}. {input_info.input} | "
 
                 # formatted_inputs = f"**** sensed the following: {" | ".join(f"{input_type}: {input_info.input}" for input_type, input_info in self.io_provider.inputs.items())}"
                 inputs = ChatMessage(role="user", content=formatted_inputs)
