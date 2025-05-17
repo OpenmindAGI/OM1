@@ -76,8 +76,33 @@ def load_config(config_name: str) -> RuntimeConfig:
         os.path.dirname(__file__), "../../config", config_name + ".json5"
     )
 
-    with open(config_path, "r+") as f:
-        raw_config = json5.load(f)
+    try:
+        with open(config_path, "r") as f:
+            raw_config = json5.load(f)
+    except FileNotFoundError:
+        raise
+    except Exception as e:  # json5 parsing errors
+        raise ValueError("Invalid JSON configuration") from e
+
+    # Validate required fields
+    required_fields = [
+        "hertz",
+        "name",
+        "system_prompt_base",
+        "system_governance",
+        "system_prompt_examples",
+        "agent_inputs",
+        "cortex_llm",
+        "simulators",
+        "agent_actions",
+    ]
+    for field in required_fields:
+        if field not in raw_config:
+            raise KeyError(f"Missing required field: {field}")
+
+    # Validate hertz value
+    if raw_config.get("hertz", 0) <= 0:
+        raise ValueError("hertz must be positive")
 
     g_api_key = raw_config.get("api_key", None)
     if g_api_key is None or g_api_key == "":
