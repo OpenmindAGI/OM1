@@ -47,9 +47,18 @@ class UnitreeGo2CameraVLMCloud(FuserInput[str]):
         self.message_buffer: Queue[str] = Queue()
 
         # Initialize VLM provider
-        base_url = getattr(self.config, "base_url", "wss://api-vila.openmind.org")
+        api_key = getattr(self.config, "api_key", None)
 
-        self.vlm: UnitreeCameraVLMProvider = UnitreeCameraVLMProvider(ws_url=base_url)
+        base_url = getattr(self.config, "base_url", "wss://api-vila.openmind.org")
+        stream_base_url = getattr(
+            self.config,
+            "stream_base_url",
+            f"wss://api.openmind.org/api/core/teleops/stream?api_key={api_key}",
+        )
+
+        self.vlm: UnitreeCameraVLMProvider = UnitreeCameraVLMProvider(
+            base_url=base_url, stream_url=stream_base_url
+        )
         self.vlm.start()
         self.vlm.register_message_callback(self._handle_vlm_message)
 
@@ -153,7 +162,7 @@ class UnitreeGo2CameraVLMCloud(FuserInput[str]):
         latest_message = self.messages[-1]
 
         result = f"""
-INPUT: {self.descriptor_for_LLM} 
+INPUT: {self.descriptor_for_LLM}
 // START
 {latest_message.message}
 // END

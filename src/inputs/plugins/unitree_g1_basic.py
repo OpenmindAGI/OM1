@@ -7,8 +7,22 @@ from typing import List, Optional
 from inputs.base import SensorConfig
 from inputs.base.loop import FuserInput
 from providers import BatteryStatus, IOProvider, StatusProvider, TeleopsStatus
-from unitree.unitree_sdk2py.core.channel import ChannelSubscriber
-from unitree.unitree_sdk2py.idl.unitree_hg.msg.dds_ import BmsState_, LowState_
+
+try:
+    from unitree.unitree_sdk2py.core.channel import ChannelSubscriber
+    from unitree.unitree_sdk2py.idl.unitree_hg.msg.dds_ import BmsState_, LowState_
+except ImportError:
+    logging.warning(
+        "Unitree SDK not found. Please install the Unitree SDK to use this plugin."
+    )
+
+    class BmsState_:
+        def __init__(self):
+            pass
+
+    class LowState_:
+        def __init__(self):
+            pass
 
 
 @dataclass
@@ -207,7 +221,7 @@ class UnitreeG1Basic(FuserInput[str]):
         latest_message = self.messages[-1]
 
         result = f"""
-INPUT: {self.descriptor_for_LLM} 
+INPUT: {self.descriptor_for_LLM}
 // START
 {latest_message.message}
 // END
