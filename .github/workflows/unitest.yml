@@ -1,8 +1,5 @@
 name: Run Unit Tests
 
-env:
-  OM1_API_KEY: ${{ secrets.OM1_API_KEY }}
-
 on:
   push:
     branches:

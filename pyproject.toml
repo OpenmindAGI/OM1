@@ -59,6 +59,7 @@ dev = [
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 asyncio_mode = "auto"
+addopts = "-m \"not integration\""
 norecursedirs = ["src/unitree", "system_hw_test", "gazebo"]
 markers = [
     "integration: marks tests as integration tests",
