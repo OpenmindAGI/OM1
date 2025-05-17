@@ -8,49 +8,17 @@ import zenoh
 
 from actions.base import ActionConfig, ActionConnector
 from actions.move_turtle.interface import MoveInput
+from providers.navigation_provider import NavigationProvider
 from providers.rplidar_provider import RPLidarProvider
-from zenoh_idl import geometry_msgs, nav_msgs, sensor_msgs
-
-rad_to_deg = 57.2958
+from zenoh_idl import geometry_msgs, sensor_msgs
 
 gHazard = None
-gOdom = None
 
 
 def listenerHazard(data):
     global gHazard
     gHazard = sensor_msgs.HazardDetectionVector.deserialize(data.payload.to_bytes())
     logging.debug(f"Hazard listener: {gHazard}")
-
-
-def listenerOdom(data):
-    global gOdom
-    gOdom = nav_msgs.Odometry.deserialize(data.payload.to_bytes())
-    logging.debug(f"Odom listener: {gOdom}")
-
-
-def euler_from_quaternion(x, y, z, w):
-    """
-    https://automaticaddison.com/how-to-convert-a-quaternion-into-euler-angles-in-python/
-    Convert a quaternion into euler angles (roll, pitch, yaw)
-    roll is rotation around x in radians (counterclockwise)
-    pitch is rotation around y in radians (counterclockwise)
-    yaw is rotation around z in radians (counterclockwise)
-    """
-    t0 = +2.0 * (w * x + y * z)
-    t1 = +1.0 - 2.0 * (x * x + y * y)
-    roll_x = math.atan2(t0, t1)
-
-    t2 = +2.0 * (w * y - z * x)
-    t2 = +1.0 if t2 > +1.0 else t2
-    t2 = -1.0 if t2 < -1.0 else t2
-    pitch_y = math.asin(t2)
-
-    t3 = +2.0 * (w * z + x * y)
-    t4 = +1.0 - 2.0 * (y * y + z * z)
-    yaw_z = math.atan2(t3, t4)
-
-    return roll_x, pitch_y, yaw_z  # in radians
 
 
 class MoveZenohConnector(ActionConnector[MoveInput]):
@@ -86,8 +54,7 @@ class MoveZenohConnector(ActionConnector[MoveInput]):
         try:
             self.session = zenoh.open(zenoh.Config())
             logging.info(f"Zenoh move client opened {self.session}")
-            logging.info(f"TurtleBot4 move listeners starting with URID: {URID}")
-            self.session.declare_subscriber(f"{URID}/c3/odom", listenerOdom)
+            logging.info(f"TurtleBot4 hazard listener starting with URID: {URID}")
             self.session.declare_subscriber(
                 f"{URID}/c3/hazard_detection", listenerHazard
             )
@@ -103,6 +70,33 @@ class MoveZenohConnector(ActionConnector[MoveInput]):
             self.lidar = RPLidarProvider(wait=True)
             self.lidar_on = self.lidar.running
             logging.info(f"TurtleBot4 Action: Lidar running?: {self.lidar_on}")
+
+        # Initialize Navigation Provider based on .json5 config file
+        self.navigation_on = False
+        self.navigation = None
+
+        navigation_timeout = 10
+        navigation_attempts = 0
+
+        while not self.navigation_on:
+            logging.info(
+                f"ACTION: Waiting for Navigation Provider. Attempt: {navigation_attempts}"
+            )
+            self.navigation = NavigationProvider(
+                True,
+            )
+            if hasattr(self.navigation, "running"):
+                self.navigation_on = self.navigation.running
+                logging.info(f"ACTION: Navigation running?: {self.navigation_on}")
+            else:
+                logging.info("ACTION: Waiting for navigation")
+            navigation_attempts += 1
+            if navigation_attempts > navigation_timeout:
+                logging.warning(
+                    f"ACTION: Navigation timeout after {navigation_attempts} attempts - no Navigation - DANGEROUS"
+                )
+                break
+            time.sleep(0.5)
 
     def hazardProcessor(self):
         global gHazard
@@ -124,33 +118,21 @@ class MoveZenohConnector(ActionConnector[MoveInput]):
                             self.hazard = "TURN_RIGHT"
                     logging.info(f"Hazard decision: {self.hazard}")
 
-    def odomProcessor(self):
-        global gOdom
+    def navigationProcessor(self):
+        if hasattr(self.navigation, "running"):
+            if self.navigation.running:
+                self.yaw_now = self.navigation.position["yaw_odom_m180_p180"]
+                # CW yaw = positive
 
-        # logging.info(f"Odom processor: {gOdom}")
+                # current position in world frame
+                self.x = self.navigation.position["x"]
+                self.y = self.navigation.position["y"]
 
-        if gOdom is not None:
-            x = gOdom.pose.pose.orientation.x
-            y = gOdom.pose.pose.orientation.y
-            z = gOdom.pose.pose.orientation.z
-            w = gOdom.pose.pose.orientation.w
-
-            # logging.info(f"TurtleBot4 Odom listener: {gOdom.pose.pose.orientation}")
-
-            angles = euler_from_quaternion(x, y, z, w)
-
-            self.yaw_now = angles[2] * rad_to_deg * -1.0
-
-            # we set CW yaw = positive
-            # this runs from -180 to +180
-
-            # current position in world frame
-            self.x = gOdom.pose.pose.position.x
-            self.y = gOdom.pose.pose.position.y
-
-            logging.debug(
-                f"TB4 x,y,yaw: {round(self.x,2)},{round(self.y,2)},{round(self.yaw_now,2)}"
-            )
+                logging.debug(
+                    f"TB4 x,y,yaw: {round(self.x,2)},{round(self.y,2)},{round(self.yaw_now,2)}"
+                )
+            else:
+                logging.warn("TB4 x,y,yaw: NAVIGTION NOT PROVIDING DATA")
 
     def move(self, vx, vyaw):
         """
@@ -190,15 +172,16 @@ class MoveZenohConnector(ActionConnector[MoveInput]):
         # reconfirm possible paths
         # this is needed due to the 2s latency of the LLMs
         possible_paths = self.lidar.valid_paths
-        logging.info(f"Action - Valid paths: {possible_paths}")
 
         advance_danger = True
         retreat_danger = True
 
-        if 4 in possible_paths:
-            advance_danger = False
-        if 9 in possible_paths:
-            retreat_danger = False
+        if possible_paths:
+            logging.info(f"Action - Valid paths: {possible_paths}")
+            if 4 in possible_paths:
+                advance_danger = False
+            if 9 in possible_paths:
+                retreat_danger = False
 
         if output_interface.action == "turn left":
             # turn 90 Deg to the left (CCW)
@@ -233,7 +216,7 @@ class MoveZenohConnector(ActionConnector[MoveInput]):
         logging.debug("Move tick")
 
         self.hazardProcessor()
-        self.odomProcessor()
+        self.navigationProcessor()
 
         if self.x == 0.0:
             # this value is never precisely zero except while
@@ -311,7 +294,7 @@ class MoveZenohConnector(ActionConnector[MoveInput]):
 
             current_target = target[0]
 
-            logging.debug(f"Target: {current_target}")
+            logging.debug(f"Target: {current_target} current yaw: {self.yaw_now}")
 
             goal_dx = current_target[0]
             goal_yaw = current_target[1]
@@ -323,33 +306,35 @@ class MoveZenohConnector(ActionConnector[MoveInput]):
                     gap -= 360.0
                 elif gap < -180.0:
                     gap += 360.0
-                logging.debug(f"GAP: {gap}")
+                logging.info(f"remaining turn GAP: {round(gap,2)}")
                 if abs(gap) > 10.0:
                     logging.debug("gap is big, using large displacements")
                     if gap > 0:
-                        self.move(0.0, 0.3)
+                        self.move(0.0, 0.5)
                     elif gap < 0:
-                        self.move(0.0, -0.3)
+                        self.move(0.0, -0.5)
                 elif abs(gap) > self.angle_tolerance and abs(gap) <= 10.0:
                     logging.debug("gap is getting smaller, using smaller steps")
                     if gap > 0:
-                        self.move(0.0, 0.1)
+                        self.move(0.0, 0.2)
                     elif gap < 0:
-                        self.move(0.0, -0.1)
+                        self.move(0.0, -0.2)
                 elif abs(gap) <= self.angle_tolerance:
-                    logging.debug("gap is small enough, done, pop 1 off queue")
+                    logging.info(
+                        "turn is completed, gap is small enough, done, pop 1 off queue"
+                    )
                     self.pending_movements.get()
             else:
-
                 # reconfirm possible paths
                 pp = self.lidar.valid_paths
+
                 logging.debug(f"Action - Valid paths: {pp}")
 
                 s_x = target[0][3]
                 s_y = target[0][4]
                 distance_traveled = math.sqrt((self.x - s_x) ** 2 + (self.y - s_y) ** 2)
                 remaining = abs(goal_dx - distance_traveled)
-                logging.debug(f"distance to advance: {remaining}")
+                logging.info(f"remaining advance GAP: {round(remaining,2)}")
 
                 fb = 0
                 if "advance" in direction and 4 in pp:
@@ -371,5 +356,7 @@ class MoveZenohConnector(ActionConnector[MoveInput]):
                         )
                         self.move(-1 * fb * 0.1, 0.0)
                 else:
-                    logging.debug("done, pop 1 off queue")
+                    logging.info(
+                        "advance is completed, gap is small enough, done, pop 1 off queue"
+                    )
                     self.pending_movements.get()

@@ -17,7 +17,8 @@ OM1 can control a Unitree Go2 EDU out of the box. This has been tested on Nvidia
 Connect the Unitree Go2 EDU to your development machine with an Ethernet cable. Open the network settings and find the network interface that is connected to the Go2 EDU. In the IPv4 settings, change the IPv4 mode to `manual`, set the address to `192.168.123.99`, and set the mask to `255.255.255.0`. After completion, click `apply` (or equivalent) and wait for the network to reconnect. Provide the name of the network adapter in the `"unitree_ethernet": "en0"` entry in the `unitree_go2.config` file.
 
 Then, install [`CycloneDDS`](https://index.ros.org/p/cyclonedds/). `CycloneDDS` works on Mac, Linux, and PC. Run:
-```bash CycloneDDS
+
+```bash
 git clone https://github.com/eclipse-cyclonedds/cyclonedds -b releases/0.10.x
 cd cyclonedds && mkdir build install && cd build
 cmake .. -DCMAKE_INSTALL_PREFIX=../install -DBUILD_EXAMPLES=ON
@@ -55,7 +56,7 @@ cmake --build .
 ./listtopics
 ```
 
-On Mac, you may need to `allow incoming connections` in the popup the first time you run `listtopics`. 
+On Mac, you **might** need to `allow incoming connections` in the popup the first time you run `listtopics`. 
 
 Running `listtopics` should result in an extensive data dump of available topics:
 
@@ -165,14 +166,20 @@ Add the `dds` python module to your code base: `uv pip install -r pyproject.toml
 
 ## Step 3 - Connect an Xbox controller
 
-On Mac, **make sure that your Xbox controller is running the most recent firmware**, otherwise you will be able to pair but not connect to the controller. You will need a PC with `Xbox Accessories` to update the Xbox controller's firmware. Many Mac OS updates hose support for the Xbox controller, which is then fixed (after some delay) via an Xbox firmware update. On Mac, you will also need to install `hidapi` (`brew install hidapi`). 
+On Mac, **make sure that your Xbox controller is running the most recent firmware**, otherwise you will be able to pair but not connect to the controller. You will need a PC with `Xbox Accessories` to update the Xbox controller's firmware. Many Mac OS updates hose support for the Xbox controller, which is then fixed (after some delay) via an Xbox firmware update. 
+
+On Mac, you will need to install `hidapi`:
+
+```bash
+brew install hidapi
+```
 
 NOTE: There is a bug on Mac when installing packages with `brew` - some libraries cannot be found by `uv`. If you get errors such as
 `Unable to load any of the following libraries:libhidapi-hidraw.so`, set `export DYLD_FALLBACK_LIBRARY_PATH=$HOMEBREW_PREFIX/lib` in your `.zshenv` or equivalent.
 
 On Linux, install `hidapi` like this:
 
-```bash Linux hidapi
+```bash
 sudo apt-get update
 sudo apt-get install python-dev libusb-1.0-0-dev libudev-dev libhidapi-dev
 ```
@@ -180,7 +187,7 @@ sudo apt-get install python-dev libusb-1.0-0-dev libudev-dev libhidapi-dev
 ## Step 4 - Controlling the Quadruped
 
 Run
-```bash Run Robot
+```bash
 uv run src/run.py unitree_go2
 ```
 

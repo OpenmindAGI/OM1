@@ -10,6 +10,7 @@
       domain: 0,
       allow: {
         publishers: [
+                      ".*/battery_state", // to debug the Create3 battery data
                       ".*/cmd_vel",
                       ".*/dock_status",
                       ".*/imu",

@@ -11,6 +11,13 @@ class MovementAction(str, Enum):
     MOVE_BACK = "move back"
     STAND_STILL = "stand still"
     DO_NOTHING = "stand still"
+    # STAND_UP = "stand up"
+    # SIT = "sit"
+    # SHAKE_PAW = "shake paw"
+    # DANCE = "dance"
+    # STRETCH = "stretch"
+    # STAND_STILL = "stand still"
+    # DO_NOTHING = "stand still"
 
 
 @dataclass

@@ -85,7 +85,7 @@ class UnitreeGo2Lowstate(FuserInput[str]):
         self.battery_amperes = 0.0
         self.battery_temperature = 0
 
-        self.body_height = 0
+        self.body_height_cm = 0
         self.body_attitude_previous = None
 
         # Simple description of sensor output to help LLM understand its importance and utility
@@ -108,10 +108,10 @@ class UnitreeGo2Lowstate(FuserInput[str]):
 
     def PoseMessageHandler(self, msg: PoseStamped_):
         self.pose = msg
-        self.body_height = int(self.pose.pose.position.z * 100)
+        self.body_height_cm = int(self.pose.pose.position.z * 100)
 
         if self.body_attitude_previous is None:
-            if self.body_height < 24:
+            if self.body_height_cm < 24:
                 self.body_attitude_previous = "sitting"
             else:
                 self.body_attitude_previous = "standing"
@@ -158,7 +158,7 @@ class UnitreeGo2Lowstate(FuserInput[str]):
             self.battery_percentage,
             self.battery_voltage,
             self.battery_amperes,
-            self.body_height,
+            self.body_height_cm,
         ]
 
     async def _raw_to_text(self, raw_input: List[float]) -> Optional[Message]:
@@ -177,8 +177,10 @@ class UnitreeGo2Lowstate(FuserInput[str]):
         """
 
         battery_percentage = raw_input[0]
-        height = raw_input[3]
-        logging.info(f"Battery percentage: {battery_percentage} height: {height}")
+        height_cm = raw_input[3]
+        logging.info(
+            f"Battery percentage: {battery_percentage} Body height (cm): {height_cm}"
+        )
 
         if battery_percentage < 15:
             message = "WARNING: You are low on energy. SIT DOWN NOW."
@@ -187,15 +189,15 @@ class UnitreeGo2Lowstate(FuserInput[str]):
         # when there is a battery issue, that ALWAYS takes precendence
         # so we want the above to return
         # and we do not care about body height
-        if height < 24 and self.body_attitude_previous == "standing":
+        if height_cm < 24 and self.body_attitude_previous == "standing":
             message = "You just sat down."
-            self.body_attitude_previous == "sitting"
-            logging.info("You just sat down")
+            self.body_attitude_previous = "sitting"
+            logging.info(message)
             return Message(timestamp=time.time(), message=message)
-        elif height >= 24 and self.body_attitude_previous == "sitting":
+        elif height_cm >= 24 and self.body_attitude_previous == "sitting":
             message = "You just stood up."
-            self.body_attitude_previous == "standing"
-            logging.info("You just stood up")
+            self.body_attitude_previous = "standing"
+            logging.info(message)
             return Message(timestamp=time.time(), message=message)
 
     async def raw_to_text(self, raw_input: List[float]):

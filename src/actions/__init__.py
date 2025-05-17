@@ -21,6 +21,7 @@ def describe_action(action_name: str, llm_label: str) -> str:
         raise ValueError(f"No interface found for action {action_name}")
     # Get docstring from interface class
     doc = interface.__doc__ or ""
+    doc = doc.replace("\n", "")
 
     # Build type hint descriptions
     hints = {}
@@ -34,13 +35,18 @@ def describe_action(action_name: str, llm_label: str) -> str:
         elif isinstance(field_type, type) and issubclass(field_type, Enum):
             # Handle enums by listing allowed values
             values = [f"'{v.value}'" for v in field_type]
-            hints[field_name] = f"Allowed values: {', '.join(values)}"
+            hints[field_name] = "value={" + f"{', '.join(values)}" + "}"
         else:
-            hints[field_name] = str(field_type)
+            hints[field_name] = f"value={str(field_type)}"
 
     # Format the full docstring
     type_hints = "\n".join(f"{desc}" for name, desc in hints.items())
-    return f"command: {llm_label}{doc}Arguments: {type_hints}"
+    final_description = f"{llm_label.upper()}: {doc}\ntype={llm_label}\n{type_hints}"
+    # logging.info(f"final_description:{final_description}")
+    # remove indents
+    final_description = final_description.replace("    ", "")
+
+    return final_description
 
 
 def load_action(

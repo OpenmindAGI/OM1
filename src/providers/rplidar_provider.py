@@ -141,17 +141,26 @@ class RPLidarProvider:
 
                 info = self.lidar.get_info()
                 ret = f"RPLidar Info: {info}"
+
                 logging.info(ret)
 
                 health = self.lidar.get_health()
-                ret = f"RPLidar Health: {health}"
+                ret = f"RPLidar Health: {health[0]}"
                 logging.info(ret)
+
+                if health[0] == "Good":
+                    logging.info(ret)
+                else:
+                    logging.info(f"there is a problem with the LIDAR: {ret}")
 
                 # reset to clear buffers
                 self.lidar.reset()
 
+                time.sleep(0.5)
+
             except Exception as e:
                 logging.error(f"Error in RPLidar provider: {e}")
+
         elif self.use_zenoh:
             try:
                 self.zen = zenoh.open(zenoh.Config())
@@ -200,7 +209,7 @@ class RPLidarProvider:
             self._process(array_ready)
 
     def _preprocess_serial(self, scan):
-        logging.info(f"_preprocess_serial: {scan}")
+        logging.debug(f"_preprocess_serial: {scan}")
         array = np.array(scan)
 
         # the driver sends angles in degrees between from 0 to 360
@@ -314,20 +323,22 @@ class RPLidarProvider:
         return_string = "You are surrounded by objects and cannot safely move in any direction. DO NOT MOVE."
 
         if len(possible_paths) > 0:
-            return_string = "The safe movement choices are: "
+            return_string = "The safe movement choices are: {"
             if self.use_zenoh:  # i.e. you are controlling a TurtleBot4
-                return_string += "You can turn left. You can turn right. "
                 if len(advance) > 0:
-                    return_string += "You can move forwards. "
+                    return_string += "'turn left', 'turn right', 'move forwards', "
+                else:
+                    return_string += "'turn left', 'turn right', "
             else:
                 if len(turn_left) > 0:
-                    return_string += "You can turn left. "
+                    return_string += "'turn left', "
                 if len(advance) > 0:
-                    return_string += "You can move forwards. "
+                    return_string += "'move forwards', "
                 if len(turn_right) > 0:
-                    return_string += "You can turn right. "
+                    return_string += "'turn right', "
                 if len(retreat) > 0:
-                    return_string += "You can move back. "
+                    return_string += "'move back', "
+            return_string += "'stand still'}. "
 
         self._raw_scan = array
         self._lidar_string = return_string
@@ -359,8 +370,8 @@ class RPLidarProvider:
                         )
                     ):
                         self._preprocess_serial(scan)
-                    # not sure about the level of this?
-                    time.sleep(0.1)
+                        # not sure about the level of this?
+                        # time.sleep(0.1)
                 except Exception as e:
                     logging.error(f"Error in Serial RPLidar provider: {e}")
 

@@ -92,8 +92,17 @@ void setup()
   } else if (strcmp(DeviceID, "cfcdd0fb") == 0) {
     float mh[]  = { -9.0, -5.0, 10.0 }; // in uTesla
     float ms[]  = { 1.0, 0.0, 0.0, \
-                              0.0, 1.0, 0.0, \
-                              0.0, 0.0, 1.0 }; 
+                    0.0, 1.0, 0.0, \
+                    0.0, 0.0, 1.0 }; 
+    float gc[] = { 0.0, 0.0, 0.0 };
+    memcpy(mag_hardiron,  mh, sizeof(mag_hardiron));
+    memcpy(mag_softiron,  ms, sizeof(mag_softiron));
+    memcpy(gyro_zerorate, gc, sizeof(gyro_zerorate));
+  } else if (strcmp(DeviceID, "ec414ffd") == 0) {
+    float mh[]  = { 12.26, -23.74, -9.67 }; // in uTesla
+    float ms[]  = { +0.948, +0.046, -0.038, \
+                    +0.047, +1.087, -0.033, \
+                    -0.036, -0.033, +0.974 }; 
     float gc[] = { 0.0, 0.0, 0.0 };
     memcpy(mag_hardiron,  mh, sizeof(mag_hardiron));
     memcpy(mag_softiron,  ms, sizeof(mag_softiron));

@@ -1,19 +1,21 @@
 from pydantic import BaseModel, Field
 
 
-class Command(BaseModel):
+class Action(BaseModel):
     """
     Executable action with its argument.
 
     Parameters
     ----------
     type : str
-        Type of action to execute
+        Type of action to execute, such as 'move' or 'speak'
     value : str
-        The action argument, such as magnitude or sentence to speak
+        The action argument, such as the magnitude of a movement or the sentence to speak
     """
 
-    type: str = Field(..., description="The type of action")
+    type: str = Field(
+        ..., description="The specific type of action, such as 'move' or 'speak'"
+    )
     value: str = Field(..., description="The action argument")
 
 
@@ -23,8 +25,8 @@ class CortexOutputModel(BaseModel):
 
     Parameters
     ----------
-    commands : list[Command]
-        Sequence of commands to be executed
+    actions : list[Action]
+        List of actions to be executed
     """
 
-    commands: list[Command] = Field(..., description="List of actions to execute")
+    actions: list[Action] = Field(..., description="List of actions to execute")

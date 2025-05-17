@@ -135,33 +135,33 @@ class CortexRuntime:
             return
 
         # Trigger the simulators
-        await self.simulator_orchestrator.promise(output.commands)
+        await self.simulator_orchestrator.promise(output.actions)
 
-        commands_silent = []
-        for command in output.commands:
-            action_type = command.type
+        actions_silent = []
+        for action in output.actions:
+            action_type = action.type
             if action_type != "speak":
-                commands_silent.append(command)
+                actions_silent.append(action)
                 logging.debug(f"appended: {action_type}")
 
         # Trigger actions
         if ("INPUT: Voice" in prompt) or ("WalletCoinbase" in prompt):
             # always respond to voice input
-            await self.action_orchestrator.promise(output.commands)
+            await self.action_orchestrator.promise(output.actions)
         elif "spot" in self.config.name:
             # spot, the speaking dog
-            await self.action_orchestrator.promise(output.commands)
+            await self.action_orchestrator.promise(output.actions)
         elif self.config.name == "turtle_speak":
             # flash, the smart vaccuum cleaner
             # reduce continuous narration
             self.speech_duty_cycle += 1
             if self.speech_duty_cycle > 12:
                 # speak
-                await self.action_orchestrator.promise(output.commands)
+                await self.action_orchestrator.promise(output.actions)
                 self.speech_duty_cycle = 0
             else:
                 # do not speak
-                await self.action_orchestrator.promise(commands_silent)
+                await self.action_orchestrator.promise(actions_silent)
         else:
             # do not send speech to speaker but only to simulator
-            await self.action_orchestrator.promise(commands_silent)
+            await self.action_orchestrator.promise(actions_silent)

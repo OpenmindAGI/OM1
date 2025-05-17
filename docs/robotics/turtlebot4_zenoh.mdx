@@ -194,33 +194,32 @@ Please make sure that your development machine (e.g. your laptop) is running the
 
 ### Interacting with TurtleBot4 from a Remote Computer using Zenoh and the command line
 
-This is useful for debugging. Inside `system_hw_test`, there are several scripts for you to interact with the TurtleBot4. For all these scripts, please provide/update the topic names to include your specific namespace. If you do not update the namespaces, the scripts will fail. 
+This is useful for debugging. Inside `system_hw_test`, there are several scripts for you to interact with the TurtleBot4. For all these scripts, provide the robot's URID, such as `OM742d35Cc6634` as an argument. 
 
-#### Steer the TurtleBot4 with your keyboard:
-
-Before running the script, make sure you have the correct topic names.   
-Change the [URID topic name in turtlebot4_keyboard_movement.py](https://github.com/OpenmindAGI/OM1/blob/c6f0d118bf16c9201403ae459111d4cacc3830dd/system_hw_test/turtlebot4_keyboard_movement.py#L40C9-L40C33) to include your specific namespace: 
+#### Steer the TurtleBot4 with your Keyboard
 
 ```bash
-self.cmd_vel = "<your_namespace>/pi/cmd_vel"
-```
-
-Then run the script.
-
-```bash
-uv run turtlebot4_keyboard_movement.py
+uv run turtlebot4_keyboard_movement.py --URID OM123435Cc1234
 ```
 * W - Move Forward
 * S - Move Backward
 * A - Turn Left
 * D - Turn Right
 
-## Read TurtleBot4 Laserscan Data
+#### Read TurtleBot4 Laserscan Data
 
-Connect to the `scan` Zenoh topic. Provide the robot's URID, such as `OM742d35Cc6634` as an argument:
+Provide the robot's URID, such as `OM742d35Cc6634` as an argument:
 
 ```bash
 uv run rptest.py --URID OM123435Cc1234
+```
+
+#### Read TurtleBot4 Battery Data
+
+Provide the robot's URID, such as `OM742d35Cc6634` as an argument:
+
+```bash
+uv run turtlebot4_battery.py --URID OM123435Cc1234
 ```
 
 ## Expected ROS2 Topics for a Correctly Configured System
@@ -318,6 +317,4 @@ For many development tasks, you will need to ssh to the RPi on the TB4.
 ssh ubuntu@192.168.1.116
 ```
 
-The password is `turtlebot4`.
-
-Once on the command line, you can use `turtlebot4-setup` to configure ROS2, the wifi, etc. 
+The password is `turtlebot4`. Once on the command line, you can use `turtlebot4-setup` to configure ROS2, the wifi, etc. 

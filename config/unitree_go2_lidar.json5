@@ -14,13 +14,19 @@
   6. If you sense something on your right, you might:\n Move: 'turn left'\n Speak: {{'I\\'m turning left to avoid the object on my right'}}",
   "agent_inputs": [
     {
+      "type": "VLM_COCO_Local",
+      "config": {
+        "camera_index": 0
+      }
+    },
+    {
       "type": "RPLidar",
       "config": {
         "serial_port": "/dev/cu.usbserial-0001",
         "half_width_robot": 0.21,
         "max_relevant_distance": 1.1,
-        "sensor_mounting_angle": 180.0,
-        "angles_blanked": [[-180.0, -160.0], [160, 180]]
+        "sensor_mounting_angle": 172.0,
+        "angles_blanked": [[-180.0, -170.0], [170, 180]]
       }
     }
   ],
@@ -37,6 +43,8 @@
       "llm_label": "move",
       "implementation": "passthrough",
       "connector": "ros2"
-    },
+    }
   ]
 }
+
+
