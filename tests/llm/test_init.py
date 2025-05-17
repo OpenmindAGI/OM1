@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 from llm import LLM, LLMConfig, load_llm
 from providers.io_provider import IOProvider
+from runtime.config import add_meta
 
 
 class DummyOutputModel(BaseModel):
@@ -41,6 +42,24 @@ def test_llm_init_no_config():
 async def test_llm_ask_not_implemented(base_llm):
     with pytest.raises(NotImplementedError):
         await base_llm.ask("test prompt")
+
+
+def test_llm_config():
+    llm_config = LLMConfig(
+        **add_meta(
+            {
+                "config_key": "config_value",
+            },
+            None,
+            None,
+            None,
+        )
+    )
+    assert llm_config.config_key == "config_value"
+    with pytest.raises(
+        AttributeError, match="'LLMConfig' object has no attribute 'invalid_key'"
+    ):
+        llm_config.invalid_key
 
 
 def test_load_llm_mock_implementation():

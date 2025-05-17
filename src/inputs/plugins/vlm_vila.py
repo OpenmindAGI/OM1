@@ -60,9 +60,17 @@ class VLMVila(FuserInput[str]):
         self.message_buffer: Queue[str] = Queue()
 
         # Initialize VLM provider
+        api_key = getattr(self.config, "api_key", None)
         base_url = getattr(self.config, "base_url", "wss://api-vila.openmind.org")
+        stream_base_url = getattr(
+            self.config,
+            "stream_base_url",
+            f"wss://api.openmind.org/api/core/teleops/stream?api_key={api_key}",
+        )
 
-        self.vlm: VLMVilaProvider = VLMVilaProvider(ws_url=base_url)
+        self.vlm: VLMVilaProvider = VLMVilaProvider(
+            ws_url=base_url, stream_url=stream_base_url
+        )
         self.vlm.start()
         self.vlm.register_message_callback(self._handle_vlm_message)
 
@@ -168,7 +176,7 @@ class VLMVila(FuserInput[str]):
         latest_message = self.messages[-1]
 
         result = f"""
-{self.descriptor_for_LLM} INPUT
+INPUT: {self.descriptor_for_LLM} 
 // START
 {latest_message.message}
 // END

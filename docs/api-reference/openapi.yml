@@ -1,4 +1,4 @@
-openapi: '3.0.3'
+openapi: '3.1.0'
 info:
   title: OpenMind Core API
   version: '1.0'
@@ -31,7 +31,7 @@ paths:
               properties:
                 model:
                   type: string
-                  enum: [gpt-4o, gpt-4o-mini, "deepseek-chat", "gemini-2.0-flash-exp", "grok-2-latest"]
+                  enum: ["gpt-4o", "gpt-4o-mini", "deepseek-chat", "gemini-2.0-flash-exp", "grok-3-mini-beta"]
                   description: The model to use for completion.
                 messages:
                   type: array
@@ -186,6 +186,91 @@ paths:
       security:
         - apiKeyAuth: []
         - bearerAuth: []
+
+  /agent:
+      post:
+        summary: Run a multi-agent task with the specified agent
+        description: Multi-agent endpoint that runs the multi-agent with the given message
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  model:
+                    type: string
+                    description: The model to use for the agent run
+                    default: "gpt-4.1-nano"
+                    enum: ["gpt-4o", "gpt-4o-mini", "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-nano"]
+                  message:
+                    type: string
+                    description: The message to be processed by the agent
+                    example: "Analyze the market trends for renewable energy"
+                  response_model:
+                    type: object
+                    description: Optional JSON schema for structuring the agent's response
+                required:
+                  - model
+                  - message
+        responses:
+          '200':
+            description: Successful agent run response
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    content:
+                      type: object
+                      description: The response content from the agent, structure depends on the response_model if provided
+                    usage:
+                      type: object
+                      description: Metrics about the agent run and resources used
+                      properties:
+                        prompt_tokens:
+                          type: integer
+                          description: Number of tokens in the input prompt
+                        completion_tokens:
+                          type: integer
+                          description: Number of tokens in the generated response
+                        total_tokens:
+                          type: integer
+                          description: Total number of tokens used
+                    model:
+                      type: string
+                      description: The model used for the agent run
+                  required:
+                    - content
+                    - usage
+                    - model
+          '400':
+            description: Bad request - missing required information
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+                      description: Error message explaining what information is missing
+                      example: "No message provided"
+          '403':
+            description: Rate limit exceeded
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+                      description: Rate limit error message
+                      example: "Rate limit exceeded. Try again in 60 seconds."
+          '500':
+            description: Internal server error
+        security:
+          - apiKeyAuth: []
+          - bearerAuth: []
 
   /elevenlabs/tts:
     post:

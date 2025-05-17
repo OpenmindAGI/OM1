@@ -36,10 +36,16 @@ class IOProvider:
         Initialize the IOProvider with thread lock and empty storage.
         """
         self._lock: threading.Lock = threading.Lock()
+
         self._inputs: Dict[str, str] = {}
         self._input_timestamps: Dict[str, float] = {}
+
+        self._fuser_system_prompt: Optional[str] = None
+        self._fuser_inputs: Optional[str] = None
+        self._fuser_available_actions: Optional[str] = None
         self._fuser_start_time: Optional[float] = None
         self._fuser_end_time: Optional[float] = None
+
         self._llm_prompt: Optional[str] = None
         self._llm_start_time: Optional[float] = None
         self._llm_end_time: Optional[float] = None
@@ -128,6 +134,75 @@ class IOProvider:
         """
         with self._lock:
             return self._input_timestamps.get(key)
+
+    @property
+    def fuser_system_prompt(self) -> Optional[str]:
+        """
+        Get the fuser system prompt.
+        """
+        with self._lock:
+            return self._fuser_system_prompt
+
+    @fuser_system_prompt.setter
+    def fuser_system_prompt(self, value: Optional[str]) -> None:
+        """
+        Set the fuser system prompt.
+        """
+        with self._lock:
+            self._fuser_system_prompt = value
+
+    def set_fuser_system_prompt(self, value: Optional[str]) -> None:
+        """
+        Alternative method to set fuser system prompt.
+        """
+        with self._lock:
+            self._fuser_system_prompt = value
+
+    @property
+    def fuser_inputs(self) -> Optional[str]:
+        """
+        Get the fuser inputs.
+        """
+        with self._lock:
+            return self._fuser_inputs
+
+    @fuser_inputs.setter
+    def fuser_inputs(self, value: Optional[str]) -> None:
+        """
+        Set the fuser inputs.
+        """
+        with self._lock:
+            self._fuser_inputs = value
+
+    def set_fuser_inputs(self, value: Optional[str]) -> None:
+        """
+        Alternative method to set fuser inputs.
+        """
+        with self._lock:
+            self._fuser_inputs = value
+
+    @property
+    def fuser_available_actions(self) -> Optional[str]:
+        """
+        Get the fuser available actions.
+        """
+        with self._lock:
+            return self._fuser_available_actions
+
+    @fuser_available_actions.setter
+    def fuser_available_actions(self, value: Optional[str]) -> None:
+        """
+        set the fuser available actions.
+        """
+        with self._lock:
+            self._fuser_available_actions = value
+
+    def set_fuser_available_actions(self, value: Optional[str]) -> None:
+        """
+        Alternative method to set fuser available actions.
+        """
+        with self._lock:
+            self._fuser_available_actions = value
 
     @property
     def fuser_start_time(self) -> Optional[float]:

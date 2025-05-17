@@ -8,9 +8,6 @@ class MovementAction(str, Enum):
     TURN_LEFT = "turn left"
     TURN_RIGHT = "turn right"
     MOVE_FORWARDS = "move forwards"
-    MOVE_BACK = "move back"
-    AVOID_LEFT_OBSTRACLE = "avoid left obstacle"
-    AVOID_RIGHT_OBSTRACLE = "avoid right obstacle"
     STAND_STILL = "stand still"
 
 
