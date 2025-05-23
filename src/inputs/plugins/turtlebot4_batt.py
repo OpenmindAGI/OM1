@@ -8,7 +8,7 @@ import zenoh
 
 from inputs.base import SensorConfig
 from inputs.base.loop import FuserInput
-from providers import BatteryStatus, IOProvider, StatusProvider, TeleopsStatus
+from providers import BatteryStatus, IOProvider, TeleopsStatus, TeleopsStatusProvider
 from zenoh_idl import sensor_msgs
 
 
@@ -37,7 +37,7 @@ class TurtleBot4Batt(FuserInput[str]):
         self.io_provider = IOProvider()
 
         # Status provider
-        self.status_provider = StatusProvider(api_key=api_key)
+        self.status_provider = TeleopsStatusProvider(api_key=api_key)
 
         # Buffer for storing the final output
         self.messages: list[Message] = []
