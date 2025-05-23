@@ -2345,7 +2345,7 @@ requires-dist = [
     { name = "jsonschema" },
     { name = "matplotlib" },
     { name = "numpy" },
-    { name = "om1-modules", git = "https://github.com/OpenmindAGI/om1-modules.git?rev=910b57f2aebc8f205d6656dbd7040ef11a4352c7#910b57f2aebc8f205d6656dbd7040ef11a4352c7" },
+    { name = "om1-modules", git = "https://github.com/OpenmindAGI/om1-modules.git?rev=da74bfa3827c21985c7070de88403aa01ad0530c#da74bfa3827c21985c7070de88403aa01ad0530c" },
     { name = "openai", specifier = ">=1.59.5" },
     { name = "opencv-python" },
     { name = "pillow", specifier = ">=11.1.0" },
@@ -2379,7 +2379,7 @@ dev = [
 [[package]]
 name = "om1-modules"
 version = "0.1.0"
-source = { git = "https://github.com/OpenmindAGI/om1-modules.git?rev=910b57f2aebc8f205d6656dbd7040ef11a4352c7#910b57f2aebc8f205d6656dbd7040ef11a4352c7" }
+source = { git = "https://github.com/OpenmindAGI/om1-modules.git?rev=da74bfa3827c21985c7070de88403aa01ad0530c#da74bfa3827c21985c7070de88403aa01ad0530c" }
 dependencies = [
     { name = "google" },
     { name = "numpy" },
