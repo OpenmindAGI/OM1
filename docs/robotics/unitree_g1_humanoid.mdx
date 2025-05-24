@@ -3,21 +3,6 @@ title: Unitree G1 Humanoid
 description: "Unitree G1 Humanoid"
 ---
 
-- [Useful links and Reading](#useful-links-and-reading)
-- [Basic Command](#basic-command)
-  * [Installation on Mac](#installation-on-mac)
-    + [List CycloneDDS Topics on Mac](#list-cyclonedds-topics-on-mac)
-  * [Installation on Linux](#installation-on-linux)
-- [ORIN/G1: System Description](#orin-g1--system-description)
-  * [ORIN: Set default input and output Audio devices](#orin--set-default-input-and-output-audio-devices)
-- [Control via Unitree Hand Controller](#control-via-unitree-hand-controller)
-- [Boot from Chair](#boot-from-chair)
-- [Special DEBUG state](#special-debug-state)
-- [Using the Internal Orin](#using-the-internal-orin)
-- [Fixing the broken CycloneDDS installation on the Nvidia Orin](#fixing-the-broken-cyclonedds-installation-on-the-nvidia-orin)
-- [CycloneDDS Testing and Usage on your Development Computer](#cyclonedds-testing-and-usage-on-your-development-computer)
-- [Terminal based setup of Bluetooth audio devices](#terminal-based-setup-of-bluetooth-audio-devices)
-
 ## Useful links and Reading 
 
 https://support.unitree.com/home/en/G1_developer
@@ -147,7 +132,7 @@ uv pip install -r pyproject.toml --extra dds
 
 Note: on first invocation, the system sometimes cannot find the Unitree libraries. This should resolve by itself quickly. 
 
-## ORIN/G1: System Description
+## ORIN System Description
 
 Your development computer will (should) be at `192.168.123.99`
 
@@ -165,7 +150,7 @@ sudo nmcli device wifi connect XXXXX password XXXXX # Join WiFi network
 sudo timedatectl set-ntp yes # Set time via NTP
 ```
 
-### ORIN: Set default input and output Audio devices
+### ORIN Set default input and output Audio devices
 
 ```bash
 pactl list sources short                      # List input (microphone) devices

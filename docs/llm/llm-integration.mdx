@@ -1,0 +1,102 @@
+---
+title: LLM Integration
+description: "LLM Integration"
+---
+
+## LLM Integration
+
+The LLM Integration in OM1 provides the ability to integrate with LLM models. This integration allows AI agents to use LLM models to make decisions and take actions.
+
+## LLM Integration components
+
+[github codes](https://github.com/OpenmindAGI/OM1/tree/main/src/llm)
+
+### Class Diagram
+
+```mermaid
+classDiagram
+    class LLMConfig {
+        +str base_url
+        +str api_key
+        +str model
+        +str agent_name
+        +int history_length
+        +dict extra_params
+        +__getitem__(item: str) Any
+        +__setitem__(key: str, value: Any)
+    }
+
+    class LLM~R~ {
+        <<abstract>>
+        +LLMConfig _config
+        +Type[R] _output_model
+        +IOProvider io_provider
+        +async ask(prompt: str, messages: List[Dict[str, str]]) R
+    }
+
+    class Command {
+        +str type
+        +str value
+    }
+
+    class CortexOutputModel {
+        +List[Command] commands
+    }
+
+    class OpenAILLM {
+        +async ask(prompt: str, messages: List[Dict[str, str]]) R
+    }
+
+    class MultiLLM {
+        +List[LLM] llms
+        +async ask(prompt: str, messages: List[Dict[str, str]]) R
+    }
+
+    class RAGMultiLLM {
+        +List[LLM] llms
+        +async ask(prompt: str, messages: List[Dict[str, str]]) R
+    }
+
+    LLMConfig --> LLM
+    LLM --> Command
+    Command --> CortexOutputModel
+    LLM <|-- OpenAILLM
+    LLM <|-- MultiLLM
+    LLM <|-- RAGMultiLLM
+```
+
+### Data Flow
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant LLM
+    participant LLMConfig
+    participant OutputModel
+    participant IOProvider
+
+    Note over Client: Initialize LLM
+    Client->>LLMConfig: Create configuration
+    Client->>LLM: Initialize with config
+    
+    loop LLM Interaction
+        Client->>LLM: ask(prompt, messages)
+        LLM->>LLMConfig: Get configuration
+        LLM->>OutputModel: Validate response
+        LLM->>IOProvider: Log interaction
+        LLM-->>Client: Return typed response
+    end
+```
+
+### Example configuration
+
+```
+  "cortex_llm": {
+    "type": "OpenAILLM",
+    "config": {
+      "base_url": "", // Optional: URL of the LLM endpoint
+      "agent_name": "Iris", // Optional: Name of the agent
+      "history_length": 10
+    }
+  },
+```

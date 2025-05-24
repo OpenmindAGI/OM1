@@ -3,10 +3,6 @@ title: Gazebo Simulator
 description: "Quadruped simulation and control with OM1."
 ---
 
-# Gazebo Simulation
-
-Quadruped simulation and control with OM1.
-
 ## Simulation Instructions
 
 The Gazebo simulator is an very sophisticated, industry standard, simulator for robots. The robot shape/size is specified via `.dae` files and those robots can then navigate a defined digital world. The simulation framework is useful for prototyping, debugging, and reinforcement learning, among many other uses. 
@@ -19,15 +15,6 @@ The Gazebo simulator is an very sophisticated, industry standard, simulator for 
 The script also checks and installs Gazebo Harmonic https://gazebosim.org/docs/harmonic/getstarted/ if not already installed. If this is your first time installing Gazebo, grab a coffee, since this will take a while (1/2 hour or more). 
 
 This will open a gazebo room with a bathtub and chairs. Now, add your robot!
-
-In a different terminal, boot OM1 using the example config:
-```bash
-uv run src/run.py quadruped_sim
-```
-
-**Finally, start the simulation by clicking the "play" (>) button in the Gazebo simulator.**
-
-NOTE: Remember to set the correct API key in the `config/quadruped_sim.json5` file or in your `.env`.
 
 ### Ubuntu (Gazebo Classic)
 
@@ -42,6 +29,18 @@ _Note1:_ The simulated camera feed is streamed to a virtual video device at `/de
 
 _Note2:_ It is also possible to run the Gazebo Harmonic simulation on Ubuntu.
 
-### Start OM1
+## Start OM1
 
+### Install OM1
 
+Refer to the [Installation Guide](/getting-started/get-started) for detailed instructions.
+
+### Run OM1
+
+```bash
+uv run src/run.py quadruped_sim
+```
+
+**Finally, start the simulation by clicking the "play" (>) button in the Gazebo simulator.**
+
+NOTE: Remember to set the correct API key in the `config/quadruped_sim.json5` file or in your `.env`.

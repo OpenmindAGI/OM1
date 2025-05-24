@@ -1,0 +1,86 @@
+---
+title: Movement through Zenoh
+description: "Movement through Zenoh"
+---
+
+## Movement through Zenoh
+
+The Movement through Zenoh action plugin allows agents to move a robot in a simulated or real robot using Zenoh.
+In this page, we will use the [Move Turtle](https://github.com/OpenmindAGI/OM1/tree/main/src/actions/move_turtle) as an example.
+
+## Architecture class diagram
+
+```mermaid
+classDiagram
+    class ActionConnector~T~ {
+        <<abstract>>
+        +ActionConfig config
+        +async connect(input_protocol: T)
+        +tick()
+    }
+
+    class MoveInput {
+        +str action
+    }
+
+    class MoveZenohConnector {
+        -float angle_tolerance
+        -float distance_tolerance
+        -Queue pending_movements
+        -float x, y, z, yaw_now
+        -str hazard, emergency
+        -zenoh.Session session
+        -RPLidarProvider lidar
+        +__init__(config: ActionConfig)
+        +hazardProcessor()
+        +odomProcessor()
+        +move(vx: float, vyaw: float)
+        +async connect(output_interface: MoveInput)
+        +tick()
+    }
+
+    class RPLidarProvider {
+        +bool running
+        +List[int] valid_paths
+    }
+
+    ActionConnector <|-- MoveZenohConnector
+    MoveZenohConnector --> MoveInput
+    MoveZenohConnector --> RPLidarProvider
+```
+
+## Data Flow
+
+The data flow is as follows:
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant MoveZenohConnector
+    participant ZenohSession
+    participant RPLidarProvider
+    participant TurtleBot
+
+    Note over Client: Initialize MoveZenohConnector
+    Client->>MoveZenohConnector: connect(MoveInput)
+    MoveZenohConnector->>RPLidarProvider: Check valid paths
+    
+    alt Valid Movement
+        MoveZenohConnector->>MoveZenohConnector: Queue movement
+        loop Movement Execution
+            MoveZenohConnector->>MoveZenohConnector: tick()
+            MoveZenohConnector->>ZenohSession: Send movement command
+            ZenohSession->>TurtleBot: Execute movement
+            TurtleBot-->>MoveZenohConnector: Update odometry
+        end
+    else Invalid Movement
+        MoveZenohConnector->>MoveZenohConnector: Skip command
+    end
+
+    loop Hazard Detection
+        MoveZenohConnector->>MoveZenohConnector: hazardProcessor()
+        alt Hazard Detected
+            MoveZenohConnector->>MoveZenohConnector: Emergency handling
+        end
+    end
+```
