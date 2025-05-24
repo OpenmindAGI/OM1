@@ -10,7 +10,6 @@ from providers import BatteryStatus, IOProvider, StatusProvider, TeleopsStatus
 
 try:
     from unitree.unitree_sdk2py.core.channel import ChannelSubscriber
-    from unitree.unitree_sdk2py.idl.geometry_msgs.msg.dds_ import PoseStamped_
     from unitree.unitree_sdk2py.idl.unitree_go.msg.dds_ import LowState_
 except ImportError:
     logging.warning(
@@ -21,15 +20,7 @@ except ImportError:
         def __init__(self):
             pass
 
-    class PoseStamped_:
-        def __init__(self):
-            pass
-
     class LowState_:
-        def __init__(self):
-            pass
-
-    class BmsState_:
         def __init__(self):
             pass
 
@@ -40,14 +31,14 @@ class Message:
     message: str
 
 
-class UnitreeGo2Lowstate(FuserInput[str]):
+class UnitreeGo2Battery(FuserInput[str]):
     """
-    Unitree Go2 Air Lowstate bridge.
+    Unitree Go2 Lowstate bridge.
 
     Takes specific Unitree CycloneDDS Lowstate messages, converts them to
     text strings, and sends them to the fuser.
 
-    Processes Unitree Lowstate information. These are things like joint position and battery charge.
+    Processes Unitree battery information.
 
     Maintains a buffer of processed messages.
     """
@@ -76,47 +67,23 @@ class UnitreeGo2Lowstate(FuserInput[str]):
         self.lowstate_subscriber = ChannelSubscriber("rt/lowstate", LowState_)
         self.lowstate_subscriber.Init(self.LowStateMessageHandler, 10)
 
-        self.pose_subscriber = ChannelSubscriber("rt/utlidar/robot_pose", PoseStamped_)
-        self.pose_subscriber.Init(self.PoseMessageHandler, 10)
-
         # battery state
         self.battery_percentage = 0.0
         self.battery_voltage = 0.0
         self.battery_amperes = 0.0
-        self.battery_temperature = 0
-
-        self.body_height = 0
-        self.body_attitude_previous = None
+        self.battery_t = 0
 
         # Simple description of sensor output to help LLM understand its importance and utility
-        self.descriptor_for_LLM = "Body State"
+        self.descriptor_for_LLM = "Energy Levels"
 
     def LowStateMessageHandler(self, msg: LowState_):
         self.low_state = msg
-
         self.battery_percentage = float(msg.bms_state.soc)
         self.battery_voltage = float(msg.power_v)
         self.battery_amperes = float(msg.power_a)
-        self.battery_temperature = int(
-            (msg.temperature_ntc1 + msg.temperature_ntc2) / 2
-        )
+        self.battery_t = int((msg.temperature_ntc1 + msg.temperature_ntc2) / 2)
 
-        # other things you can read
-        # print("FR_0 motor state: ", msg.motor_state[go2.LegID["FR_0"]])
-        # print("IMU state: ", msg.imu_state)
-        # print("Battery state: voltage: ", msg.power_v, "current: ", msg.power_a)
-
-    def PoseMessageHandler(self, msg: PoseStamped_):
-        self.pose = msg
-        self.body_height = int(self.pose.pose.position.z * 100)
-
-        if self.body_attitude_previous is None:
-            if self.body_height < 24:
-                self.body_attitude_previous = "sitting"
-            else:
-                self.body_attitude_previous = "standing"
-
-    async def update_status(self):
+    async def report_status(self):
         """
         Report the battery status to the status provider.
         """
@@ -126,7 +93,7 @@ class UnitreeGo2Lowstate(FuserInput[str]):
                 update_time=time.time(),
                 battery_status=BatteryStatus(
                     battery_level=self.battery_percentage,
-                    temperature=self.battery_temperature,
+                    temperature=self.battery_t,
                     voltage=self.battery_voltage,
                     timestamp=time.time(),
                     charging_status=False,
@@ -144,22 +111,18 @@ class UnitreeGo2Lowstate(FuserInput[str]):
             list of floats
         """
 
-        # Does the complexity of this seem confusing and kinda pointless to you?
-        # It's on our radar and your patience is appreciated
         await asyncio.sleep(2.0)
-
-        await self.update_status()
+        await self.report_status()
 
         logging.info(
-            f"Battery percentage: {self.battery_percentage} voltage: {self.battery_voltage} amperes: {self.battery_amperes} attitude: {self.body_height}"
+            (
+                f"Battery percentage: {self.battery_percentage} "
+                f"voltage: {self.battery_voltage} "
+                f"amperes: {self.battery_amperes}"
+            )
         )
 
-        return [
-            self.battery_percentage,
-            self.battery_voltage,
-            self.battery_amperes,
-            self.body_height,
-        ]
+        return [self.battery_percentage, self.battery_voltage, self.battery_amperes]
 
     async def _raw_to_text(self, raw_input: List[float]) -> Optional[Message]:
         """
@@ -177,25 +140,13 @@ class UnitreeGo2Lowstate(FuserInput[str]):
         """
 
         battery_percentage = raw_input[0]
-        height = raw_input[3]
-        logging.info(f"Battery percentage: {battery_percentage} height: {height}")
+        logging.debug(f"Battery percentage: {battery_percentage}")
 
-        if battery_percentage < 15:
-            message = "WARNING: You are low on energy. SIT DOWN NOW."
+        if battery_percentage < 7:
+            message = "CRITICAL: Your battery is almost empty. Immediately move to your charging station and recharge. If you cannot find your charging station, consider sitting down."
             return Message(timestamp=time.time(), message=message)
-
-        # when there is a battery issue, that ALWAYS takes precendence
-        # so we want the above to return
-        # and we do not care about body height
-        if height < 24 and self.body_attitude_previous == "standing":
-            message = "You just sat down."
-            self.body_attitude_previous == "sitting"
-            logging.info("You just sat down")
-            return Message(timestamp=time.time(), message=message)
-        elif height >= 24 and self.body_attitude_previous == "sitting":
-            message = "You just stood up."
-            self.body_attitude_previous == "standing"
-            logging.info("You just stood up")
+        elif battery_percentage < 15:
+            message = "WARNING: You are low on energy. Move to your charging station and recharge."
             return Message(timestamp=time.time(), message=message)
 
     async def raw_to_text(self, raw_input: List[float]):
@@ -229,12 +180,10 @@ class UnitreeGo2Lowstate(FuserInput[str]):
 
         latest_message = self.messages[-1]
 
-        result = f"""
-INPUT: {self.descriptor_for_LLM}
-// START
-{latest_message.message}
-// END
-"""
+        result = (
+            f"\nINPUT: {self.descriptor_for_LLM}\n// START\n"
+            f"{latest_message.message}\n// END\n"
+        )
 
         self.io_provider.add_input(
             self.__class__.__name__, latest_message.message, latest_message.timestamp

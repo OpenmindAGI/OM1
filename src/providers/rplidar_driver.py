@@ -242,7 +242,9 @@ class RPDriver(object):
             Dictionary with the sensor information
         """
         if self._serial.inWaiting() > 0:
-            return "Buffer is full! Run clean_input() to empty the buffer."
+            self.clean_input()
+            time.sleep(0.5)
+            # return "Buffer is full! Run clean_input() to empty the buffer."
         self._send_cmd(GET_INFO_BYTE)
         dsize, is_single, dtype = self._read_descriptor()
         if dsize != INFO_LEN:
@@ -278,7 +280,9 @@ class RPDriver(object):
             The related error code that caused a warning/error.
         """
         if self._serial.inWaiting() > 0:
-            return "Data in buffer. " "Run clean_input() to empty the buffer."
+            self.clean_input()
+            time.sleep(0.5)
+            # return "Data in buffer. " "Run clean_input() to empty the buffer."
         self.logger.info("Asking for health")
         self._send_cmd(GET_HEALTH_BYTE)
         dsize, is_single, dtype = self._read_descriptor()
@@ -359,7 +363,7 @@ class RPDriver(object):
     def reset(self):
         """Resets sensor core, reverting it to a similar state as it has
         just been powered up."""
-        self.logger.info("Resetting the sensor")
+        self.logger.info("Resetting the RPLidar")
         self._send_cmd(RESET_BYTE)
         time.sleep(2)
         self.clean_input()

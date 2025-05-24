@@ -19,7 +19,7 @@
                       ".*/joint_states",
                       ".*/odom",
                       ".*/robot_description",
-                      ".*/hazard_detection", // allows hazard detection to flow out from Create3
+                      ".*/hazard_detection",
                       ".*/robot_state/transition_event",
                       ".*/static_transform/transition_event",
                       ".*/tf",

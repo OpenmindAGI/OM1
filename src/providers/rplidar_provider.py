@@ -20,7 +20,7 @@ gScan = None
 def listenerScan(sample):
     global gScan
     gScan = sensor_msgs.LaserScan.deserialize(sample.payload.to_bytes())
-    logging.debug(f"Zenoh Laserscan data: {gScan}")
+    # logging.debug(f"Zenoh Laserscan data: {gScan}")
 
 
 @singleton
@@ -56,16 +56,19 @@ class RPLidarProvider:
         sensor_mounting_angle: float = 180.0,
         URID: str = "",
         use_zenoh: bool = False,
+        simple_paths: bool = False,
     ):
         """
         Robot and sensor configuration
         """
 
-        logging.info("Booting RPLidar")
+        logging.info("Checking RPLidar")
 
         if wait:
             # no need to reinit driver
             return
+
+        logging.info("Booting RPLidar")
 
         self.serial_port = serial_port
         self.half_width_robot = half_width_robot
@@ -74,6 +77,7 @@ class RPLidarProvider:
         self.sensor_mounting_angle = sensor_mounting_angle
         self.URID = URID
         self.use_zenoh = use_zenoh
+        self.simple_paths = simple_paths
 
         self.running: bool = False
         self.lidar = None
@@ -83,6 +87,9 @@ class RPLidarProvider:
         self._raw_scan: Optional[NDArray] = None
         self._valid_paths: Optional[list] = None
         self._lidar_string: str = None
+
+        self.angles = None
+        self.angles_final = None
 
         """
         precompute Bezier trajectories
@@ -141,23 +148,33 @@ class RPLidarProvider:
 
                 info = self.lidar.get_info()
                 ret = f"RPLidar Info: {info}"
+
                 logging.info(ret)
 
                 health = self.lidar.get_health()
-                ret = f"RPLidar Health: {health}"
+                ret = f"RPLidar Health: {health[0]}"
                 logging.info(ret)
+
+                if health[0] == "Good":
+                    logging.info(ret)
+                else:
+                    logging.info(f"there is a problem with the LIDAR: {ret}")
 
                 # reset to clear buffers
                 self.lidar.reset()
 
+                time.sleep(0.5)
+
             except Exception as e:
                 logging.error(f"Error in RPLidar provider: {e}")
+
         elif self.use_zenoh:
+            logging.info("Connecting to the RPLIDAR via Zenoh")
             try:
                 self.zen = zenoh.open(zenoh.Config())
                 logging.info(f"Zenoh move client opened {self.zen}")
                 logging.info(
-                    f"TurtleBot4 move listeners starting with URID: {self.URID}"
+                    f"TurtleBot4 RPLIDAR listener starting with URID: {self.URID}"
                 )
                 self.zen.declare_subscriber(f"{self.URID}/pi/scan", listenerScan)
             except Exception as e:
@@ -178,29 +195,31 @@ class RPLidarProvider:
     def _preprocess_zenoh(self, scan):
 
         if scan is None:
-            logging.info("waiting for Zenoh Laserscan data...")
+            logging.info("Waiting for Zenoh Laserscan data...")
             self._raw_scan = []
             self._lidar_string = "You might be surrounded by objects and cannot safely move in any direction. DO NOT MOVE."
             self._valid_paths = []
         else:
-            logging.debug(f"_preprocess_zenoh: {scan}")
+            # logging.debug(f"_preprocess_zenoh: {scan}")
             # angle_min=-3.1241390705108643, angle_max=3.1415927410125732
-            angles = list(
-                map(
-                    lambda x: 360.0 * (x + math.pi) / (2 * math.pi),
-                    np.arange(scan.angle_min, scan.angle_max, scan.angle_increment),
-                )
-            )
 
-            angles_final = np.flip(angles)
+            if not self.angles:
+                self.angles = list(
+                    map(
+                        lambda x: 360.0 * (x + math.pi) / (2 * math.pi),
+                        np.arange(scan.angle_min, scan.angle_max, scan.angle_increment),
+                    )
+                )
+                self.angles_final = np.flip(self.angles)
+
             # angles now run from 360.0 to 0 degress
-            data = list(zip(angles_final, scan.ranges))
+            data = list(zip(self.angles_final, scan.ranges))
             array_ready = np.array(data)
             # print(f"Array {array_ready}")
             self._process(array_ready)
 
     def _preprocess_serial(self, scan):
-        logging.info(f"_preprocess_serial: {scan}")
+        logging.debug(f"_preprocess_serial: {scan}")
         array = np.array(scan)
 
         # the driver sends angles in degrees between from 0 to 360
@@ -219,6 +238,8 @@ class RPLidarProvider:
 
     def _process(self, data):
 
+        # logging.debug(f"_process RP Lidar: {data}")
+
         complexes = []
 
         for angle, distance in data:
@@ -226,7 +247,7 @@ class RPLidarProvider:
             d_m = distance
 
             # don't worry about distant objects
-            if d_m > 5.0:
+            if d_m > self.max_relevant_distance:
                 continue
 
             # first, correctly orient the sensor zero to the robot zero
@@ -236,8 +257,24 @@ class RPLidarProvider:
             elif angle < 0.0:
                 angle = 360.0 + angle
 
-            # then, convert to radians
-            a_rad = angle * math.pi / 180.0
+            # convert the angle from [0 to 360] to [-180 to +180] range
+            angle = angle - 180.0
+
+            reflection = False
+            for b in self.angles_blanked:
+                if angle >= b[0] and angle <= b[1]:
+                    # this is a permanent robot reflection
+                    # disregard
+                    reflection = True
+                    break
+
+            if reflection:
+                continue
+
+            # bugfix - this calc is based on the [0 to 360]
+            # the goal is to save compute, hence want to do the
+            # slow math as late as possible
+            a_rad = (angle + 180.0) * math.pi / 180.0
 
             v1 = d_m * math.cos(a_rad)
             v2 = d_m * math.sin(a_rad)
@@ -247,20 +284,8 @@ class RPLidarProvider:
             x = -1 * v2
             y = -1 * v1
 
-            # convert the angle to -180 to + 180 range
-            angle = angle - 180.0
-
-            keep = True
-            for b in self.angles_blanked:
-                if angle >= b[0] and angle <= b[1]:
-                    # this is a permanent reflection based on the robot
-                    # disregard
-                    keep = False
-                    break
-
             # the final data ready to use for path planning
-            if keep:
-                complexes.append([x, y, angle, d_m])
+            complexes.append([x, y, angle, d_m])
 
         array = np.array(complexes)
 
@@ -271,6 +296,8 @@ class RPLidarProvider:
         sorted_indices = array[:, 2].argsort()
         array = array[sorted_indices]
 
+        # logging.debug(f"_process array: {array}")
+
         X = array[:, 0]
         Y = array[:, 1]
         # A = array[:, 2]
@@ -280,20 +307,26 @@ class RPLidarProvider:
         Determine set of possible paths
         """
         possible_paths = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        if self.simple_paths:
+            # for the turtlebot - it can always turn in place,
+            # only question is whether it can advance
+            possible_paths = np.array([4])
 
         # all the possible conflicting points
         for x, y, d in list(zip(X, Y, D)):
-            if d > self.max_relevant_distance:  # too far away - we do not care
-                continue
+
             for apath in possible_paths:
                 for point in self.pp[apath]:
                     p1 = x - point[0]
                     p2 = y - point[1]
                     dist = math.sqrt(p1 * p1 + p2 * p2)
+                    # logging.debug(f"_process dist: {dist}")
                     if dist < self.half_width_robot:
                         # too close - this path will not work
+                        logging.debug(f"removing path: {apath}")
                         path_to_remove = np.array([apath])
                         possible_paths = np.setdiff1d(possible_paths, path_to_remove)
+                        logging.debug(f"remaining paths: {possible_paths}")
                         break  # no need to keep checking this path - we know this path is bad
 
         turn_left = []
@@ -301,7 +334,12 @@ class RPLidarProvider:
         turn_right = []
         retreat = []
 
-        for p in possible_paths:
+        logging.debug(f"possible_paths RP Lidar: {possible_paths}")
+
+        # convert to simple list
+        ppl = possible_paths.tolist()
+
+        for p in ppl:
             if p < 4:
                 turn_left.append(p)
             elif p == 4:
@@ -313,25 +351,27 @@ class RPLidarProvider:
 
         return_string = "You are surrounded by objects and cannot safely move in any direction. DO NOT MOVE."
 
-        if len(possible_paths) > 0:
-            return_string = "The safe movement choices are: "
+        if len(ppl) > 0:
+            return_string = "The safe movement directions are: {"
             if self.use_zenoh:  # i.e. you are controlling a TurtleBot4
-                return_string += "You can turn left. You can turn right. "
                 if len(advance) > 0:
-                    return_string += "You can move forwards. "
+                    return_string += "'turn left', 'turn right', 'move forwards', "
+                else:
+                    return_string += "'turn left', 'turn right', "
             else:
                 if len(turn_left) > 0:
-                    return_string += "You can turn left. "
+                    return_string += "'turn left', "
                 if len(advance) > 0:
-                    return_string += "You can move forwards. "
+                    return_string += "'move forwards', "
                 if len(turn_right) > 0:
-                    return_string += "You can turn right. "
+                    return_string += "'turn right', "
                 if len(retreat) > 0:
-                    return_string += "You can move back. "
+                    return_string += "'move back', "
+            return_string += "'stand still'}. "
 
         self._raw_scan = array
         self._lidar_string = return_string
-        self._valid_paths = possible_paths.tolist()
+        self._valid_paths = ppl
 
         logging.debug(
             f"RPLidar Provider string: {self._lidar_string}\nValid paths: {self._valid_paths}"
@@ -359,8 +399,8 @@ class RPLidarProvider:
                         )
                     ):
                         self._preprocess_serial(scan)
-                    # not sure about the level of this?
-                    time.sleep(0.1)
+                        # not sure about the level of this?
+                        # BUG BUG BUG time.sleep(0.1)
                 except Exception as e:
                     logging.error(f"Error in Serial RPLidar provider: {e}")
 

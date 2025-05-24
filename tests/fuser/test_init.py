@@ -72,7 +72,7 @@ def test_fuser_with_inputs_and_actions(mock_describe):
             + "\nLAWS:\n"
             + config.system_governance
             + "\n"
-            + "\nEXAMPLES:\n"
+            + "\n\nEXAMPLES:\n"
             + config.system_prompt_examples
         )
         expected = f"{system_prompt}\n\ntest input\n\nAVAILABLE ACTIONS:\naction description\n\n\naction description\n\nWhat will you do? Command: "

@@ -12,8 +12,6 @@ Make sure you have the following before installation:
 - Storage: At least 16GB free
 - Network: Internet access
 
----
-
 ## 1. Update and Upgrade the System
 
 Ensure your system is up to date before installing anything:
@@ -22,8 +20,6 @@ Ensure your system is up to date before installing anything:
 sudo apt update && sudo apt upgrade -y
 ```
 
----
-
 ## 2. Clone the Repository
 
 ```bash
@@ -31,8 +27,6 @@ git clone https://github.com/OpenmindAGI/OM1.git
 cd OM1
 git submodule update --init
 ```
-
----
 
 ## 3. Install Dependencies
 
@@ -48,8 +42,6 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 sudo apt-get install portaudio19-dev
 ```
 
----
-
 ## 4. Set Configuration Variables
 
 Add your OpenMind API key to the configuration file:
@@ -57,7 +49,7 @@ Add your OpenMind API key to the configuration file:
 1. Locate the config file at `/config/spot.json5`
 2. Replace the placeholder with your OpenMind API key:
 
-```json
+```bash
 {
   ...
   "api_key": "om1_live_e4252f1cf005af..."
@@ -65,18 +57,13 @@ Add your OpenMind API key to the configuration file:
 }
 ```
 
-You can obtain a free API key at: https://portal.openmind.org/  
-**Note**: Using the placeholder key `openmind-free` will result in errors.
-
----
+You can obtain a free API key at: https://portal.openmind.org/. Using the placeholder key `openmind-free` will result in errors.
 
 ## 5. Run the Spot Agent
 
 ```bash
 uv run src/run.py spot
 ```
-
----
 
 ## 6. Monitor with WebSim
 
@@ -90,18 +77,12 @@ For additional debug information, you can run:
 uv run src/run.py spot --debug
 ```
 
----
-
 ## Done
 
-You’re now running OM1 on your Raspberry Pi.
-Explore its capabilities and refer to the OM1 GitHub repository for advanced settings and next steps:
+You’re now running OM1 on your Raspberry Pi. Explore its capabilities and refer to the OM1 GitHub repository for advanced settings and next steps:
 
 https://github.com/OpenmindAGI/OM1
 
 ## Note:
 
-This is a general guide for getting OM1 started on Raspberry Pi. Depending on your specific robot’s firmware, OS version, or configuration, you may need additional modifications or pre-requirements.
-For details on supported setups, please visit: docs.openmind.org and refer to the Interfacing with New Robot Hardware section in https://github.com/OpenmindAGI/OM1
-
-
+This is a general guide for getting OM1 started on Raspberry Pi. Depending on your specific robot’s firmware, OS version, or configuration, you may need additional modifications or pre-requirements. For details on supported setups, please visit: docs.openmind.org and refer to the Interfacing with New Robot Hardware section in https://github.com/OpenmindAGI/OM1

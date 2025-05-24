@@ -10,6 +10,7 @@
       domain: 0,
       allow: {
         publishers: [
+                      ".*/battery_state",
                       ".*/cmd_vel",
                       ".*/dock_status",
                       ".*/imu",
@@ -23,10 +24,10 @@
                       ".*/tf",
                       ".*/tf_static",
                       ".*/wheel_status",
-                      ".*/oakd/rgb/preview/image_raw" // allows camera data to flow to other computers
+                      ".*/oakd/rgb/preview/image_raw"
                     ],
         subscribers: [
-                      ".*/battery_state", // to debug the Create3 battery data
+                      ".*/battery_state",
                       ".*/cmd_vel",
                       ".*/dock_status",
                       ".*/imu",
@@ -40,7 +41,7 @@
                       ".*/tf",
                       ".*/tf_static",
                       ".*/wheel_status",
-                      ".*/oakd/rgb/preview/image_raw" // allows camera data to flow to other computers
+                      ".*/oakd/rgb/preview/image_raw"
                      ],
         service_servers: [
           ".*/start_motor",
