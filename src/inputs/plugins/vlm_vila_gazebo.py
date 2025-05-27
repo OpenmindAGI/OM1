@@ -66,7 +66,7 @@ class VLMVilaGazebo(FuserInput[str]):
         stream_base_url = getattr(
             self.config,
             "stream_base_url",
-            f"wss://api.openmind.org/api/core/teleops/stream?api_key={api_key}",
+            f"wss://api.openmind.org/api/core/teleops/stream/video?api_key={api_key}",
         )
 
         topic = getattr(self.config, "topic", "/camera")
@@ -179,7 +179,7 @@ class VLMVilaGazebo(FuserInput[str]):
         latest_message = self.messages[-1]
 
         result = f"""
-INPUT: {self.descriptor_for_LLM} 
+INPUT: {self.descriptor_for_LLM}
 // START
 {latest_message.message}
 // END
