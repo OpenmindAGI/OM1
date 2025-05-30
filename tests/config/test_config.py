@@ -16,6 +16,8 @@ def test_configs():
     ]
 
     for file_name in files_names:
+        if file_name.endswith(".DS_Store"):
+            continue
         assert file_name.endswith(".json5")
         with open(os.path.join(config_folder_path, file_name), "r") as f:
             raw_config = json5.load(f)

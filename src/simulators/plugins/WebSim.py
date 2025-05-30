@@ -11,7 +11,7 @@ from fastapi import FastAPI, WebSocket
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
-from llm.output_model import Command
+from llm.output_model import Action
 from providers.io_provider import Input, IOProvider
 from simulators.base import Simulator, SimulatorConfig
 
@@ -587,7 +587,7 @@ class WebSim(Simulator):
 
             time.sleep(0.5)
 
-    def sim(self, commands: List[Command]) -> None:
+    def sim(self, actions: List[Action]) -> None:
         """Handle simulation updates from commands"""
         if not self._initialized:
             logging.warning("WebSim not initialized, skipping sim update")
@@ -632,19 +632,19 @@ class WebSim(Simulator):
                     "complete": llm_end_time - earliest_time if llm_end_time else 0,
                 }
 
-                for command in commands:
-                    if command.type == "move":
-                        new_action = command.value
+                for action in actions:
+                    if action.type == "move":
+                        new_action = action.value
                         if new_action != self.state.current_action:
                             self.state.current_action = new_action
                             updated = True
-                    elif command.type == "speak":
-                        new_speech = command.value
+                    elif action.type == "speak":
+                        new_speech = action.value
                         if new_speech != self.state.last_speech:
                             self.state.last_speech = new_speech
                             updated = True
-                    elif command.type == "emotion":
-                        new_emotion = command.value
+                    elif action.type == "emotion":
+                        new_emotion = action.value
                         if new_emotion != self.state.current_emotion:
                             self.state.current_emotion = new_emotion
                             updated = True

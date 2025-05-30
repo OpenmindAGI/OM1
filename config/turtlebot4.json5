@@ -24,7 +24,7 @@
         },
     },
     {
-      "type": "TurtleBot4Batt"
+      "type": "TurtleBot4Battery"
     },
     {
       "type": "VLMVila"

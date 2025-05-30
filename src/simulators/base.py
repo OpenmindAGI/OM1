@@ -2,7 +2,7 @@ import time
 from dataclasses import dataclass
 from typing import List
 
-from llm.output_model import Command
+from llm.output_model import Action
 
 
 @dataclass
@@ -39,9 +39,9 @@ class Simulator:
         self.config = config
         self.name = getattr(config, "name", "Simulator")
 
-    def sim(self, commands: List[Command]) -> None:
+    def sim(self, actions: List[Action]) -> None:
         """
-        Simulate the environment with the given commands
+        Simulate the environment with the given actions
         """
         pass
 

@@ -296,7 +296,7 @@ class UnitreeRealSenseDevVLMProvider:
 
         if self.stream_ws_client:
             self.stream_ws_client.start()
-            self.video_stream.register_stream_callback(
+            self.video_stream.register_frame_callback(
                 self.stream_ws_client.send_message
             )
 

@@ -1,11 +1,11 @@
 ---
-title: Arduino GPS and compass support
-description: "Arduino GPS and compass support"
+title: Arduino GPS and Compass Support
+description: "Arduino GPS and Compass Support"
 ---
 
 ## Hardware
 
-A simple solution for outdoors localization and basic navigation is an Arduino board, such as the [Adafruit Feather nRF52840 Sense](https://www.adafruit.com/product/4516) with a GPS shield, such as the [Adafruit Ultimate GPS FeatherWing](https://www.adafruit.com/product/3133). The `Sense` provides a micro controller, Bluetooth, a 6DoF IMU, and a magnetometer (a LIS3MDL). The `FeatherWing` provides a GPS.
+A simple solution for outdoor localization and basic navigation is an Arduino board, such as the [Adafruit Feather nRF52840 Sense](https://www.adafruit.com/product/4516) with a GPS shield, such as the [Adafruit Ultimate GPS FeatherWing](https://www.adafruit.com/product/3133). The `Sense` provides a micro controller, Bluetooth, a 6DoF IMU, and a magnetometer (a LIS3MDL). The `FeatherWing` provides a GPS.
 
 ## Assembly
 
@@ -21,7 +21,7 @@ Add the following libraries to the Arduino IDE:
 
 Run the sketch provided in `/system_hw_test/gps_mag`. It yields all the data for tilt compensated magnetic heading, a full AHRS solution (yaw, tilt, roll) and a GPS location, as well as altitude and velocity. 
 
-*WARNING* The direction and AHRS data will be entirely incorrect unless you calibrate your magnetometer, gyro, and accelerator.
+*WARNING* The direction and AHRS data will be entirely incorrect unless you calibrate your magnetometer, gyro, and accelerometer.
 
 ## Calibration
 
@@ -67,3 +67,29 @@ if (strcmp(DeviceID, "38e4bfd6") == 0) {
 ## Usage
 
 Once your Sense/FeatherWing is streaming data on the serial line, it can be fed into OM1. See `src/inputs/plugins/serial_reader` for an example of how to do that. 
+
+### Finding the Arduino on Linux
+
+When connecting to the Arduino via USB, you should see the Arduino serial port appear as `/dev/ttyACM0` (sometimes the number can be different, for example `/dev/ttyACM1`). Run:
+
+```bash
+sudo dmesg | grep ttyACM*
+```
+and you should see it. If you're not sure which tty device is the Arduino board, run `sudo dmesg` and looks for entries with "Arduino" in it. This way you will easily spot the serial device name of your Arduino. You can read the data with:
+
+```bash
+screen /dev/ttyACM0 115200
+```
+
+Note: on a typical TurtleBot4, the RPLIDAR uses `/dev/ttyUSB0`. The TurtleBot4 **assumes** that the RPLIDAR is accessible at `/dev/ttyUSB0`. If you change which USB port the LIDAR is plugged into, the LIDAR will fail.    
+
+### Finding the Arduino on Mac
+
+Determine the serial port the sensor is using:
+
+```bash
+ls /dev/tty.*  
+# or
+ls /dev/cu.*  
+```
+It should be something similar to `/dev/cu.usbmodem8401`.

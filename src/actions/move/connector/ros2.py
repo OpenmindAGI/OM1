@@ -5,7 +5,7 @@ from actions.base import ActionConfig, ActionConnector
 from actions.move.interface import MoveInput
 
 
-class MoveRos2Connector(ActionConnector[MoveInput]):
+class MoveUnitreeSDKConnector(ActionConnector[MoveInput]):
 
     def __init__(self, config: ActionConfig):
         super().__init__(config)
@@ -41,4 +41,4 @@ class MoveRos2Connector(ActionConnector[MoveInput]):
 
     def tick(self) -> None:
         time.sleep(0.1)
-        # logging.info("MoveRos2Connector Tick")
+        # logging.info("MoveUnitreeSDKConnector Tick")

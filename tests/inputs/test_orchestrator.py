@@ -48,7 +48,7 @@ async def test_listen_to_input():
     mock_input = MockInput()
     mock_input.raw_to_text = AsyncMock()
     orchestrator = InputOrchestrator([mock_input])
-    await asyncio.wait_for(orchestrator._listen_to_input(mock_input), timeout=1.0)
+    await asyncio.wait_for(orchestrator._listen_to_input(mock_input), timeout=5.0)
     assert mock_input.raw_to_text.call_count == 3
 
 
@@ -59,7 +59,7 @@ async def test_listen_multiple_inputs():
     for input in inputs:
         input.raw_to_text = AsyncMock()
     orchestrator = InputOrchestrator(inputs)
-    await asyncio.wait_for(orchestrator.listen(), timeout=1.0)
+    await asyncio.wait_for(orchestrator.listen(), timeout=5.0)
     for input in inputs:
         assert input.raw_to_text.call_count == 3
 

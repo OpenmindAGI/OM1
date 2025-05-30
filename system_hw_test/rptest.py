@@ -73,10 +73,12 @@ ax1.set_aspect("equal")
 
 """
 Robot and sensor configuration
+UNITREE
 """
+
 half_width_robot = 0.20  # the width of the robot is 40 cm
 max_relevant_distance = 1.1  # meters
-sensor_mounting_angle = 180.0  # corrects for how sensor is mounted
+sensor_mounting_angle = 172.0  # corrects for how sensor is mounted
 angles_blanked = [[-180.0, -160.0], [160.0, 180.0]]
 
 # Figure 2 - the zoom and the possible paths
@@ -91,7 +93,6 @@ if args.URID:
     outline = ax2.add_patch(
         Rectangle((-0.05, -0.15), 0.20, 0.06, ls="--", fc="black")
     )  # the robot electronics
-
 else:
     circleZoom = ax2.add_patch(
         Circle((0, 0), 0.20, ls="--", lw=1, ec="red", fc="none")
@@ -280,7 +281,7 @@ def process(data):
                     possible_paths = np.setdiff1d(possible_paths, path_to_remove)
                     break  # no need to keep checking this path - we know this path is bad
 
-    # print(f"possible: {possible_paths}")
+    print(f"possible_paths RP Lidar: {possible_paths}")
 
     # convert to simple list
     ppl = possible_paths.tolist()

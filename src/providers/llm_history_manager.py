@@ -217,6 +217,10 @@ class LLMHistoryManager:
                     formatted_inputs += f"{input_type}. {input_info.input} | "
 
                 # formatted_inputs = f"**** sensed the following: {" | ".join(f"{input_type}: {input_info.input}" for input_type, input_info in self.io_provider.inputs.items())}"
+
+                formatted_inputs = formatted_inputs.replace("..", ".")
+                formatted_inputs = formatted_inputs.replace("  ", " ")
+
                 inputs = ChatMessage(role="user", content=formatted_inputs)
 
                 logging.debug(f"Inputs: {inputs}")
@@ -234,11 +238,11 @@ class LLMHistoryManager:
                         "Given that information, **** took these actions: "
                         + (
                             " | ".join(
-                                ACTION_MAP[command.type].format(
-                                    command.value if command.value else ""
+                                ACTION_MAP[action.type.lower()].format(
+                                    action.value if action.value else ""
                                 )
-                                for command in response.commands
-                                if command.type in ACTION_MAP
+                                for action in response.actions
+                                if action.type.lower() in ACTION_MAP
                             )
                         )
                     )

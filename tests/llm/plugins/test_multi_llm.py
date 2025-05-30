@@ -20,7 +20,7 @@ def config():
 def mock_response():
     """Mock API response with markdown content"""
     return {
-        "content": '{"commands":[{"type":"move","value":"wag tail"},{"type":"move","value":"walk"},{"type":"speak","value":"Woof! Hello there! I see you!"},{"type":"emotion","value":"joy"}]}'
+        "content": '{"actions":[{"type":"move","value":"wag tail"},{"type":"move","value":"walk"},{"type":"speak","value":"Woof! Hello there! I see you!"},{"type":"emotion","value":"joy"}]}'
     }
 
 

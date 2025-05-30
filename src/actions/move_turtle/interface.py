@@ -19,8 +19,7 @@ class MoveInput:
 @dataclass
 class Move(Interface[MoveInput, MoveInput]):
     """
-    A movement to be performed by the agent.
-    Effect: Allows the agent to move.
+    This action allows you to move. Important: pick only safe values.
     """
 
     input: MoveInput

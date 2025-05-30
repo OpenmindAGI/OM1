@@ -17,7 +17,7 @@
       "type": "VLMVila"
     },
     {
-      "type": "TurtleBot4Batt"
+      "type": "TurtleBot4Battery"
     },
     {
       "type": "GoogleASRInput"

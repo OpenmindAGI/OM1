@@ -3,7 +3,7 @@ import logging
 import threading
 import typing as T
 
-from llm.output_model import Command
+from llm.output_model import Action
 from runtime.config import RuntimeConfig
 from simulators.base import Simulator
 
@@ -69,39 +69,39 @@ class SimulatorOrchestrator:
         self.promise_queue = [p for p in self.promise_queue if p not in done_promises]
         return done_promises, self.promise_queue
 
-    async def promise(self, commands: T.List[Command]) -> None:
+    async def promise(self, actions: T.List[Action]) -> None:
         """
-        Send commands to all simulators
+        Send actions to all simulators
 
         Parameters
         ----------
-        commands : list[Command]
-            List of commands to send to the simulators
+        actions : list[Action]
+            List of actions to send to the simulators
         """
         for simulator in self._config.simulators:
             simulator_response = asyncio.create_task(
-                self._promise_simulator(simulator, commands)
+                self._promise_simulator(simulator, actions)
             )
             self.promise_queue.append(simulator_response)
 
     async def _promise_simulator(
-        self, simulator: Simulator, commands: T.List[Command]
+        self, simulator: Simulator, actions: T.List[Action]
     ) -> T.Any:
         """
-        Send commands to a single simulator
+        Send actions to a single simulator
 
         Parameters
         ----------
         simulator : Simulator
-            The simulator to send commands to
-        commands : list[Command]
-            List of commands to send to the simulator
+            The simulator to send actions to
+        actions : list[Action]
+            List of actions to send to the simulator
 
         Returns
         -------
         Any
             The result of the simulator's response
         """
-        logging.debug(f"Calling simulator {simulator.name} with commands {commands}")
-        simulator.sim(commands)
+        logging.debug(f"Calling simulator {simulator.name} with actions {actions}")
+        simulator.sim(actions)
         return None

@@ -1,0 +1,70 @@
+{
+  "hertz": 1,
+  "name": "spot_background",
+  "api_key": "openmind_free",
+  "URID": "om1_qwertyui",
+  "unitree_ethernet": "en0",
+  "system_prompt_base": "You are a smart, curious, and friendly dog.",
+  "system_governance": "Here are the laws that govern your actions. Do not violate these laws.\nFirst Law: A robot cannot harm a human or allow a human to come to harm.\nSecond Law: A robot must obey orders from humans, unless those orders conflict with the First Law.\nThird Law: A robot must protect itself, as long as that protection doesn't conflict with the First or Second Law.\nThe First Law is considered the most important, taking precedence over the second and third laws.",
+  "system_prompt_examples": "",
+  "agent_inputs": [
+    {
+      "type": "VLM_COCO_Local",
+      "config": {
+        "camera_index": 0
+      }
+    },
+    {
+      "type": "Gps",
+      config: {
+        "serial_port": "/dev/cu.usbmodem21201",
+        "silent": false // set to true to just spin up the provider
+      }
+    },
+    {
+      "type": "Odom",
+        "config": {
+          "use_zenoh": false,
+          "URID": "",     // only needed for Zenoh
+          "silent": false // set to true to just spin up the provider
+        }
+    },
+    {
+      "type": "RPLidar",
+      "config": {
+        "serial_port": "/dev/cu.usbserial-0001",
+        "half_width_robot": 0.21,
+        "max_relevant_distance": 1.1,
+        "sensor_mounting_angle": 172.0,
+        "angles_blanked": [[-180.0, -170.0], [160, 180]],
+        "silent": false
+      }
+    }
+  ],
+  "cortex_llm": {
+    "type": "OpenAILLM",
+    "config": {
+      "agent_name": "Spot",
+      "history_length": 0
+    }
+  },
+  "agent_actions": [
+    {
+      "name": "move_xbox_controller",
+      "llm_label": "xbox",
+      "implementation": "passthrough",
+      "connector": "go2_xbox_controller"
+    },
+    {
+      "name": "move_go2_autonomy",
+      "llm_label": "move",
+      "implementation": "passthrough",
+      "connector": "unitree_sdk"
+    },
+  ],
+  "backgrounds": [
+    {
+        "type": "RFmapper",
+    }
+  ]
+}

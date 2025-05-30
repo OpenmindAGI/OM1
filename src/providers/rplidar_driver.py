@@ -56,7 +56,7 @@ HEALTH_TYPE = 6
 
 # Constants & Command to start A2 motor
 MAX_MOTOR_PWM = 1023
-DEFAULT_MOTOR_PWM = 660
+DEFAULT_MOTOR_PWM = 400
 SET_PWM_BYTE = b"\xf0"
 
 _HEALTH_STATUSES = {
@@ -149,6 +149,7 @@ class RPDriver(object):
                 parity=serial.PARITY_NONE,
                 stopbits=serial.STOPBITS_ONE,
                 timeout=self.timeout,
+                write_timeout=self.timeout,
             )
         except serial.SerialException as err:
             raise RPLidarException(
@@ -242,7 +243,9 @@ class RPDriver(object):
             Dictionary with the sensor information
         """
         if self._serial.inWaiting() > 0:
-            return "Buffer is full! Run clean_input() to empty the buffer."
+            self.clean_input()
+            time.sleep(0.5)
+            # return "Buffer is full! Run clean_input() to empty the buffer."
         self._send_cmd(GET_INFO_BYTE)
         dsize, is_single, dtype = self._read_descriptor()
         if dsize != INFO_LEN:
@@ -278,7 +281,9 @@ class RPDriver(object):
             The related error code that caused a warning/error.
         """
         if self._serial.inWaiting() > 0:
-            return "Data in buffer. " "Run clean_input() to empty the buffer."
+            self.clean_input()
+            time.sleep(0.5)
+            # return "Data in buffer. " "Run clean_input() to empty the buffer."
         self.logger.info("Asking for health")
         self._send_cmd(GET_HEALTH_BYTE)
         dsize, is_single, dtype = self._read_descriptor()
@@ -359,7 +364,7 @@ class RPDriver(object):
     def reset(self):
         """Resets sensor core, reverting it to a similar state as it has
         just been powered up."""
-        self.logger.info("Resetting the sensor")
+        self.logger.info("Resetting the RPLidar")
         self._send_cmd(RESET_BYTE)
         time.sleep(2)
         self.clean_input()
@@ -411,30 +416,52 @@ class RPDriver(object):
                 print(f"M: Raw:{raw}")
                 yield _process_scan(raw)
             if self.scanning[2] == "express":
-                # print("M: Express scanning")
-                if self.express_trame == 32:
-                    self.express_trame = 0
-                    # if not self.express_data or type(self.express_data) == bool:
-                    if not self.express_data:
-                        self.logger.debug("reading first time bytes")
-                        self.express_data = ExpressPacket.from_string(
-                            self._read_response(dsize)
+                try:
+                    if self.express_trame == 32:
+                        self.express_trame = 0
+                        if not self.express_data:
+                            self.logger.debug("reading first time bytes")
+                            raw_data = self._read_response(dsize)
+                            self.express_data = ExpressPacket.from_string(raw_data)
+
+                        self.express_old_data = self.express_data
+                        self.logger.debug(
+                            "set old_data with start_angle %f",
+                            self.express_old_data.start_angle,
+                        )
+                        raw_data = self._read_response(dsize)
+                        self.express_data = ExpressPacket.from_string(raw_data)
+                        self.logger.debug(
+                            "set new_data with start_angle %f",
+                            self.express_data.start_angle,
                         )
 
-                    self.express_old_data = self.express_data
+                    self.express_trame += 1
                     self.logger.debug(
-                        "set old_data with start_angle %f",
+                        "process scan of frame %d with angle : %f and angle new : %f",
+                        self.express_trame,
                         self.express_old_data.start_angle,
-                    )
-                    self.express_data = ExpressPacket.from_string(
-                        self._read_response(dsize)
-                    )
-                    self.logger.debug(
-                        "set new_data with start_angle %f",
                         self.express_data.start_angle,
                     )
+                    yield _process_express_scan(
+                        self.express_old_data,
+                        self.express_data.start_angle,
+                        self.express_trame,
+                    )
 
-                self.express_trame += 1
+                except ValueError as e:
+                    self.logger.warning(f"Express packet corruption: {e}")
+
+                    self.express_trame = 32
+                    self.express_data = False
+
+                    self.stop()
+                    time.sleep(0.1)
+                    self.clean_input()
+                    time.sleep(0.1)
+                    self.start("express")
+                    continue
+
                 self.logger.debug(
                     "process scan of frame %d with angle : " "%f and angle new : %f",
                     self.express_trame,
@@ -477,6 +504,38 @@ class RPDriver(object):
             if distance > 0:
                 scan_list.append((quality, angle, distance))
 
+    def iter_scans_local(
+        self, scan_type="normal", max_buf_meas=3000, min_len=5, max_distance_mm=2000
+    ):
+        """Iterate over scans. Note that consumer must be fast enough,
+        otherwise data will accumulate inside buffer and consumer will get
+        data with increasing lag.
+
+        Parameters
+        ----------
+        max_buf_meas : int
+            Maximum number of measures to be stored inside the buffer. Once
+            number exceeds this limit buffer will be cleared.
+        min_len : int
+            Minimum number of measures in the scan for it to be returned.
+
+        Yields
+        ------
+        scan : list
+            List of the measurements. Each measurement is a tuple with following
+            format: (angle, distance). For values description please
+            refer to `iter_measures` method's documentation.
+        """
+        scan_list = []
+        iterator = self.iter_measures(scan_type, max_buf_meas)
+        for new_scan, quality, angle, distance in iterator:
+            if new_scan:
+                if len(scan_list) > min_len:
+                    yield scan_list
+                scan_list = []
+            if distance > 0 and distance < max_distance_mm:
+                scan_list.append((angle, distance))
+
 
 class ExpressPacket(
     namedtuple("express_packet", "distance angle new_scan start_angle")
@@ -490,7 +549,7 @@ class ExpressPacket(
         packet = bytearray(data)
 
         if (packet[0] >> 4) != cls.sync1 or (packet[1] >> 4) != cls.sync2:
-            raise ValueError("try to parse corrupted data ({})".format(packet))
+            raise ValueError("trying to parse corrupted data ({})".format(packet))
 
         checksum = 0
         for b in packet[2:]:

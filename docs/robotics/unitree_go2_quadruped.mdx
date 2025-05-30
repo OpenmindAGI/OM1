@@ -3,21 +3,15 @@ title: Unitree Go2 Quadruped
 description: "Unitree Go2 EDU Quadruped (dog)"
 ---
 
-- [Step 1 - Establishing Ethernet and DDS Connectivity](#step-1---establishing-ethernet-and-dds-connectivity)
-- [Step 2 - Add the DDS module](#step-2---add-the-dds-module)
-- [Step 3 - Connect an XBOX controller](#step-3---connect-an-xbox-controller)
-- [Step 4 - Controlling the Quadruped](#step-4---controlling-the-quadruped)
-- [Accessing Unitree data](#accessing-unitree-data)
-- [Unitree Go2 EDU Common Problems](#unitree-go2-edu-common-problems)
-
 OM1 can control a Unitree Go2 EDU out of the box. This has been tested on Nvidia Orin, Mac Mini, and current (silicon) Mac laptops.
 
-## Step 1 - Establishing Ethernet and DDS Connectivity
+## Step 1 Establishing Ethernet and DDS Connectivity
 
 Connect the Unitree Go2 EDU to your development machine with an Ethernet cable. Open the network settings and find the network interface that is connected to the Go2 EDU. In the IPv4 settings, change the IPv4 mode to `manual`, set the address to `192.168.123.99`, and set the mask to `255.255.255.0`. After completion, click `apply` (or equivalent) and wait for the network to reconnect. Provide the name of the network adapter in the `"unitree_ethernet": "en0"` entry in the `unitree_go2.config` file.
 
 Then, install [`CycloneDDS`](https://index.ros.org/p/cyclonedds/). `CycloneDDS` works on Mac, Linux, and PC. Run:
-```bash CycloneDDS
+
+```bash
 git clone https://github.com/eclipse-cyclonedds/cyclonedds -b releases/0.10.x
 cd cyclonedds && mkdir build install && cd build
 cmake .. -DCMAKE_INSTALL_PREFIX=../install -DBUILD_EXAMPLES=ON
@@ -55,7 +49,7 @@ cmake --build .
 ./listtopics
 ```
 
-On Mac, you may need to `allow incoming connections` in the popup the first time you run `listtopics`. 
+On Mac, you **might** need to `allow incoming connections` in the popup the first time you run `listtopics`. 
 
 Running `listtopics` should result in an extensive data dump of available topics:
 
@@ -159,41 +153,32 @@ alive: 1453e55f:a4d5babe:aec670aa:6c0a9bff rt/uslam/localization/cloud_world sen
 alive: 1a6535ff:d7346fd8:87885024:9a136972 rt/programming_actuator/feedback std_msgs::msg::dds_::String_
 ```
 
-## Step 2 - Add the Python CycloneDDS module
+## Step 2 Add the Python CycloneDDS module
 
 Add the `dds` python module to your code base: `uv pip install -r pyproject.toml --extra dds`.
 
-## Step 3 - Connect an Xbox controller
+## Step 3 Connect an Xbox controller
 
-On Mac, **make sure that your Xbox controller is running the most recent firmware**, otherwise you will be able to pair but not connect to the controller. You will need a PC with `Xbox Accessories` to update the Xbox controller's firmware. Many Mac OS updates hose support for the Xbox controller, which is then fixed (after some delay) via an Xbox firmware update. On Mac, you will also need to install `hidapi` (`brew install hidapi`). 
+On Mac, **make sure that your Xbox controller is running the most recent firmware**, otherwise you will be able to pair but not connect to the controller. You will need a PC with `Xbox Accessories` to update the Xbox controller's firmware. Many Mac OS updates hose support for the Xbox controller, which is then fixed (after some delay) via an Xbox firmware update. 
 
-NOTE: There is a bug on Mac when installing packages with `brew` - some libraries cannot be found by `uv`. If you get errors such as
-`Unable to load any of the following libraries:libhidapi-hidraw.so`, set `export DYLD_FALLBACK_LIBRARY_PATH=$HOMEBREW_PREFIX/lib` in your `.zshenv` or equivalent.
+On Mac, you will need to install `hidapi`:
+
+```bash
+brew install hidapi
+```
+
+NOTE: There is a bug on Mac when installing packages with `brew` - some libraries cannot be found by `uv`. If you get errors such as `Unable to load any of the following libraries:libhidapi-hidraw.so`, set `export DYLD_FALLBACK_LIBRARY_PATH=$HOMEBREW_PREFIX/lib` in your `.zshenv` or equivalent.
 
 On Linux, install `hidapi` like this:
 
-```bash Linux hidapi
+```bash
 sudo apt-get update
 sudo apt-get install python-dev libusb-1.0-0-dev libudev-dev libhidapi-dev
 ```
 
-## Step 4 - Controlling the Quadruped
+## Accessing Unitree Data
 
-Run
-```bash Run Robot
-uv run src/run.py unitree_go2
-```
-
-OM1 will control a safe and limited subset of motions (such as `stretch` and `sit down`). You can also manually control the dog via the game controller. Press:
-
-* A to stand up
-* B to sit down
-* X to shake paw
-* Y to stretch
-
-Allowing the dog to `move`, `pounce`, and `run` requires **you** to add this functionality. **Warning: If you add additional movement capabilities, this is at your own risk. Due to the autonomous nature of the system, we recommend to perform such testing in the absence of squirrels, cats, rabbits, or small children (assuming you are providing a `dog` prompt)**.
-
-## Accessing Unitree data
+For debugging, you can access Unitree data as follows:
 
 Front video feed:
 ```bash
@@ -210,10 +195,42 @@ Lowstate system/joint data:
 uv run system_hw_test/go2_data_stream.py en0
 ```
 
-Lidar:
+Lidar: 
 ```bash
 uv run system_hw_test/go2_lidar.py en0
 ```
+
+Note - the internal Go2 LIDAR is currently not used - a separate RPLIDAR mounted to the top of the dog's head is used instead. 
+
+## CONFIGURATION 1: Minimal Quadruped Functionality
+
+In this configuration, the quadruped observes its environment, listens and speaks, but there is no AI-controlled movement. However, you can manually control the dog's movements with an Xbox controller. 
+
+Run
+```bash
+uv run src/run.py unitree_go2_basic
+```
+
+Press:
+
+* A to stand up
+* B to sit down
+* The D-pad allows you to steer the quadruped. 
+
+## CONFIGURATION 2: Full Autonomy
+
+Run
+```bash
+uv run src/run.py unitree_go2_autonomy
+```
+
+OM1 will provide LIDAR and other data to a system of LLMs, allowing them to autonomously explore indoor and outdoor environments. You can also manually control the dog via the Xbox game controller. Press:
+
+* A to stand up
+* B to sit down
+* The D-pad allows you to steer the quadruped. 
+
+The Xbox game controller has command precedence over the AI, so game controller inputs will block AI-generated physical actions.  
 
 ## Unitree Go2 EDU Common Problems
 
@@ -226,4 +243,4 @@ uv run system_hw_test/go2_lidar.py en0
 ping 192.168.123.161
 ```
 
-Assuming you can `ping` the robot, then test the `cycloneDDS` middleware (see **STEP 1**). Once you can see data flowing, then the rest of the system should work. 
+Assuming you can `ping` the robot, then test the CycloneDDS middleware (see **STEP 1**). Once you see data flowing, then the rest of the system should work. 

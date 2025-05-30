@@ -46,7 +46,7 @@ async def test_ask_api_error(llm):
         m.setattr(
             llm._client.chat.completions,
             "create",
-            MagicMock(side_effect=Exception("API error")),
+            AsyncMock(side_effect=Exception("API error")),
         )
 
         result = await llm.ask("test prompt")
@@ -60,7 +60,7 @@ async def test_io_provider_timing(llm, mock_response):
         m.setattr(
             llm._client.chat.completions,
             "create",
-            MagicMock(return_value=mock_response),
+            AsyncMock(return_value=mock_response),
         )
         await llm.ask("test prompt")
         assert llm.io_provider.llm_start_time is not None
@@ -101,7 +101,7 @@ async def test_ask_invalid_json(llm):
         m.setattr(
             llm._client.chat.completions,
             "create",
-            MagicMock(return_value=invalid_response),
+            AsyncMock(return_value=invalid_response),
         )
 
         result = await llm.ask("test prompt")

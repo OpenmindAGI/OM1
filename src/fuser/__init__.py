@@ -66,47 +66,35 @@ class Fuser:
         logging.debug(f"InputMessageArray: {input_strings}")
 
         # Combine all inputs, memories, and configurations into a single prompt
-        system_prompt = (
-            "BASIC CONTEXT:\n"
-            + self.config.system_prompt_base
-            + "\n"
-            + "\nLAWS:\n"
-            + self.config.system_governance
-            + "\n"
-            + "\nEXAMPLES:\n"
-            + self.config.system_prompt_examples
-        )
+        system_prompt = "\nBASIC CONTEXT:\n" + self.config.system_prompt_base + "\n"
 
         inputs_fused = " ".join([s for s in input_strings if s is not None])
 
         # if we provide laws from blockchain, these override the locally stored rules
         # the rules are not provided in the system prompt, but as a separate INPUT,
         # since they are flowing from the outside world
-        if "Universal Laws" in inputs_fused:
-            system_prompt = (
-                "BASIC CONTEXT:\n"
-                + self.config.system_prompt_base
-                + "\n"
-                + "\nEXAMPLES:\n"
-                + self.config.system_prompt_examples
-            )
+        if "Universal Laws" not in inputs_fused:
+            system_prompt += "\nLAWS:\n" + self.config.system_governance
 
-        # descriptions of various possible actions
-        actions_fused = "\n\n\n".join(
+        if self.config.system_prompt_examples:
+            system_prompt += "\n\nEXAMPLES:\n" + self.config.system_prompt_examples
+
+        # descriptions of possible actions
+        actions_fused = "\n\n".join(
             [
                 describe_action(action.name, action.llm_label)
                 for action in self.config.agent_actions
             ]
         )
 
-        question_prompt = "What will you do? Command: "
+        question_prompt = "What will you do? Actions:"
 
         # this is the final prompt:
         # (1) a (typically) fixed overall system prompt with the agents, name, rules, and examples
         # (2) all the inputs (vision, sound, etc.)
         # (3) a (typically) fixed list of available actions
         # (4) a (typically) fixed system prompt requesting commands to be generated
-        fused_prompt = f"{system_prompt}\n\n{inputs_fused}\n\nAVAILABLE ACTIONS:\n{actions_fused}\n\n{question_prompt}"
+        fused_prompt = f"{system_prompt}\n\nAVAILABLE INPUTS:\n{inputs_fused}\nAVAILABLE ACTIONS:\n\n{actions_fused}\n\n{question_prompt}"
 
         logging.debug(f"FINAL PROMPT: {fused_prompt}")
 

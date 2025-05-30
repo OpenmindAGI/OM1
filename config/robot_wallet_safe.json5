@@ -14,7 +14,7 @@
       "type": "GoogleASRInput"
     },
     {
-      "type": "UnitreeGo2Lowstate"
+      "type": "UnitreeGo2Battery"
     },
     {
       "type": "WalletCoinbase"
@@ -28,12 +28,12 @@
     }
   },
   "agent_actions": [
-    {
-      "name": "move_safe",
-      "llm_label": "move",
-      "implementation": "passthrough",
-      "connector": "ros2"
-    },
+    //{
+    //  "name": "move_safe",
+    //  "llm_label": "move",
+    //  "implementation": "passthrough",
+    //  "connector": "ros2"
+    //},
     {
       "name": "speak",
       "llm_label": "speak",

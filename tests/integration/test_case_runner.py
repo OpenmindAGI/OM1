@@ -187,7 +187,7 @@ async def run_test_case(config: Dict[str, Any]) -> Dict[str, Any]:
     cortex = CortexRuntime(runtime_config)
 
     # Store the outputs for validation
-    output_results = {"commands": [], "raw_response": None}
+    output_results = {"actions": [], "raw_response": None}
 
     # Capture output from simulators and actions
     original_simulator_promise = cortex.simulator_orchestrator.promise
@@ -195,12 +195,12 @@ async def run_test_case(config: Dict[str, Any]) -> Dict[str, Any]:
 
     # Mock the simulator and action promises to capture outputs
     async def mock_simulator_promise(commands):
-        output_results["commands"] = commands
+        output_results["actions"] = commands
         logging.info(f"Simulator received commands: {commands}")
         return await original_simulator_promise(commands)
 
     async def mock_action_promise(commands):
-        output_results["commands"] = commands
+        output_results["actions"] = commands
         logging.info(f"Action orchestrator received commands: {commands}")
         return await original_action_promise(commands)
 
@@ -296,7 +296,7 @@ async def evaluate_with_llm(
         "movement": next(
             (
                 cmd.value
-                for cmd in actual_output.get("commands", [])
+                for cmd in actual_output.get("actions", [])
                 if hasattr(cmd, "type") and cmd.type == "move"
             ),
             "unknown",
@@ -422,8 +422,8 @@ async def evaluate_test_results(
     """
     # Extract movement from commands if available
     movement = None
-    if "commands" in results and results["commands"]:
-        for command in results["commands"]:
+    if "actions" in results and results["actions"]:
+        for command in results["actions"]:
             if command.type == "move":
                 movement = command.value
                 break
@@ -481,9 +481,9 @@ async def evaluate_test_results(
         f"\nFinal score: {final_score:.2f}",
     ]
 
-    if results.get("commands"):
+    if results.get("actions"):
         details.append("\nCommands:")
-        for i, command in enumerate(results["commands"]):
+        for i, command in enumerate(results["actions"]):
             details.append(f"- Command {i+1}: {command.type}: {command.value}")
 
     message = "\n".join(details)
@@ -592,6 +592,7 @@ def get_test_cases_by_tags(tags: List[str] = None) -> List[Path]:
 
 @pytest.mark.parametrize("test_case_path", get_test_cases_by_tags())
 @pytest.mark.asyncio
+@pytest.mark.integration
 async def test_from_config(test_case_path: Path):
     """
     Run a test based on a configuration file.
@@ -635,6 +636,7 @@ async def test_from_config(test_case_path: Path):
 
 # Run a specific test case by name
 @pytest.mark.asyncio
+@pytest.mark.integration
 async def test_specific_case():
     """Run a specific test case by name for debugging."""
     test_name = os.environ.get("TEST_CASE", "coco_indoor_detection")

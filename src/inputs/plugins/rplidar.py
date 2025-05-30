@@ -51,6 +51,7 @@ class RPLidar(FuserInput[str]):
         logging.info(f"Config: {self.config}")
 
         # Initialize RPLidar Provider based on .json5 config file
+        self.silent = getattr(config, "silent", False)
         serial_port = getattr(self.config, "serial_port", None)
         use_zenoh = getattr(self.config, "use_zenoh", False)
         URID = ""
@@ -64,7 +65,6 @@ class RPLidar(FuserInput[str]):
         sensor_mounting_angle = getattr(self.config, "sensor_mounting_angle", 180.0)
 
         self.lidar: RPLidarProvider = RPLidarProvider(
-            False,  # wait= this is the one and only place we init this driver
             serial_port,
             half_width_robot,
             angles_blanked,
@@ -76,7 +76,7 @@ class RPLidar(FuserInput[str]):
 
         self.lidar.start()
 
-        self.descriptor_for_LLM = "Here is information about objects and walls around you, to plan your movements and avoid bumping into things."
+        self.descriptor_for_LLM = "Information about objects and walls around you, to plan your movements and avoid bumping into things."
 
     async def _poll(self) -> Optional[str]:
         """
@@ -91,7 +91,10 @@ class RPLidar(FuserInput[str]):
             The next message from the buffer if available, None otherwise
         """
         await asyncio.sleep(0.2)
-        # logging.info("LIDAR message poll")
+
+        if self.silent:
+            return None
+
         try:
             return self.lidar.lidar_string
         except Empty:
@@ -156,12 +159,10 @@ class RPLidar(FuserInput[str]):
 
         latest_message = self.messages[-1]
 
-        result = f"""
-INPUT: {self.descriptor_for_LLM}
-// START
-{latest_message.message}
-// END
-"""
+        result = (
+            f"\nINPUT: {self.descriptor_for_LLM}\n// START\n"
+            f"{latest_message.message}\n// END\n"
+        )
 
         self.io_provider.add_input(
             self.descriptor_for_LLM, latest_message.message, latest_message.timestamp

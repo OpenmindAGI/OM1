@@ -357,6 +357,167 @@ paths:
         - apiKeyAuth: []
         - bearerAuth: []
 
+  /api_keys:
+    get:
+      summary: List API keys
+      description: Retrieve a list of API keys associated with the user.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      description: The unique identifier of the API key.
+                    user_id:
+                      type: string
+                      description: The ID of the user associated with the API key.
+                    name:
+                      type: string
+                      description: The name of the API key.
+                    hashed_key:
+                      type: string
+                      description: The hashed value of the API key.
+                    prefix:
+                      type: string
+                      description: The prefix of the API key.
+                    created_at:
+                      type: string
+                      format: date-time
+                      description: The timestamp when the API key was created.
+                    revoked_at:
+                      type: string
+                      format: date-time
+                      description: The timestamp when the API key was revoked, if applicable.
+                    deleted:
+                      type: boolean
+                      description: Indicates if the API key has been deleted.
+        '400':
+          description: Bad request - Invalid parameters or missing authentication.
+        '401':
+          description: Unauthorized - Invalid or missing authentication token.
+      security:
+        - bearerAuth: []
+
+  /api_keys/create:
+    post:
+      summary: Create a new API key
+      description: Create a new API key for the user.
+      responses:
+        '200':
+          description: API key created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: A message indicating the API key was created successfully.
+                    example: "API key created successfully."
+                  api_key:
+                    type: string
+                    description: The newly created API key.
+                  api_key_info:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        description: The unique identifier of the API key.
+                      user_id:
+                        type: string
+                        description: The ID of the user associated with the API key.
+                      name:
+                        type: string
+                        description: The name of the API key.
+                      hashed_key:
+                        type: string
+                        description: The hashed value of the API key.
+                      prefix:
+                        type: string
+                        description: The prefix of the API key.
+                      created_at:
+                        type: string
+                        format: date-time
+                        description: The timestamp when the API key was created.
+                      revoked_at:
+                        type: string
+                        format: date-time
+                        description: The timestamp when the API key was revoked, if applicable.
+                      deleted:
+                        type: boolean
+                        description: Indicates if the API key has been deleted.
+        '400':
+          description: Bad request - Invalid parameters or missing authentication.
+        '401':
+          description: Unauthorized - Invalid or missing authentication token.
+      security:
+        - bearerAuth: []
+
+  /api_keys/delete:
+    post:
+      summary: Delete an API key
+      description: Delete an existing API key for the user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  description: The ID of the API key to delete.
+              required:
+                - id
+      responses:
+        '200':
+          description: API key deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: A message indicating the API key was deleted successfully.
+                    example: "API key deleted successfully."
+        '400':
+          description: Bad request - Invalid parameters or missing authentication.
+        '401':
+          description: Unauthorized - Invalid or missing authentication token.
+      security:
+        - bearerAuth: []
+
+  /account/balance:
+    get:
+      summary: Get account balance
+      description: Retrieve the current balance of the user's account.
+      responses:
+        '200':
+          description: Successful response with account balance
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  balance:
+                    type: number
+                    format: float
+                    description: The current balance of the user's account.
+                    example: 100.50
+        '400':
+          description: Bad request - Invalid parameters or missing authentication.
+        '401':
+          description: Unauthorized - Invalid or missing authentication token.
+      security:
+        - bearerAuth: []
+
 components:
   securitySchemes:
     apiKeyAuth:

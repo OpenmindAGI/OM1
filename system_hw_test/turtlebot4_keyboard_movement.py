@@ -1,3 +1,4 @@
+import argparse
 import logging
 import sys
 import threading
@@ -8,6 +9,12 @@ import zenoh
 from pycdr2 import IdlStruct
 from pycdr2.types import float64
 from pynput import keyboard
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--URID", help="your robot's URID, when using Zenoh", type=str)
+print(parser.format_help())
+
+args = parser.parse_args()
 
 # Configure logging
 logging.basicConfig(
@@ -35,9 +42,10 @@ class Twist(IdlStruct, typename="Twist"):
 
 
 class MoveController:
-    def __init__(self):
+
+    def __init__(self, URID: str = ""):
         self.session = None
-        self.cmd_vel = "cmd_vel"
+        self.cmd_vel = f"{URID}/c3/cmd_vel"
         try:
             self.session = zenoh.open(zenoh.Config())
             logging.info("Zenoh client opened")
@@ -163,7 +171,12 @@ def control_loop(move_controller):
 
 if __name__ == "__main__":
     try:
-        move_controller = MoveController()
+
+        URID = args.URID
+        print(f"Using Zenoh to connect to robot using {URID}")
+        print("[INFO] Opening zenoh session...")
+
+        move_controller = MoveController(URID)
 
         control_thread = threading.Thread(target=control_loop, args=(move_controller,))
         control_thread.daemon = True

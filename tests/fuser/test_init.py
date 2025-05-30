@@ -66,21 +66,20 @@ def test_fuser_with_inputs_and_actions(mock_describe):
         result = fuser.fuse(inputs, [])
 
         system_prompt = (
-            "BASIC CONTEXT:\n"
+            "\nBASIC CONTEXT:\n"
             + config.system_prompt_base
-            + "\n"
-            + "\nLAWS:\n"
+            + "\n\nLAWS:\n"
             + config.system_governance
-            + "\n"
-            + "\nEXAMPLES:\n"
+            + "\n\nEXAMPLES:\n"
             + config.system_prompt_examples
         )
-        expected = f"{system_prompt}\n\ntest input\n\nAVAILABLE ACTIONS:\naction description\n\n\naction description\n\nWhat will you do? Command: "
+
+        expected = f"{system_prompt}\n\nAVAILABLE INPUTS:\ntest input\nAVAILABLE ACTIONS:\n\naction description\n\naction description\n\nWhat will you do? Actions:"
         assert result == expected
         assert mock_describe.call_count == 2
         assert io_provider.fuser_system_prompt == system_prompt
         assert io_provider.fuser_inputs == "test input"
         assert (
             io_provider.fuser_available_actions
-            == "AVAILABLE ACTIONS:\naction description\n\n\naction description\n\nWhat will you do? Command: "
+            == "AVAILABLE ACTIONS:\naction description\n\naction description\n\nWhat will you do? Actions:"
         )

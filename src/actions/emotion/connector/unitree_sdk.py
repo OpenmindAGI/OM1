@@ -55,4 +55,4 @@ class EmotionUnitreeConnector(ActionConnector[EmotionInput]):
 
     def tick(self) -> None:
         time.sleep(5)
-        # logging.info("MoveRos2Connector Tick")
+        # logging.info("MoveUnitreeSDKConnector Tick")

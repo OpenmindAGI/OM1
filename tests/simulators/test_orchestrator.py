@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from llm.output_model import Command
+from llm.output_model import Action
 from runtime.config import RuntimeConfig
 from simulators.base import Simulator, SimulatorConfig
 from simulators.orchestrator import SimulatorOrchestrator
@@ -14,13 +14,13 @@ class MockSimulator(Simulator):
     def __init__(self, config: SimulatorConfig):
         super().__init__(config)
         self.tick_count = 0
-        self.commands_received: List[Command] = []
+        self.actions_received: List[Action] = []
 
     def tick(self):
         self.tick_count += 1
 
-    def sim(self, commands: List[Command]):
-        self.commands_received.extend(commands)
+    def sim(self, actions: List[Action]):
+        self.actions_received.extend(actions)
 
 
 @pytest.fixture
@@ -38,13 +38,13 @@ def orchestrator(mock_config):
 
 
 @pytest.fixture
-def test_command():
-    """Create a test command with proper structure."""
+def test_action():
+    """Create a test action with proper structure."""
 
-    def _create_command(type="test", arg_value="1"):
-        return Command(type=type, value=str(arg_value))
+    def _create_action(type="test", arg_value="1"):
+        return Action(type=type, value=str(arg_value))
 
-    return _create_command
+    return _create_action
 
 
 @pytest.mark.asyncio
@@ -76,22 +76,22 @@ async def test_start_simulators(orchestrator):
 
 @pytest.mark.asyncio
 async def test_promise_and_flush(mock_config):
-    """Test sending commands to simulators and flushing promises."""
+    """Test sending actions to simulators and flushing promises."""
     # Create orchestrator with mock simulators
     orchestrator = SimulatorOrchestrator(mock_config)
 
-    # Create a test command
-    test_commands = [Command(type="test", value="1")]
+    # Create a test action
+    test_actions = [Action(type="test", value="1")]
 
     # Mock _promise_simulator to return immediately
-    async def mock_promise_simulator(simulator, commands):
-        simulator.sim(commands)
+    async def mock_promise_simulator(simulator, actions):
+        simulator.sim(actions)
         return None
 
     orchestrator._promise_simulator = mock_promise_simulator
 
-    # Send commands
-    await orchestrator.promise(test_commands)
+    # Send actions
+    await orchestrator.promise(test_actions)
 
     # Verify promise queue length (one promise per simulator)
     assert len(orchestrator.promise_queue) == 2
@@ -106,53 +106,53 @@ async def test_promise_and_flush(mock_config):
     assert len(done_promises) == 2
     assert len(pending_promises) == 0
 
-    # Verify that each simulator received the commands
+    # Verify that each simulator received the actions
     for simulator in mock_config.simulators:
-        assert len(simulator.commands_received) == 1
-        assert simulator.commands_received[0] == test_commands[0]
+        assert len(simulator.actions_received) == 1
+        assert simulator.actions_received[0] == test_actions[0]
 
 
 @pytest.mark.asyncio
-async def test_promise_simulator(orchestrator, test_command):
-    """Test sending commands to a single simulator."""
-    test_commands = [test_command(type="test", arg_value="1")]
+async def test_promise_simulator(orchestrator, test_action):
+    """Test sending actions to a single simulator."""
+    test_actions = [test_action(type="test", arg_value="1")]
     simulator = orchestrator._config.simulators[0]
 
     with patch("logging.debug") as mock_logging:
-        result = await orchestrator._promise_simulator(simulator, test_commands)
+        result = await orchestrator._promise_simulator(simulator, test_actions)
 
         mock_logging.assert_called_with(
-            f"Calling simulator {simulator.name} with commands {test_commands}"
+            f"Calling simulator {simulator.name} with actions {test_actions}"
         )
         assert result is None
-        assert len(simulator.commands_received) == 1
-        assert simulator.commands_received[0] == test_commands[0]
+        assert len(simulator.actions_received) == 1
+        assert simulator.actions_received[0] == test_actions[0]
 
 
 @pytest.mark.asyncio
 async def test_concurrent_simulator_operations(orchestrator):
     """Test that multiple simulators can operate concurrently."""
-    test_commands1 = [Command(type="test1", value="1")]
-    test_commands2 = [Command(type="test2", value="2")]
+    test_actions1 = [Action(type="test1", value="1")]
+    test_actions2 = [Action(type="test2", value="2")]
 
     # Start simulators
     orchestrator.start()
 
-    # Send multiple commands
+    # Send multiple actions
     await asyncio.gather(
-        orchestrator.promise(test_commands1), orchestrator.promise(test_commands2)
+        orchestrator.promise(test_actions1), orchestrator.promise(test_actions2)
     )
 
     # Flush promises
     done_promises, pending_promises = await orchestrator.flush_promises()
 
     # Verify all promises are completed
-    assert len(done_promises) == 4  # 2 commands * 2 simulators
+    assert len(done_promises) == 4  # 2 actions * 2 simulators
     assert len(pending_promises) == 0
 
-    # Verify simulators received both commands
+    # Verify simulators received both actions
     for simulator in orchestrator._config.simulators:
-        received_commands = simulator.commands_received
-        assert len(received_commands) == 2
-        assert test_commands1[0] in received_commands
-        assert test_commands2[0] in received_commands
+        received_actions = simulator.actions_received
+        assert len(received_actions) == 2
+        assert test_actions1[0] in received_actions
+        assert test_actions2[0] in received_actions

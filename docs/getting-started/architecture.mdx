@@ -1,5 +1,5 @@
 ---
-title: Architecture and Structure
+title: Structure and Architecture
 description: "Core architecture and runtime flow"
 ---
 
@@ -24,88 +24,75 @@ The system is based on a loop that runs at a fixed frequency of `self.config.her
 
 ## Architecture Overview
 
-![](https://private-user-images.githubusercontent.com/114130009/411106230-14e9b916-4df7-4700-9336-2983c85be311.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NDM2MjczODEsIm5iZiI6MTc0MzYyNzA4MSwicGF0aCI6Ii8xMTQxMzAwMDkvNDExMTA2MjMwLTE0ZTliOTE2LTRkZjctNDcwMC05MzM2LTI5ODNjODViZTMxMS5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjUwNDAyJTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI1MDQwMlQyMDUxMjFaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT1kZjk1MTcwMzk4OTk0ZGFhZjI0MmIyNjIzNjQzM2Y5NzE1ZWVmOGFhOTFlZWFjYmFlY2UyOTM5MWEwM2NmMDZhJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.guazTa-X9S1MzxYeIKDeixGg-bg4qnKTmyq0J6yVZgI)
+The whole system architecture is shown below:
 
-## Specific runtime flow:
+![](/assets/om1-architecture.png)
 
-1. Input plugins collect sensor data (vision, audio, social media, etc.)
-2. The Fuser combines inputs into a prompt
-3. The LLM generates commands based on the prompt
-4. The ActionOrchestrator executes commands through actions
-5. Connectors map OM1 data/commands to external data buses and data distribution systems such as custom APIs, `ROS2`, `Zenoh`, or `CycloneDDS`.
+The architecture diagram illustrates a comprehensive OM1's distinct layers and modules. Here’s a detailed breakdown:
 
-<img
-  className="block dark:hidden"
-  src="/assets/flow.png"
-  alt="Hero Light"
-/>
-<img
-  className="hidden dark:block"
-  src="/assets/flow.png"
-  alt="Hero Dark"
-/>
+### Sensors Layer
 
+Sensors provide raw data inputs:
+- Vision: Cameras for visual perception.
+- Sound: Microphones capturing audio data.
+- Battery/System: Monitoring battery and system health.
+- Location/GPS: Positioning information.
+- LIDAR: Laser-based sensing for 3D mapping and navigation.
 
-```python Core Runtime System
-# /src/runtime/cortex.py
-async def _run_cortex_loop(self) -> None:
-    while True:
-        await asyncio.sleep(1 / self.config.hertz)
-        await self._tick()
+### AI and Conversational World Captioning Layer
 
-async def _tick(self) -> None:
-    finished_promises, _ = await self.action_orchestrator.flush_promises()
-    prompt = self.fuser.fuse(self.config.agent_inputs, finished_promises)
-    output = await self.config.cortex_llm.ask(prompt)
-    logging.debug("I'm thinking... ", output)
-    await self.action_orchestrator.promise(output.commands)
+Processes raw sensor data into meaningful descriptions:
+- VLM (Vision Language Model): Converts visual data to natural language descriptions (e.g., human activities, object interactions).
+- ASR (Automatic Speech Recognition): Converts audio data into textual representation.
+- Platform State: Describes internal system status (e.g battery percentage, odometry readings).
+- Spatial/NAV: Processes location and navigation data.
+- 3D env.: Interprets 3D environmental data from sensors like LIDAR.
+
+### Natural Language Data Bus (NLDB)
+
+A centralized bus that collects and manages natural language data generated from various captioning modules, ensuring structured data flow between components. Example outputs include:
+
+```
+Vision: “You see a human. He looks happy and is smiling and pointing to a chair.”
+Sound: “You just heard: Bits, run to the chair.”
+Odom: 1.3, 2.71, 0.32
+Power: 73%
 ```
 
-### Code Explanation
+### Data Fuser
 
-The code above defines an asynchronous event loop for a system running a Cortex AI model. It continuously processes input, generates responses, and executes commands.
+This module synthesizes fragmented inputs from the NLDB into coherent narratives or actionable insights, providing context and situation awareness to subsequent decision-making modules. It fuses spatial data (e.g., human location), audio commands, and visual cues into a unified situational assessment.
 
-#### _run_cortex_loop() – Main Loop
+Example fused data:
 
-    ```
-    async def _run_cortex_loop(self) -> None:
-    while True:
-        await asyncio.sleep(1 / self.config.hertz)  # Controls loop frequency
-        await self._tick()  # Calls the processing function
-     ```
-    - Runs indefinitely, executing _tick() at a rate defined by self.config.hertz (loop frequency).
-    - Uses asyncio.sleep() to maintain a steady execution rate.
+```
+137.0270: You see a human, 3.2 meters to your left. He looks happy and is smiling. He is pointing to a chair. You just heard: Bits run to the chair.
+139.0050: You see a human, 1.5 meters in front of you. He is showing you a flat hand. You just heard: Bits, stop.
+...
+```
 
-#### _tick() – Processing Each Cycle
-    ```
-    async def _tick(self) -> None:
-    finished_promises, _ = await self.action_orchestrator.flush_promises()
-    ```
-   - Flushes completed tasks (finished_promises) from action_orchestrator.
-   - Ensures the system processes only pending or new tasks.
+### Multi AI Planning/Decision Layer
 
-#### Generates a prompt using current inputs.
-    ```
-   prompt = self.fuser.fuse(self.config.agent_inputs, finished_promises)
-    ```
-   - Creates a prompt by combining agent_inputs and finished_promises using a fuser (likely a function that merges inputs).
+Uses fused data to make decisions through sophisticated AI models:
+- Fast Action LLM (Local): Localized Language Model quickly processes immediate or time-critical actions without significant latency.
+- Cognition LLM (Cloud): Cloud-based Language Model for complex reasoning, long-term planning, and high-level cognitive tasks, leveraging more computational resources.
+- Blockchain: Ensures transparency, traceability, and possibly decentralized decision-making or logging for accountability.
 
-#### Sends the prompt to the Cortex LLM for processing.
-    ```
-   prompt = self.fuser.fuse(self.config.agent_inputs, finished_promises)
-    ```
-   - Sends the fused prompt to the Cortex LLM (Language Model) and awaits a response.
-   - The model generates an output based on the input prompt.
+Feedback Loop:
+- Adjustments based on performance metrics or environmental conditions (e.g., adjusting vision frame rates for efficiency).
 
-#### Receives and logs the output.
-    ```
-   logging.debug("I'm thinking... ", output)
-    ```
-   - Logs the generated output for debugging.
+### NLDB (Lower Layer)
 
-#### Executes commands generated by the AI.
-    ```
-   await self.action_orchestrator.promise(output.commands)
+An additional natural language bus connecting the decision/planning layer outputs with the hardware control modules.
 
-    ```
-   - Executes the commands from the LLM response by passing them to action_orchestrator.
+### Hardware Abstraction Layer (HAL)
+
+This layer translates high-level AI decisions into actionable commands for robotic hardware:
+- Move: Controls robot movement.
+- Sound: Generates auditory signals.
+- Speech: Handles synthesized voice outputs.
+- Wallet: Integrated digital wallet for economic transactions or identity verification.
+
+### Overall System Data Flow
+
+Sensor Layer → AI Captioning → NLDB → Data Fuser → AI Decision Layer → HAL → Robot Actions

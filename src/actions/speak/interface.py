@@ -11,8 +11,7 @@ class SpeakInput:
 @dataclass
 class Speak(Interface[SpeakInput, SpeakInput]):
     """
-    Words to be spoken by the agent.
-    Effect: Allows the agent to speak.
+    This action allows you to speak
     """
 
     input: SpeakInput

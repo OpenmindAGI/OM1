@@ -4,7 +4,7 @@ import threading
 import typing as T
 
 from actions.base import AgentAction
-from llm.output_model import Command
+from llm.output_model import Action
 from runtime.config import RuntimeConfig
 
 
@@ -81,31 +81,37 @@ class ActionOrchestrator:
         self.promise_queue = [p for p in self.promise_queue if p not in done_promises]
         return done_promises, self.promise_queue
 
-    async def promise(self, commands: list[Command]) -> None:
+    async def promise(self, actions: list[Action]) -> None:
         # loop through commands and send the correct
         # command to the correct action
-        for command in commands:
-            logging.debug(f"Sending command: {command}")
-            action = next(
-                (m for m in self._config.agent_actions if m.llm_label == command.type),
+        for action in actions:
+            logging.debug(f"Sending command: {action}")
+            agent_action = next(
+                (
+                    m
+                    for m in self._config.agent_actions
+                    if m.llm_label == action.type.lower()
+                ),
                 None,
             )
-            if action is None:
+            if agent_action is None:
                 logging.warning(
-                    f"Attempted to call non-existant action: {command.type}"
+                    f"Attempted to call non-existant action: {action.type.lower()}"
                 )
                 continue
-            action_response = asyncio.create_task(self._promise_action(action, command))
+            action_response = asyncio.create_task(
+                self._promise_action(agent_action, action)
+            )
             self.promise_queue.append(action_response)
 
-    async def _promise_action(self, action: AgentAction, command: Command) -> T.Any:
+    async def _promise_action(self, agent_action: AgentAction, action: Action) -> T.Any:
         logging.debug(
-            f"Calling action {action.llm_label} with type {command.type} and argument {command.value}"
+            f"Calling action {agent_action.llm_label} with type {action.type.lower()} and argument {action.value}"
         )
-        input_interface = T.get_type_hints(action.interface)["input"](
-            **{"action": command.value}
+        input_interface = T.get_type_hints(agent_action.interface)["input"](
+            **{"action": action.value}
         )
-        action_response = await action.implementation.execute(input_interface)
-        logging.debug(f"Action {action.llm_label} returned {action_response}")
-        await action.connector.connect(action_response)
+        action_response = await agent_action.implementation.execute(input_interface)
+        logging.debug(f"Action {agent_action.llm_label} returned {action_response}")
+        await agent_action.connector.connect(action_response)
         return action_response

@@ -47,7 +47,7 @@ def config_with_question_states():
 def mock_response():
     """Mock API response with markdown content"""
     return {
-        "content": '{"commands":[{"type":"move","value":"wag tail"},{"type":"move","value":"walk"},{"type":"speak","value":"Hello! How can I help with your medical question?"},{"type":"emotion","value":"concern"}]}',
+        "content": '{"actions":[{"type":"move","value":"wag tail"},{"type":"move","value":"walk"},{"type":"speak","value":"Hello! How can I help with your medical question?"},{"type":"emotion","value":"concern"}]}',
         "extra": {
             "question_states": {
                 "current_question_index": 2,

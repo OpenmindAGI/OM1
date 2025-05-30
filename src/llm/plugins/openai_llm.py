@@ -76,6 +76,7 @@ class OpenAILLM(LLM[R]):
         try:
             logging.info(f"OpenAI LLM input: {prompt}")
             logging.info(f"OpenAI LLM messages: {messages}")
+            # logging.info(f"OpenAI LLM output model: {self._output_model}")
 
             self.io_provider.llm_start_time = time.time()
 
