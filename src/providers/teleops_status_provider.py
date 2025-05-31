@@ -1,7 +1,8 @@
 import logging
 import time
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from enum import Enum
 
 import requests
 
@@ -101,6 +102,55 @@ class CommandStatus:
         )
 
 
+class ActionType(Enum):
+    """
+    Enum for action type.
+    """
+
+    AI = "AI"
+    TELEOPS = "TELEOPS"
+    CONTROLLER = "CONTROLLER"
+
+
+@dataclass
+class ActionStatus:
+    """
+    Data class to represent the action status of a robot action system.
+    """
+
+    action: ActionType
+    timestamp: float
+
+    def to_dict(self) -> dict:
+        """
+        Convert the Action object to a dictionary.
+
+        Returns
+        -------
+        dict
+            Dictionary representation of the Action object.
+        """
+        return {
+            "action": self.action.value,
+            "timestamp": self.timestamp,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "ActionStatus":
+        """
+        Populate the ActionStatus object from a dictionary.
+
+        Parameters
+        ----------
+        data : dict
+            Dictionary containing action status information.
+        """
+        return cls(
+            action=ActionType(data.get("action", ActionType.AI.value)),
+            timestamp=data.get("timestamp", time.time()),
+        )
+
+
 @dataclass
 class TeleopsStatus:
     """
@@ -109,6 +159,9 @@ class TeleopsStatus:
 
     update_time: str
     battery_status: BatteryStatus
+    action_status: ActionStatus = field(
+        default_factory=lambda: ActionStatus(ActionType.AI, time.time())
+    )
     machine_name: str = "unknown"
     video_connected: bool = False
 
@@ -125,6 +178,7 @@ class TeleopsStatus:
             "machine_name": self.machine_name,
             "update_time": self.update_time,
             "battery_status": self.battery_status.to_dict(),
+            "action_status": self.action_status.to_dict(),
             "video_connected": self.video_connected,
         }
 
@@ -141,15 +195,16 @@ class TeleopsStatus:
         return cls(
             update_time=data.get("update_time", time.time()),
             battery_status=BatteryStatus.from_dict(data.get("battery_status", {})),
+            action_status=ActionStatus.from_dict(data.get("action_status", {})),
             machine_name=data.get("machine_name", "unknown"),
             video_connected=data.get("video_connected", False),
         )
 
 
 @singleton
-class StatusProvider:
+class TeleopsStatusProvider:
     """
-    Status provider reports the status of the machine.
+    Teleops Status provider reports the status of the machine.
     """
 
     def __init__(
@@ -158,7 +213,7 @@ class StatusProvider:
         base_url: str = "https://api.openmind.org/api/core/teleops/status",
     ):
         """
-        Initialize the StatusProvider.
+        Initialize the TeleopsStatusProvider.
 
         Parameters
         ----------
@@ -176,7 +231,18 @@ class StatusProvider:
         """
         Get the status of the machine.
         """
-        pass
+        api_key_id = self.api_key[9:25] if len(self.api_key) > 25 else self.api_key
+        request = requests.get(
+            f"{self.base_url}/{api_key_id}",
+            headers={"Authorization": f"Bearer {self.api_key}"},
+        )
+        if request.status_code == 200:
+            return request.json()
+        else:
+            logging.error(
+                f"Failed to get status: {request.status_code} - {request.text}"
+            )
+            return {}
 
     def _share_status_worker(self, status: TeleopsStatus):
         """
