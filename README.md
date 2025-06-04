@@ -57,7 +57,7 @@ Once you got API key, copy it to `config/spot.json5`, and replace  `openmind_fre
 
 `uv run src/run.py spot`
 
-After launch OM1, you could have a fun conversation with OM1 now.
+After launching OM1, you could have a fun conversation with OM1 now.
 
 For more detailed instruction please refer to [Installation](https://docs.openmind.org/getting-started/get-started).
 
