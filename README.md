@@ -35,12 +35,14 @@ uv venv
 
 ### Install the dependencies
 
-```bash Mac
+For macOS  
+```bash
 brew install portaudio
 brew install ffmpeg
 ```
 
-```bash Linux
+For Linux  
+```bash
 sudo apt-get update
 sudo apt-get install portaudio19-dev python-all-dev
 sudo apt-get install ffmpeg
@@ -49,11 +51,11 @@ sudo apt-get install ffmpeg
 ### Fetch Openmind API Key
 
 You need to get [Openmind API Key](https://portal.openmind.org/) to launch OM1.
-Once you got API key, copy it to `/config/conversation.json5`, and replace  `openmind_free` in `"api_key": "openmind_free",`.
+Once you got API key, copy it to `/config/spot.json5`, and replace  `openmind_free` in `"api_key": "openmind_free",`.
 
 ### Launch OM1
 
-`uv run src/run.py conversation`
+`uv run src/run.py spot`
 
 After launch OM1, you could have a fun conversation with OM1 now.
 
