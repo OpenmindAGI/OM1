@@ -51,7 +51,7 @@ sudo apt-get install ffmpeg
 ### Fetch Openmind API Key
 
 You need to get [Openmind API Key](https://portal.openmind.org/) to launch OM1.
-Once you got API key, copy it to `/config/spot.json5`, and replace  `openmind_free` in `"api_key": "openmind_free",`.
+Once you got API key, copy it to `config/spot.json5`, and replace  `openmind_free` in `"api_key": "openmind_free",`.
 
 ### Launch OM1
 
