@@ -20,7 +20,44 @@
 
 Let's run the first AI agent named Spot on OM1. The Spot agent uses your webcam to capture and label objects. These text captions are then sent to `OpenAI 4o`, a large language model (LLM) which then returns `movement`, `speech` and `face` action commands. These commands are displayed on WebSim along with basic timing and other debugging information.
 
-Detailed instruction please refer to [Installation](https://docs.openmind.org/getting-started/get-started).
+### Package management
+
+[Installing uv](https://docs.astral.sh/uv/getting-started/installation/)
+
+### Clone GitHub repo
+
+```bash
+git clone https://github.com/OpenmindAGI/OM1.git
+cd OM1
+git submodule update --init
+uv venv
+```
+
+### Install the dependencies
+
+```bash Mac
+brew install portaudio
+brew install ffmpeg
+```
+
+```bash Linux
+sudo apt-get update
+sudo apt-get install portaudio19-dev python-all-dev
+sudo apt-get install ffmpeg
+```
+
+### Fetch Openmind API Key
+
+You need to get [Openmind API Key](https://portal.openmind.org/) to launch OM1.
+Once you got API key, copy it to `/config/conversation.json5`, and replace  `openmind_free` in `"api_key": "openmind_free",`.
+
+### Launch OM1
+
+`uv run src/run.py conversation`
+
+After launch OM1, you could have a fun conversation with OM1 now.
+
+For more detailed instruction please refer to [Installation](https://docs.openmind.org/getting-started/get-started).
 
 ## What's Next?
 
