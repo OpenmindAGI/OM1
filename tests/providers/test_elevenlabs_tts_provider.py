@@ -28,23 +28,13 @@ def reset_singleton():
     yield
 
 
-def test_initialization():
-    provider = ElevenLabsTTSProvider(url="test_url")
-    assert provider.running is False
-    assert provider._thread is None
-
-
 def test_start_stop():
     provider = ElevenLabsTTSProvider(url="test_url")
     provider.start()
     assert provider.running is True
-    assert provider._thread is not None
-    assert provider._thread.is_alive()
 
     provider.stop()
     assert provider.running is False
-    provider._thread.join(timeout=1)
-    assert not provider._thread.is_alive()
 
 
 def test_register_callback():
@@ -52,11 +42,3 @@ def test_register_callback():
     callback = Mock()
     provider.register_tts_state_callback(callback)
     provider._audio_stream.set_tts_state_callback.assert_called_once_with(callback)
-
-
-def test_multiple_start_calls():
-    provider = ElevenLabsTTSProvider(url="test_url")
-    provider.start()
-    initial_thread = provider._thread
-    provider.start()
-    assert provider._thread is initial_thread

@@ -11,9 +11,7 @@ class SpeakElevenLabsTTSConnector(ActionConnector[SpeakInput]):
 
         # Get microphone and speaker device IDs and names
         microphone_device_id = getattr(self.config, "microphone_device_id", None)
-        speaker_device_id = getattr(self.config, "speaker_device_id", None)
         microphone_name = getattr(self.config, "microphone_name", None)
-        speaker_name = getattr(self.config, "speaker_name", None)
 
         # OM API key
         api_key = getattr(self.config, "api_key", None)
@@ -34,8 +32,6 @@ class SpeakElevenLabsTTSConnector(ActionConnector[SpeakInput]):
             url="https://api.openmind.org/api/core/elevenlabs/tts",
             api_key=api_key,
             elevenlabs_api_key=elevenlabs_api_key,
-            device_id=speaker_device_id,
-            speaker_name=speaker_name,
             voice_id=voice_id,
             model_id=model_id,
             output_format=output_format,

@@ -38,7 +38,6 @@ def test_initialization(ws_url, fps, mock_dependencies):
     mock_video_stream.assert_called_once_with(provider.ws_client.send_message, fps=fps)
 
     assert not provider.running
-    assert provider._thread is None
     assert provider.ws_client is not None
     assert provider.video_stream is not None
 
@@ -67,17 +66,6 @@ def test_start(ws_url, fps, mock_dependencies):
     assert provider.running
     provider.ws_client.start.assert_called_once()
     provider.video_stream.start.assert_called_once()
-    assert provider._thread is not None
-    assert provider._thread.is_alive()
-
-
-def test_start_already_running(ws_url, fps, mock_dependencies):
-    provider = VLMVilaProvider(ws_url, fps=fps)
-    provider.start()
-    initial_thread = provider._thread
-
-    provider.start()
-    assert provider._thread is initial_thread
 
 
 def test_stop(ws_url, fps, mock_dependencies):
@@ -88,4 +76,3 @@ def test_stop(ws_url, fps, mock_dependencies):
     assert not provider.running
     provider.video_stream.stop.assert_called_once()
     provider.ws_client.stop.assert_called_once()
-    assert not provider._thread.is_alive()

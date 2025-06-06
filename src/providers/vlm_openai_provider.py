@@ -1,5 +1,4 @@
 import logging
-import threading
 import time
 from typing import Callable, Optional
 
@@ -49,7 +48,6 @@ class VLMOpenAIProvider:
         self.video_stream: VideoStream = VideoStream(
             frame_callback=self._process_frame, fps=fps
         )
-        self._thread: Optional[threading.Thread] = None
         self.message_callback: Optional[Callable] = None
 
     async def _process_frame(self, frame: str):
@@ -108,16 +106,14 @@ class VLMOpenAIProvider:
         """
         Start the VLM provider.
 
-        Initializes and starts the video stream and processing thread
-        if not already running.
+        Initializes the video stream and starts the processing thread.
         """
-        if self._thread and self._thread.is_alive():
+        if self.running:
+            logging.warning("VLM provider is already running")
             return
 
         self.running = True
         self.video_stream.start()
-        self._thread = threading.Thread(target=self._run, daemon=True)
-        self._thread.start()
 
         if self.stream_ws_client:
             self.stream_ws_client.start()
@@ -127,19 +123,6 @@ class VLMOpenAIProvider:
 
         logging.info("OpenAI VLM provider started")
 
-    def _run(self):
-        """
-        Main loop for the VLM provider.
-
-        Continuously processes video frames and sends them to the VLM service
-        for analysis.
-        """
-        while self.running:
-            try:
-                time.sleep(0.1)
-            except Exception as e:
-                logging.error(f"Error in OpenAI VLM provider: {e}")
-
     def stop(self):
         """
         Stop the VLM provider.
@@ -147,9 +130,7 @@ class VLMOpenAIProvider:
         Stops the video stream and processing thread.
         """
         self.running = False
-        if self._thread:
-            self.video_stream.stop()
-            self._thread.join(timeout=5)
+        self.video_stream.stop()
 
         if self.stream_ws_client:
             self.stream_ws_client.stop()

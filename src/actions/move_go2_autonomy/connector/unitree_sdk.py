@@ -101,8 +101,19 @@ class MoveUnitreeSDKConnector(ActionConnector[MoveInput]):
         #     logging.info("Unitree AI command: dance")
         #     await self._execute_sport_command("Dance1")
 
-    def _move_robot(self, vx, vy, vturn=0.0) -> None:
+    def _move_robot(self, vx: float, vy: float, vturn=0.0) -> None:
+        """
+        Move the robot with specified velocities.
 
+        Parameters:
+        -----------
+        vx : float
+            Linear velocity in the x direction (m/s).
+        vy : float
+            Linear velocity in the y direction (m/s).
+        vturn : float, optional
+            Angular velocity (turning speed) in radians per second (default is 0.0).
+        """
         logging.info(f"_move_robot: vx={vx}, vy={vy}, vturn={vturn}")
 
         if not self.sport_client:
@@ -118,7 +129,9 @@ class MoveUnitreeSDKConnector(ActionConnector[MoveInput]):
             logging.error(f"Error moving robot: {e}")
 
     def clean_abort(self) -> None:
-        """Cleanly abort current movement and reset state."""
+        """
+        Cleanly abort current movement and reset state.
+        """
         if self.sport_client:
             self.sport_client.StopMove()
         self.movement_attempts = 0
@@ -126,7 +139,9 @@ class MoveUnitreeSDKConnector(ActionConnector[MoveInput]):
             self.pending_movements.get()
 
     def tick(self) -> None:
-
+        """
+        Process the AI motion tick.
+        """
         logging.debug("AI Motion Tick")
 
         if self.odom.odom is None:
@@ -244,20 +259,24 @@ class MoveUnitreeSDKConnector(ActionConnector[MoveInput]):
         time.sleep(0.1)
 
     def _process_turn_left(self):
-        """Process turn left command with safety check."""
+        """
+        Process turn left command with safety check.
+        """
         if not self.lidar.turn_left:
             logging.warning("Cannot turn left due to barrier")
             return
         target_yaw = self._normalize_angle(self.odom.yaw_odom_m180_p180 - 90.0)
-        self.pending_movements.put([0.0, round(target_yaw, 2), "turn"])
+        self.pending_movements.put(MoveCommand(0.0, round(target_yaw, 2), "turn"))
 
     def _process_turn_right(self):
-        """Process turn right command with safety check."""
+        """
+        Process turn right command with safety check.
+        """
         if not self.lidar.turn_right:
             logging.warning("Cannot turn right due to barrier")
             return
         target_yaw = self._normalize_angle(self.odom.yaw_odom_m180_p180 + 90.0)
-        self.pending_movements.put([0.0, round(target_yaw, 2), "turn"])
+        self.pending_movements.put(MoveCommand(0.0, round(target_yaw, 2), "turn"))
 
     def _process_move_forward(self):
         """Process move forward command with safety check."""
@@ -265,20 +284,38 @@ class MoveUnitreeSDKConnector(ActionConnector[MoveInput]):
             logging.warning("Cannot advance due to barrier")
             return
         self.pending_movements.put(
-            [0.5, 0.0, "advance", round(self.odom.x, 2), round(self.odom.y, 2)]
+            MoveCommand(
+                0.5, 0.0, "advance", round(self.odom.x, 2), round(self.odom.y, 2)
+            )
         )
 
     def _process_move_back(self):
-        """Process move back command with safety check."""
+        """
+        Process move back command with safety check.
+        """
         if not self.lidar.retreat:
             logging.warning("Cannot retreat due to barrier")
             return
         self.pending_movements.put(
-            [0.5, 0.0, "retreat", round(self.odom.x, 2), round(self.odom.y, 2)]
+            MoveCommand(
+                -0.5, 0.0, "retreat", round(self.odom.x, 2), round(self.odom.y, 2)
+            )
         )
 
     def _normalize_angle(self, angle: float) -> float:
-        """Normalize angle to [-180, 180] range."""
+        """
+        Normalize angle to [-180, 180] range.
+
+        Parameters:
+        -----------
+        angle : float
+            Angle in degrees to normalize.
+
+        Returns:
+        --------
+        float
+            Normalized angle in degrees within the range [-180, 180].
+        """
         if angle < -180:
             angle += 360.0
         elif angle > 180:
@@ -286,7 +323,21 @@ class MoveUnitreeSDKConnector(ActionConnector[MoveInput]):
         return angle
 
     def _calculate_angle_gap(self, current: float, target: float) -> float:
-        """Calculate shortest angular distance between two angles."""
+        """
+        Calculate shortest angular distance between two angles.
+
+        Parameters:
+        -----------
+        current : float
+            Current angle in degrees.
+        target : float
+            Target angle in degrees.
+
+        Returns:
+        --------
+        float
+            Shortest angular distance in degrees, rounded to 2 decimal places.
+        """
         gap = current - target
         if gap > 180.0:
             gap -= 360.0
@@ -295,7 +346,19 @@ class MoveUnitreeSDKConnector(ActionConnector[MoveInput]):
         return round(gap, 2)
 
     def _execute_turn(self, gap: float) -> bool:
-        """Execute turn based on gap direction and lidar constraints."""
+        """
+        Execute turn based on gap direction and lidar constraints.
+
+        Parameters:
+        -----------
+        gap : float
+            The angle gap in degrees to turn.
+
+        Returns:
+        --------
+        bool
+            True if the turn was executed successfully, False if blocked by a barrier.
+        """
         if gap > 0:  # Turn left
             if not self.lidar.turn_left:
                 logging.warning("Cannot turn left due to barrier")

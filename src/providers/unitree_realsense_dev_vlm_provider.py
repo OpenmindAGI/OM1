@@ -2,7 +2,6 @@ import base64
 import glob
 import logging
 import os
-import threading
 import time
 from typing import Callable, List, Optional, Tuple
 
@@ -265,7 +264,6 @@ class UnitreeRealSenseDevVLMProvider:
             resolution=resolution,
             jpeg_quality=jpeg_quality,
         )
-        self._thread: Optional[threading.Thread] = None
 
     def register_message_callback(self, message_callback: Optional[Callable]):
         """
@@ -285,14 +283,13 @@ class UnitreeRealSenseDevVLMProvider:
         Initializes and starts the websocket client, video stream, and processing thread
         if not already running.
         """
-        if self._thread and self._thread.is_alive():
+        if self.running:
+            logging.warning("Unitree RealSenseDev VLM provider is already running")
             return
 
         self.running = True
         self.ws_client.start()
         self.video_stream.start()
-        self._thread = threading.Thread(target=self._run, daemon=True)
-        self._thread.start()
 
         if self.stream_ws_client:
             self.stream_ws_client.start()
@@ -302,19 +299,6 @@ class UnitreeRealSenseDevVLMProvider:
 
         logging.info("Unitree RealSenseDev VLM provider started")
 
-    def _run(self):
-        """
-        Main loop for the VLM provider.
-
-        Continuously processes video frames and sends them to the VLM service
-        for analysis.
-        """
-        while self.running:
-            try:
-                time.sleep(0.1)
-            except Exception as e:
-                logging.error(f"Error in Unitree RealSenseDev VLM provider: {e}")
-
     def stop(self):
         """
         Stop the VLM provider.
@@ -322,10 +306,8 @@ class UnitreeRealSenseDevVLMProvider:
         Stops the websocket client, video stream, and processing thread.
         """
         self.running = False
-        if self._thread:
-            self.video_stream.stop()
-            self.ws_client.stop()
-            self._thread.join(timeout=5)
+        self.video_stream.stop()
+        self.ws_client.stop()
 
         if self.stream_ws_client:
             self.stream_ws_client.stop()

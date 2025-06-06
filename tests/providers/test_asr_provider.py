@@ -32,7 +32,6 @@ def test_initialization(ws_url, mock_dependencies):
     mock_ws_client.assert_called_once_with(url=ws_url)
     mock_audio_stream.assert_called_once()
     assert not provider.running
-    assert provider._thread is None
 
 
 def test_singleton_pattern(ws_url):
@@ -56,17 +55,6 @@ def test_start(ws_url, mock_dependencies):
     assert provider.running
     provider.ws_client.start.assert_called_once()
     provider.audio_stream.start.assert_called_once()
-    assert provider._thread is not None
-    assert provider._thread.is_alive()
-
-
-def test_start_already_running(ws_url, mock_dependencies):
-    provider = ASRProvider(ws_url)
-    provider.start()
-    initial_thread = provider._thread
-
-    provider.start()
-    assert provider._thread is initial_thread
 
 
 def test_stop(ws_url, mock_dependencies):
@@ -77,4 +65,3 @@ def test_stop(ws_url, mock_dependencies):
     assert not provider.running
     provider.audio_stream.stop.assert_called_once()
     provider.ws_client.stop.assert_called_once()
-    assert not provider._thread.is_alive()

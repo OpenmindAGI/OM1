@@ -1,6 +1,5 @@
 import logging
 import threading
-import time
 from typing import Callable, Optional
 
 from om1_speech import AudioInputStream
@@ -84,14 +83,13 @@ class ASRProvider:
         Initializes and starts the websocket client, audio stream, and processing thread
         if not already running.
         """
-        if self._thread and self._thread.is_alive():
+        if self.running:
+            logging.warning("ASR provider is already running")
             return
 
         self.running = True
         self.ws_client.start()
         self.audio_stream.start()
-        self._thread = threading.Thread(target=self._run, daemon=True)
-        self._thread.start()
 
         if self.stream_ws_client:
             self.stream_ws_client.start()
@@ -106,19 +104,6 @@ class ASRProvider:
 
         logging.info("ASR provider started")
 
-    def _run(self):
-        """
-        Internal method to run the provider's main processing loop.
-
-        This method runs in a separate thread and handles the continuous processing
-        of audio data and websocket messages.
-        """
-        while self.running:
-            try:
-                time.sleep(0.1)
-            except Exception as e:
-                logging.error(f"ASRProvider error: {e}")
-
     def stop(self):
         """
         Stop the ASR provider.
@@ -131,10 +116,8 @@ class ASRProvider:
         The thread join operation has a 5-second timeout to prevent hanging.
         """
         self.running = False
-        if self._thread:
-            self.audio_stream.stop()
-            self.ws_client.stop()
-            self._thread.join(timeout=5)
+        self.audio_stream.stop()
+        self.ws_client.stop()
 
         if self.stream_ws_client:
             self.stream_ws_client.stop()

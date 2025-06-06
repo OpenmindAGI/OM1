@@ -13,12 +13,12 @@
   5. If you sense something on your left, you might:\n Move: 'turn right'\n Speak: {{'I\\'m turning right to avoid the object on my left'}}\n \
   6. If you sense something on your right, you might:\n Move: 'turn left'\n Speak: {{'I\\'m turning left to avoid the object on my right'}}",
   "agent_inputs": [
-    {
-      "type": "VLM_COCO_Local",
-      "config": {
-        "camera_index": 0
-      }
-    },
+    //{
+    //  "type": "VLM_COCO_Local",
+    //  "config": {
+    //    "camera_index": 0
+    //  }
+    //},
     {
       "type": "Odom",
         "config": {
@@ -37,16 +37,16 @@
         "angles_blanked": [[-180.0, -170.0], [160, 180]],
         "silent": false
       }
+    },
+    {
+      "type": "UnitreeGo2Battery"
+    },
+    {
+      "type": "GoogleASRInput"
+    },
+    {
+      "type": "VLMVila"
     }
-    //{
-    //  "type": "UnitreeGo2Battery"
-    //},
-    //{
-    //  "type": "GoogleASRInput"
-    //},
-    //{
-    //  "type": "VLMVila"
-    //}
   ],
   "cortex_llm": {
     "type": "OpenAILLM",
@@ -68,15 +68,15 @@
       "implementation": "passthrough",
       "connector": "unitree_sdk"
     },
-    //{
-    // "name": "speak",
-    //  "llm_label": "speak",
-    //  "implementation": "passthrough",
-    //  "connector": "elevenlabs_tts",
-    //  "config": {
-    //    "voice_id": "TbMNBJ27fH2U0VgpSNko"
-    //  }
-    //}
+    {
+     "name": "speak",
+      "llm_label": "speak",
+      "implementation": "passthrough",
+      "connector": "elevenlabs_tts",
+      "config": {
+        "voice_id": "TbMNBJ27fH2U0VgpSNko"
+      }
+    }
   ]
 }
 

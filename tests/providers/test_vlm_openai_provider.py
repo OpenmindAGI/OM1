@@ -45,7 +45,6 @@ def test_initialization(base_url, api_key, fps, mock_dependencies):
     )
 
     assert not provider.running
-    assert provider._thread is None
     assert provider.api_client is not None
     assert provider.video_stream is not None
 
@@ -74,23 +73,12 @@ async def test_start(base_url, api_key, fps, mock_dependencies):
 
     assert provider.running
     provider.video_stream.start.assert_called_once()
-    assert provider._thread is not None
-    assert provider._thread.is_alive()
 
     # Simulate processing a frame so the async API call is triggered.
     # (Using "fake_frame" as an example frame.)
     await provider._process_frame("fake_frame")
     # Now assert the chat.completions.create was called.
     provider.api_client.chat.completions.create.assert_called_once()
-
-
-def test_start_already_running(base_url, api_key, fps, mock_dependencies):
-    provider = VLMOpenAIProvider(base_url, api_key, fps=fps)
-    provider.start()
-    initial_thread = provider._thread
-
-    provider.start()
-    assert provider._thread is initial_thread
 
 
 def test_stop(base_url, api_key, fps, mock_dependencies):
@@ -100,4 +88,3 @@ def test_stop(base_url, api_key, fps, mock_dependencies):
 
     assert not provider.running
     provider.video_stream.stop.assert_called_once()
-    assert not provider._thread.is_alive()

@@ -1,7 +1,10 @@
 import logging
 import math
+import multiprocessing as mp
 import threading
 import time
+from dataclasses import dataclass
+from queue import Empty, Full
 from typing import Dict, List, Optional
 
 import bezier
@@ -14,6 +17,108 @@ from zenoh_idl.sensor_msgs import LaserScan
 
 from .rplidar_driver import RPDriver
 from .singleton import singleton
+
+
+@dataclass
+class RPLidarConfig:
+    """
+    Configuration for RPLidar.
+
+    Parameters
+    ----------
+    max_buf_meas: int
+        Maximum number of buffered measurements.
+    min_len: int
+        Minimum length of the scan.
+    max_distance_mm: int
+        Maximum distance in millimeters for valid measurements.
+    """
+
+    max_buf_meas: int = 0
+    min_len: int = 5
+    max_distance_mm: int = 1500
+
+
+def RPLidar_processor(
+    data_queue: mp.Queue,
+    control_queue: mp.Queue,
+    serial_port: str,
+    config: RPLidarConfig,
+):
+    """
+    Dedicated RPLidar processor function for multiprocessing.
+    This function runs in a separate process to handle RPLidar data processing.
+
+    Parameters
+    ----------
+    data_queue : mp.Queue
+        Queue for receiving RPLidar data.
+    control_queue : mp.Queue
+        Queue for sending control commands.
+    serial_port : str
+        The name of the serial port in use by the RPLidar sensor.
+    config : Dict
+        Configuration dictionary containing parameters for the RPLidar.
+    """
+    try:
+        lidar = RPDriver(serial_port)
+
+        info = lidar.get_info()
+        logging.info(f"RPLidar Info: {info}")
+
+        health = lidar.get_health()
+        logging.info(f"RPLidar Health: {health[0]}")
+
+        if health[0] != "Good":
+            logging.error(f"There is a problem with the LIDAR: {health[0]}")
+
+        lidar.reset()
+        time.sleep(0.5)
+
+        running = True
+        while running:
+            try:
+                cmd = control_queue.get_nowait()
+                if cmd == "STOP":
+                    running = False
+                    break
+            except Empty:
+                pass
+
+            try:
+                scan = lidar.iter_scans_local(
+                    scan_type="express",
+                    max_buf_meas=config.max_buf_meas,
+                    min_len=config.min_len,
+                    max_distance_mm=config.max_distance_mm,
+                )
+                for scan_data in scan:
+                    try:
+                        data_queue.put_nowait(scan_data)
+                    except Full:
+                        data_queue.get_nowait()
+                        data_queue.put_nowait(scan_data)
+                    except Empty:
+                        pass
+
+                    try:
+                        cmd = control_queue.get_nowait()
+                        if cmd == "STOP":
+                            running = False
+                            break
+                    except Empty:
+                        pass
+            except Exception:
+                time.sleep(0.5)
+    except Exception as e:
+        logging.error(f"Error in RPLidar processor: {e}")
+    finally:
+        try:
+            lidar.stop()
+            time.sleep(0.5)
+            lidar.disconnect()
+        except Exception as e:
+            logging.error(f"Error stopping RPLidar: {e}")
 
 
 @singleton
@@ -56,6 +161,9 @@ class RPLidarProvider:
         URID: str = "",
         use_zenoh: bool = False,
         simple_paths: bool = False,
+        rplidar_config: RPLidarConfig = RPLidarConfig(
+            max_buf_meas=0, min_len=5, max_distance_mm=1500
+        ),
     ):
         """
         Robot and sensor configuration
@@ -71,6 +179,7 @@ class RPLidarProvider:
         self.URID = URID
         self.use_zenoh = use_zenoh
         self.simple_paths = simple_paths
+        self.rplidar_config = rplidar_config
 
         self.running: bool = False
         self.lidar = None
@@ -102,35 +211,13 @@ class RPLidarProvider:
         self.advance: bool = False
         self.retreat: bool = False
 
-        self._thread: Optional[threading.Thread] = None
+        self.data_queue = mp.Queue(maxsize=5)
+        self.control_queue = mp.Queue()
+        self._rplidar_processor_thread: Optional[mp.Process] = None
 
-        if not self.use_zenoh:
-            try:
-                self.lidar = RPDriver(self.serial_port)
+        self._serial_processor_thread: Optional[threading.Thread] = None
 
-                info = self.lidar.get_info()
-                ret = f"RPLidar Info: {info}"
-
-                logging.info(ret)
-
-                health = self.lidar.get_health()
-                ret = f"RPLidar Health: {health[0]}"
-                logging.info(ret)
-
-                if health[0] == "Good":
-                    logging.info(ret)
-                else:
-                    logging.info(f"there is a problem with the LIDAR: {ret}")
-
-                # reset to clear buffers
-                self.lidar.reset()
-
-                time.sleep(0.5)
-
-            except Exception as e:
-                logging.error(f"Error in RPLidar provider: {e}")
-
-        elif self.use_zenoh:
+        if self.use_zenoh:
             logging.info("Connecting to the RPLIDAR via Zenoh")
             try:
                 self.zen = zenoh.open(zenoh.Config())
@@ -154,21 +241,42 @@ class RPLidarProvider:
         self.scans = sensor_msgs.LaserScan.deserialize(data.payload.to_bytes())
         logging.debug(f"Zenoh Laserscan data: {self.scans}")
 
-        self._preprocess_zenoh(self.scans)
+        self._zenoh_processor(self.scans)
 
     def start(self):
         """
-        Starts the RPLidar and processing thread
-        if not already running.
+        Start the RPLidar provider.
+        This method initializes the RPLidar processing thread and the serial data processing thread.
         """
-        if self._thread and self._thread.is_alive():
-            return
-
         self.running = True
-        self._thread = threading.Thread(target=self._run, daemon=True)
-        self._thread.start()
 
-    def _preprocess_zenoh(self, scan: Optional[LaserScan]):
+        if (
+            not self._rplidar_processor_thread
+            or not self._rplidar_processor_thread.is_alive()
+        ):
+            self._rplidar_processor_thread = mp.Process(
+                target=RPLidar_processor,
+                args=(
+                    self.data_queue,
+                    self.control_queue,
+                    self.serial_port,
+                    self.rplidar_config,
+                ),
+                daemon=True,
+            )
+            self._rplidar_processor_thread.start()
+
+        if (
+            not self._serial_processor_thread
+            or not self._serial_processor_thread.is_alive()
+        ):
+            self._serial_processor_thread = threading.Thread(
+                target=self._serial_processor, daemon=True
+            )
+            self._serial_processor_thread.start()
+            logging.info("RPLidar processing thread started")
+
+    def _zenoh_processor(self, scan: Optional[LaserScan]):
         """
         Preprocess Zenoh LaserScan data.
 
@@ -199,41 +307,9 @@ class RPLidarProvider:
             # angles now run from 360.0 to 0 degress
             data = list(zip(self.angles_final, scan.ranges))
             array_ready = np.array(data)
-            self._process(array_ready)
+            self._path_processor(array_ready)
 
-    def _preprocess_serial(self, scan: LaserScan):
-        """
-        Preprocess serial LaserScan data.
-
-        Parameters
-        ----------
-        scan : LaserScan
-            The serial LaserScan data to preprocess.
-            This is expected to be a 2D array with angles and distances.
-        """
-        logging.debug(f"_preprocess_serial: {scan}")
-        array = np.array(scan)
-
-        # logging.info(f"_preprocess_serial: {array.ndim}")
-
-        # the driver sends angles in degrees between from 0 to 360
-        # warning - the driver may send two or more readings per angle,
-        # this can be confusing for the code
-        angles = array[:, 0]
-
-        # logging.info(f"_preprocess_serial: {angles}")
-
-        # distances are in millimeters
-        distances_m = array[:, 1] / 1000
-
-        data = list(zip(angles, distances_m))
-
-        # logging.info(f"_preprocess_serial: {data}")
-        array_ready = np.array(data)
-        # print(f"Array {array_ready}")
-        self._process(array_ready)
-
-    def _process(self, data: NDArray):
+    def _path_processor(self, data: NDArray):
         """
         Process the RPLidar data.
         This method processes the raw data from the RPLidar,
@@ -324,16 +400,16 @@ class RPLidarProvider:
             D = array[:, 3]
 
             # all the possible conflicting points
-            for x, y, d in list(zip(X, Y, D)):
+            for x, y, _ in list(zip(X, Y, D)):
                 for apath in possible_paths:
                     for point in self.pp[apath]:
                         p1 = x - point[0]
                         p2 = y - point[1]
                         dist = math.sqrt(p1 * p1 + p2 * p2)
-                        # logging.debug(f"_process dist: {dist}")
+                        # logging.info(f"_process dist: {dist}")
                         if dist < self.half_width_robot:
                             # too close - this path will not work
-                            logging.debug(f"removing path: {apath}")
+                            # logging.info(f"removing path: {apath}")
                             path_to_remove = np.array([apath])
                             possible_paths = np.setdiff1d(
                                 possible_paths, path_to_remove
@@ -375,42 +451,53 @@ class RPLidarProvider:
             f"RPLidar Provider string: {self._lidar_string}\nValid paths: {self._valid_paths}"
         )
 
-    def _run(self):
+    def _serial_processor(self):
         """
-        Main loop for the RPLidar provider.
+        Serial data processing worker.
 
-        Continuously processes RPLidar data and send them
-        to the inputs and actions, as needed.
+        This method works for the serial RPLidar driver without Zenoh.
         """
-        while self.running and self.lidar:
-            if not self.use_zenoh:
-                # we are using serial
-                try:
-                    for i, scan in enumerate(
-                        self.lidar.iter_scans_local(
-                            scan_type="express",
-                            max_buf_meas=0,
-                            min_len=25,
-                            max_distance_mm=1500,
-                        )
-                    ):
-                        self._preprocess_serial(scan)
-                        time.sleep(0.05)
-                except Exception as e:
-                    logging.error(f"Error in Serial RPLidar provider: {e}")
+        while self.running:
+            try:
+                scan = self.data_queue.get_nowait()
+                scan_array = np.array(scan)
+                logging.debug(f"_serial_processor: {scan_array.ndim}")
+
+                # the driver sends angles in degrees between from 0 to 360
+                # warning - the driver may send two or more readings per angle,
+                # this can be confusing for the code
+                angles = scan_array[:, 0]
+
+                logging.debug(f"_serial_processor: {angles}")
+
+                # distances are in millimeters
+                distances_m = scan_array[:, 1] / 1000
+
+                data = list(zip(angles, distances_m))
+
+                logging.debug(f"_serial_processor: {data}")
+                array_ready = np.array(data)
+                self._path_processor(array_ready)
+            except Empty:
+                time.sleep(0.1)
+                continue
 
     def stop(self):
         """
         Stop the RPLidar provider.
         """
         self.running = False
-        if self._thread:
-            logging.info("Stopping RPLidar provider")
+
+        if self._rplidar_processor_thread:
+            logging.info("Stopping RPLidar processor thread")
             if not self.use_zenoh:
-                self.lidar.stop()
-                self.lidar.disconnect()
+                self.control_queue.put("STOP")
                 time.sleep(0.5)
-            self._thread.join(timeout=5)
+            self._rplidar_processor_thread.join(timeout=5)
+
+        if self._serial_processor_thread:
+            logging.info("Stopping RPLidar serial processor thread")
+            self._serial_processor_thread.join(timeout=5)
 
     @property
     def valid_paths(self) -> Optional[list]:

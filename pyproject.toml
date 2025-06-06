@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "soundfile",
-    "osascript",    
+    "osascript",
     "sounddevice",
     "pynmeagps",
     "bleak",
@@ -37,7 +37,7 @@ dependencies = [
     "fastapi>=0.110.0",
     "uvicorn>=0.27.1",
     "websockets>=12.0",
-    "om1-modules @ git+https://github.com/OpenmindAGI/om1-modules.git@e41d9a78b541d18930c3a8357c1eb92eee8cd416",
+    "om1-modules @ git+https://github.com/OpenmindAGI/om1-modules.git@935586164bb46bf3e1c1c9ee1c9043df182ec5f9",
     "aiohttp>=3.9.3",
     "python-multipart>=0.0.9",
     "jinja2>=3.1.3",

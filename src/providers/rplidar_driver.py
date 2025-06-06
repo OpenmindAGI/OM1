@@ -108,6 +108,10 @@ def _process_express_scan(data, new_angle, trame):
         - data.angle[trame - 1]
     ) % 360
     distance = data.distance[trame - 1]
+    # print(
+    #     f"Express scan: new_scan={new_scan}, angle={angle}, "
+    #     f"distance={distance}, trame={trame}"
+    # )
     return new_scan, None, angle, distance
 
 
@@ -401,6 +405,7 @@ class RPDriver(object):
         self.start_motor()
         if not self.scanning[0]:
             self.start(scan_type)
+
         while True:
             dsize = self.scanning[1]
 
@@ -423,8 +428,10 @@ class RPDriver(object):
                 yield _process_scan(raw)
             if self.scanning[2] == "express":
                 try:
+                    # print("M: Express scanning")
                     if self.express_trame == 32:
                         self.express_trame = 0
+                        # print("self.express_data: ",  self.express_data)
                         if not self.express_data:
                             self.logger.debug("reading first time bytes")
                             raw_data = self._read_response(dsize)
@@ -449,6 +456,12 @@ class RPDriver(object):
                         self.express_old_data.start_angle,
                         self.express_data.start_angle,
                     )
+                    # print(
+                    #     "process scan of frame %d with angle : %f and angle new : %f",
+                    #     self.express_trame,
+                    #     self.express_old_data.start_angle,
+                    #     self.express_data.start_angle,
+                    # )
                     yield _process_express_scan(
                         self.express_old_data,
                         self.express_data.start_angle,
@@ -456,8 +469,7 @@ class RPDriver(object):
                     )
 
                 except ValueError as e:
-                    self.logger.warning(f"Express packet corruption: {e}")
-
+                    self.logger.warning("Error while processing express scan: %s", e)
                     self.express_trame = 32
                     self.express_data = False
 
@@ -467,18 +479,6 @@ class RPDriver(object):
                     time.sleep(0.1)
                     self.start("express")
                     continue
-
-                self.logger.debug(
-                    "process scan of frame %d with angle : " "%f and angle new : %f",
-                    self.express_trame,
-                    self.express_old_data.start_angle,
-                    self.express_data.start_angle,
-                )
-                yield _process_express_scan(
-                    self.express_old_data,
-                    self.express_data.start_angle,
-                    self.express_trame,
-                )
 
     def iter_scans(self, scan_type="normal", max_buf_meas=3000, min_len=5):
         """Iterate over scans. Note that consumer must be fast enough,

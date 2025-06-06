@@ -11,9 +11,7 @@ class SpeakRivaTTSConnector(ActionConnector[SpeakInput]):
 
         # Get microphone and speaker device IDs and names
         microphone_device_id = getattr(self.config, "microphone_device_id", None)
-        speaker_device_id = getattr(self.config, "speaker_device_id", None)
         microphone_name = getattr(self.config, "microphone_name", None)
-        speaker_name = getattr(self.config, "speaker_name", None)
 
         # OM API key
         api_key = getattr(self.config, "api_key", None)
@@ -26,8 +24,6 @@ class SpeakRivaTTSConnector(ActionConnector[SpeakInput]):
         )
         self.tts = RivaTTSProvider(
             url="https://api.openmind.org/api/core/riva/tts",
-            device_id=speaker_device_id,
-            speaker_name=speaker_name,
             api_key=api_key,
         )
         self.tts.start()

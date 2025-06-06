@@ -40,23 +40,16 @@ def mock_audio_stream():
 def test_initialization(mock_audio_stream):
     provider = RivaTTSProvider(url="test_url")
     assert provider.running is False
-    assert provider._thread is None
-    mock_audio_stream.assert_called_once_with(
-        url="test_url", device=None, device_name=None, headers=None
-    )
+    mock_audio_stream.assert_called_once_with(url="test_url", headers=None)
 
 
 def test_start_stop(mock_audio_stream):
     provider = RivaTTSProvider(url="test_url")
     provider.start()
     assert provider.running is True
-    assert provider._thread is not None
-    assert provider._thread.is_alive()
 
     provider.stop()
     assert provider.running is False
-    provider._thread.join(timeout=1)
-    assert not provider._thread.is_alive()
 
 
 def test_register_callback(mock_audio_stream):
@@ -74,11 +67,3 @@ def test_add_pending_message(mock_audio_stream):
     mock_audio_stream.return_value.add_request.assert_called_once_with(
         {"text": "test message"}
     )
-
-
-def test_multiple_start_calls(mock_audio_stream):
-    provider = RivaTTSProvider(url="test_url")
-    provider.start()
-    initial_thread = provider._thread
-    provider.start()
-    assert provider._thread is initial_thread

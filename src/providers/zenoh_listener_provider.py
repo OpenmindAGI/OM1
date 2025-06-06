@@ -1,6 +1,5 @@
 import logging
 import threading
-import time
 from queue import Queue
 from typing import Callable, Optional
 
@@ -36,7 +35,6 @@ class ZenohListenerProvider:
         self._pending_messages = Queue()
         self._lock = threading.Lock()
         self.running: bool = False
-        self._thread: Optional[threading.Thread] = None
 
     def register_message_callback(self, message_callback: Optional[Callable]):
         """
@@ -57,25 +55,11 @@ class ZenohListenerProvider:
         Start the listener provider by launching the background thread.
         """
         if self.running:
+            logging.warning("Zenoh Listener Provider is already running")
             return
 
         self.running = True
-        self._thread = threading.Thread(target=self._run, daemon=True)
-        self._thread.start()
         logging.info("Zenoh Listener Provider started")
-
-    def _run(self):
-        """
-        Internal method to run the provider's main processing loop.
-
-        This method runs in a separate thread and handles the continuous processing
-        of zenoh messages.
-        """
-        while self.running:
-            try:
-                time.sleep(0.1)
-            except Exception as e:
-                logging.error(f"Zenoh Listener Provider error: {e}")
 
     def stop(self):
         """
@@ -88,7 +72,6 @@ class ZenohListenerProvider:
         The thread join operation uses a 5-second timeout to prevent hanging.
         """
         self.running = False
-        if self._thread:
-            self._thread.join(timeout=5)
+
         if self.session is not None:
             self.session.Close()
