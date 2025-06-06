@@ -10,26 +10,6 @@ from inputs.base.loop import FuserInput
 from providers.gps_provider import GpsProvider
 from providers.io_provider import IOProvider
 
-# Map of abbreviated compass directions to full words
-CARDINAL_MAP = {
-    "N": "North",
-    "NNE": "North-Northeast",
-    "NE": "Northeast",
-    "ENE": "East-Northeast",
-    "E": "East",
-    "ESE": "East-Southeast",
-    "SE": "Southeast",
-    "SSE": "South-Southeast",
-    "S": "South",
-    "SSW": "South-Southwest",
-    "SW": "Southwest",
-    "WSW": "West-Southwest",
-    "W": "West",
-    "WNW": "West-Northwest",
-    "NW": "Northwest",
-    "NNW": "North-Northwest",
-}
-
 
 @dataclass
 class Message:
@@ -112,8 +92,11 @@ class Gps(FuserInput[str]):
             lon = d["gps_lon"]
             alt = d["gps_alt"]
             sat = d["gps_sat"]
+            cardinal = d["yaw_mag_cardinal"]
             if sat > 0:
-                msg = f"Current location is {lat}, {lon} at {alt}m altitude."
+                msg = f"Your current GPS location is {lat}, {lon} at {alt}m altitude. "
+                if cardinal:
+                    msg += f"You are facing {cardinal}."
                 return Message(timestamp=time.time(), message=msg)
             else:
                 return None

@@ -57,6 +57,45 @@ class RFData:
 
 
 @dataclass
+class RFDataRaw:
+    """
+    Data class to represent RF scan results.
+
+    Parameters
+    ----------
+    timestamp : float
+        Unix timestamp of the scan.
+    address : str
+        Bluetooth address of the device.
+    name : str
+        Name of the device.
+    rssi : int
+        Received Signal Strength Indicator of the device.
+    """
+
+    timestamp: str
+    address: str
+    rssi: int
+    packet: str
+
+    def to_dict(self) -> dict:
+        """
+        Convert the RFData object to a dictionary.
+
+        Returns
+        -------
+        dict
+            Dictionary representation of the RFData object.
+        """
+        return {
+            "timestamp": self.timestamp,
+            "address": self.address,
+            "rssi": self.rssi,
+            "packet": self.packet,
+        }
+
+
+@dataclass
 class FabricData:
     """
     Data class to represent a data payload from a machine to FABRIC.
@@ -79,6 +118,7 @@ class FabricData:
     yaw_odom_0_360: float
     yaw_odom_m180_p180: float
     rf_data: List[RFData]
+    rf_data_raw: List[RFDataRaw]
 
     def to_dict(self) -> dict:
         """
@@ -107,6 +147,9 @@ class FabricData:
             "yaw_odom_0_360": self.yaw_odom_0_360,
             "yaw_odom_m180_p180": self.yaw_odom_m180_p180,
             "rf_data": [rf.to_dict() for rf in self.rf_data] if self.rf_data else [],
+            "rf_data_raw": (
+                [rf.to_dict() for rf in self.rf_data_raw] if self.rf_data_raw else []
+            ),
         }
 
 
