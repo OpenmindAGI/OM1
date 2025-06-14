@@ -83,6 +83,9 @@
   "backgrounds": [
     {
         "type": "RFmapper",
+    },
+    {
+      "type": "UnitreeGo2State",
     }
   ]
 }

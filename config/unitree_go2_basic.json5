@@ -45,5 +45,10 @@
         "silence_rate": 0, // vocalize all speech outputs
       }
     }
+  ],
+  "backgrounds": [
+    {
+      "type": "UnitreeGo2State",
+    }
   ]
 }

@@ -40,5 +40,10 @@
         "voice_id": "TbMNBJ27fH2U0VgpSNko"
       }
     }
+  ],
+  "backgrounds": [
+    {
+      "type": "UnitreeGo2State",
+    }
   ]
 }

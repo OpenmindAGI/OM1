@@ -73,5 +73,10 @@
         "silence_rate": 6, // vocalize every 6th speech output
       }
     }
+  ],
+  "backgrounds": [
+    {
+      "type": "UnitreeGo2State",
+    }
   ]
 }

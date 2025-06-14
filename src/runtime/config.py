@@ -138,6 +138,14 @@ def load_config(config_name: str) -> RuntimeConfig:
 
     parsed_config = {
         **raw_config,
+        "backgrounds": [
+            load_background(bg["type"])(
+                config=BackgroundConfig(
+                    **add_meta(bg.get("config", {}), g_api_key, g_ut_eth, g_URID)
+                )
+            )
+            for bg in raw_config.get("backgrounds", [])
+        ],
         "agent_inputs": [
             load_input(input["type"])(
                 config=SensorConfig(
@@ -178,14 +186,6 @@ def load_config(config_name: str) -> RuntimeConfig:
                 }
             )
             for action in raw_config.get("agent_actions", [])
-        ],
-        "backgrounds": [
-            load_background(bg["type"])(
-                config=BackgroundConfig(
-                    **add_meta(bg.get("config", {}), g_api_key, g_ut_eth, g_URID)
-                )
-            )
-            for bg in raw_config.get("backgrounds", [])
         ],
     }
 
