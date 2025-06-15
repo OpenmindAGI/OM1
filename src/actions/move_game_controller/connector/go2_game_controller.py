@@ -5,6 +5,7 @@ import time
 from actions.base import ActionConfig, ActionConnector
 from actions.move_game_controller.interface import IDLEInput
 from providers.odom_provider import OdomProvider, RobotState
+from providers.unitree_go2_state_provider import UnitreeGo2StateProvider
 from unitree.unitree_sdk2py.go2.sport.sport_client import SportClient
 
 try:
@@ -74,7 +75,7 @@ class Go2GameControllerConnector(ActionConnector[IDLEInput]):
         self.turn_speed = 0.4
 
         self.odom = OdomProvider()
-        logging.info(f"Game controller Odom Provider: {self.odom}")
+        self.unitree_state_provider = UnitreeGo2StateProvider()
 
         self.thread_lock = threading.Lock()
 
@@ -106,7 +107,7 @@ class Go2GameControllerConnector(ActionConnector[IDLEInput]):
 
         if hid is not None:
             for device in hid.enumerate():
-                logging.info(f"device {device['product_string']}")
+                logging.debug(f"device {device['product_string']}")
                 if "Xbox Wireless Controller" in device["product_string"]:
                     vendor_id = device["vendor_id"]
                     product_id = device["product_id"]
@@ -163,6 +164,9 @@ class Go2GameControllerConnector(ActionConnector[IDLEInput]):
             ):
                 logging.info("Already sitting, skipping command")
                 return
+
+            if self.unitree_state_provider.state == "jointLock":
+                self.sport_client.BalanceStand()
 
             code = getattr(self.sport_client, command)()
             logging.info(f"Unitree command {command} executed with code {code}")

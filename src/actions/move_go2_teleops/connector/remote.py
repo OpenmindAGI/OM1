@@ -8,6 +8,7 @@ from om1_utils import ws
 from actions.base import ActionConfig, ActionConnector
 from actions.move_go2_teleops.interface import MoveInput
 from providers import CommandStatus
+from providers.unitree_go2_state_provider import UnitreeGo2StateProvider
 from unitree.unitree_sdk2py.go2.sport.sport_client import SportClient
 
 
@@ -49,6 +50,8 @@ class MoveGo2Remote(ActionConnector[MoveInput]):
         self.ws_client.start()
         self.ws_client.register_message_callback(self._on_message)
 
+        self.unitree_state_provider = UnitreeGo2StateProvider()
+
     def _on_message(self, message: str) -> None:
         """
         Callback function to handle incoming messages.
@@ -61,6 +64,9 @@ class MoveGo2Remote(ActionConnector[MoveInput]):
         if self.sport_client is None:
             logging.info("No open Unitree sport client, returning")
             return
+
+        if self.unitree_state_provider.state == "jointLock":
+            self.sport_client.BalanceStand()
 
         try:
             command_status = CommandStatus.from_dict(json.loads(message))
