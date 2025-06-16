@@ -11,7 +11,7 @@ import numpy as np
 import zenoh
 from numpy.typing import NDArray
 
-from runtime.logging import setup_logging
+from runtime.logging import LoggingConfig, get_logging_config, setup_logging
 from zenoh_idl import sensor_msgs
 from zenoh_idl.sensor_msgs import LaserScan
 
@@ -39,11 +39,12 @@ class RPLidarConfig:
     max_distance_mm: int = 1500
 
 
-def RPLidar_processor(
+def rplidar_processor(
     data_queue: mp.Queue,
     control_queue: mp.Queue,
     serial_port: str,
-    config: RPLidarConfig,
+    rplidar_config: RPLidarConfig,
+    logging_config: Optional[LoggingConfig] = None,
 ):
     """
     Dedicated RPLidar processor function for multiprocessing.
@@ -59,8 +60,10 @@ def RPLidar_processor(
         The name of the serial port in use by the RPLidar sensor.
     config : Dict
         Configuration dictionary containing parameters for the RPLidar.
+    logging_config : Optional[LoggingConfig]
+        Optional logging configuration. If provided, it will override the default logging settings.
     """
-    setup_logging("rplidar_processor")
+    setup_logging("rplidar_processor", logging_config=logging_config)
 
     running = True
 
@@ -85,9 +88,9 @@ def RPLidar_processor(
 
             scan = lidar.iter_scans_local(
                 scan_type="express",
-                max_buf_meas=config.max_buf_meas,
-                min_len=config.min_len,
-                max_distance_mm=config.max_distance_mm,
+                max_buf_meas=rplidar_config.max_buf_meas,
+                min_len=rplidar_config.min_len,
+                max_distance_mm=rplidar_config.max_distance_mm,
             )
 
             for scan_data in scan:
@@ -253,12 +256,13 @@ class RPLidarProvider:
             or not self._rplidar_processor_thread.is_alive()
         ):
             self._rplidar_processor_thread = mp.Process(
-                target=RPLidar_processor,
+                target=rplidar_processor,
                 args=(
                     self.data_queue,
                     self.control_queue,
                     self.serial_port,
                     self.rplidar_config,
+                    get_logging_config(),
                 ),
                 daemon=True,
             )

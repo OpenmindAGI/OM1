@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from queue import Empty, Full
 from typing import Optional
 
-from runtime.logging import setup_logging
+from runtime.logging import LoggingConfig, get_logging_config, setup_logging
 
 try:
     from unitree.unitree_sdk2py.core.channel import ChannelFactoryInitialize
@@ -41,6 +41,7 @@ class UnitreeGo2State:
 def unitree_go2_state_processor(
     channel: str,
     data_queue: mp.Queue,
+    logging_config: Optional[LoggingConfig] = None,
 ) -> None:
     """
     Process function for the Unitree Go2 State Provider.
@@ -54,8 +55,10 @@ def unitree_go2_state_processor(
         The channel to connect to the Unitree Go2 robot.
     data_queue : mp.Queue
         Queue for sending the retrieved state data.
+    logging_config : LoggingConfig, optional
+        Optional logging configuration. If provided, it will override the default logging settings.
     """
-    setup_logging("unitree_go2_state_processor")
+    setup_logging("unitree_go2_state_processor", logging_config=logging_config)
 
     try:
         ChannelFactoryInitialize(0, channel)
@@ -171,7 +174,7 @@ class UnitreeGo2StateProvider:
 
         self._state_processor_thread = mp.Process(
             target=unitree_go2_state_processor,
-            args=(self.channel, self.data_queue),
+            args=(self.channel, self.data_queue, get_logging_config()),
             daemon=True,
         )
         self._state_processor_thread.start()

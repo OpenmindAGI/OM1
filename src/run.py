@@ -11,8 +11,8 @@ app = typer.Typer()
 
 
 @app.command()
-def start(config_name: str, debug: bool = False, log_to_file: bool = False) -> None:
-    setup_logging(config_name, debug, log_to_file)
+def start(config_name: str, log_level: str = "INFO", log_to_file: bool = False) -> None:
+    setup_logging(config_name, log_level, log_to_file)
 
     # Load configuration
     config = load_config(config_name)
