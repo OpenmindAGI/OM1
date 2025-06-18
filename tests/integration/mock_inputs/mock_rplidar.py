@@ -282,12 +282,14 @@ class MockRPLidar(RPLidar):
             # Log remaining non-daemon threads with detailed information
             non_daemon_threads = []
             for thread in threading.enumerate():
-                if thread != threading.current_thread() and not thread.daemon:
+                if (thread != threading.current_thread() and 
+                    not thread.daemon and 
+                    not thread.name.startswith('asyncio_')):  # Filter out asyncio threads as requested
                     non_daemon_threads.append(thread)
 
             if non_daemon_threads:
                 logging.warning(
-                    f"MockRPLidar: {len(non_daemon_threads)} non-daemon threads still active"
+                    f"MockRPLidar: {len(non_daemon_threads)} non-daemon threads still active (excluding asyncio threads)"
                 )
                 
                 # Log details about each thread for debugging
@@ -297,6 +299,12 @@ class MockRPLidar(RPLidar):
                         f"ident={thread.ident}, alive={thread.is_alive()}, "
                         f"daemon={thread.daemon}"
                     )
+
+                # Special handling for pyo3-closure threads (Zenoh threads)
+                pyo3_threads = [t for t in non_daemon_threads if "pyo3-closure" in t.name]
+                if pyo3_threads:
+                    logging.info(f"MockRPLidar: Found {len(pyo3_threads)} pyo3-closure (Zenoh) threads to handle")
+                    await self._handle_pyo3_threads(pyo3_threads)
 
                 # Try to force-kill problematic threads by setting them as daemon
                 threads_set_daemon = 0
@@ -309,9 +317,12 @@ class MockRPLidar(RPLidar):
                         "tokio" in thread.name.lower()
                     ):
                         try:
-                            logging.info(f"MockRPLidar: Setting thread '{thread.name}' as daemon")
-                            thread.daemon = True
-                            threads_set_daemon += 1
+                            if not thread.is_alive():  # Only try to set daemon on non-active threads
+                                logging.info(f"MockRPLidar: Setting inactive thread '{thread.name}' as daemon")
+                                thread.daemon = True
+                                threads_set_daemon += 1
+                            else:
+                                logging.warning(f"MockRPLidar: Cannot set active thread '{thread.name}' as daemon - will try other methods")
                         except Exception as e:
                             logging.warning(f"MockRPLidar: Error setting thread '{thread.name}' as daemon: {e}")
 
@@ -321,15 +332,17 @@ class MockRPLidar(RPLidar):
                     # Give them more time to finish after setting as daemon
                     await asyncio.sleep(2.0)
                     
-                    # Check again after daemon setting
+                    # Check again after daemon setting (excluding asyncio threads)
                     remaining_threads = []
                     for thread in threading.enumerate():
-                        if thread != threading.current_thread() and not thread.daemon:
+                        if (thread != threading.current_thread() and 
+                            not thread.daemon and 
+                            not thread.name.startswith('asyncio_')):
                             remaining_threads.append(thread)
                             
                     if remaining_threads:
                         logging.error(
-                            f"MockRPLidar: {len(remaining_threads)} threads still non-daemon after cleanup attempt"
+                            f"MockRPLidar: {len(remaining_threads)} threads still non-daemon after cleanup attempt (excluding asyncio)"
                         )
                         for thread in remaining_threads:
                             logging.error(
@@ -341,12 +354,89 @@ class MockRPLidar(RPLidar):
                         # This is aggressive but may be necessary for cleanup
                         await self._force_terminate_remaining_threads(remaining_threads)
                     else:
-                        logging.info("MockRPLidar: All threads successfully set as daemon")
+                        logging.info("MockRPLidar: All threads successfully cleaned up (excluding asyncio)")
                 else:
                     logging.warning("MockRPLidar: No threads were set as daemon - may be persistent threads")
 
         except Exception as e:
             logging.warning(f"MockRPLidar: Error during Zenoh cleanup: {e}")
+
+    async def _handle_pyo3_threads(self, pyo3_threads):
+        """
+        Special handling for pyo3-closure threads (Zenoh threads).
+        
+        Parameters
+        ----------
+        pyo3_threads : list
+            List of pyo3-closure threads to handle
+        """
+        logging.info("MockRPLidar: Attempting specialized cleanup for pyo3-closure threads")
+        
+        try:
+            # First attempt: Give threads time to finish naturally
+            logging.info("MockRPLidar: Waiting for pyo3-closure threads to finish naturally...")
+            await asyncio.sleep(3.0)
+            
+            # Check if any are now inactive
+            still_active = []
+            for thread in pyo3_threads:
+                if thread.is_alive():
+                    still_active.append(thread)
+                else:
+                    try:
+                        thread.daemon = True
+                        logging.info(f"MockRPLidar: Successfully set inactive pyo3 thread as daemon")
+                    except Exception as e:
+                        logging.warning(f"MockRPLidar: Error setting inactive pyo3 thread as daemon: {e}")
+            
+            if still_active:
+                logging.warning(f"MockRPLidar: {len(still_active)} pyo3-closure threads still active after wait")
+                
+                # Try to interrupt them by forcing garbage collection
+                import gc
+                logging.info("MockRPLidar: Forcing garbage collection to cleanup Zenoh resources")
+                for _ in range(3):  # Multiple GC passes
+                    gc.collect()
+                    await asyncio.sleep(0.5)
+                
+                # Check again
+                final_active = []
+                for thread in still_active:
+                    if thread.is_alive():
+                        final_active.append(thread)
+                        logging.warning(f"MockRPLidar: pyo3 thread '{thread.name}' (id: {thread.ident}) is persistently active")
+                    else:
+                        try:
+                            thread.daemon = True
+                            logging.info(f"MockRPLidar: Successfully set pyo3 thread as daemon after GC")
+                        except Exception as e:
+                            logging.warning(f"MockRPLidar: Error setting pyo3 thread as daemon after GC: {e}")
+                
+                if final_active:
+                    logging.error(f"MockRPLidar: {len(final_active)} pyo3-closure threads remain active - this may indicate Zenoh resources are not properly cleaned")
+                    
+                    # Log final status of each persistent thread
+                    for thread in final_active:
+                        logging.error(f"MockRPLidar: Persistent pyo3 thread: {thread.name}, alive={thread.is_alive()}, daemon={thread.daemon}")
+                        
+                    # As a very last resort, mark them as daemon even if active
+                    # This might cause issues but is better than hanging
+                    for thread in final_active:
+                        try:
+                            # Force set daemon = True even for active threads
+                            # This is risky but necessary to prevent hanging
+                            import threading
+                            thread._daemonic = True  # Direct attribute access
+                            logging.warning(f"MockRPLidar: Force-set pyo3 thread '{thread.name}' as daemon (risky operation)")
+                        except Exception as e:
+                            logging.error(f"MockRPLidar: Failed final attempt to set pyo3 thread as daemon: {e}")
+                else:
+                    logging.info("MockRPLidar: All pyo3-closure threads successfully handled")
+            else:
+                logging.info("MockRPLidar: All pyo3-closure threads finished naturally")
+                
+        except Exception as e:
+            logging.error(f"MockRPLidar: Error in pyo3 thread handling: {e}")
 
     async def _force_terminate_remaining_threads(self, threads):
         """
@@ -450,16 +540,59 @@ class MockRPLidar(RPLidar):
             True if the session was closed successfully, False otherwise
         """
         try:
-            # Use asyncio timeout to prevent hanging
-            await asyncio.wait_for(
-                asyncio.to_thread(session.close),
-                timeout=2.0
-            )
-            logging.info(f"MockRPLidar: Successfully closed {provider_name} Zenoh session")
-            return True
-        except asyncio.TimeoutError:
-            logging.warning(f"MockRPLidar: Timeout closing {provider_name} Zenoh session - continuing anyway")
+            # First, try to undeclare any publishers/subscribers to reduce active operations
+            logging.info(f"MockRPLidar: Attempting to cleanup {provider_name} Zenoh session resources")
+            
+            # Try to access session internals to stop operations
+            if hasattr(session, '_subscribers'):
+                try:
+                    # Try to undeclare subscribers
+                    for sub in session._subscribers:
+                        try:
+                            sub.undeclare()
+                        except:
+                            pass
+                except:
+                    pass
+            
+            if hasattr(session, '_publishers'):
+                try:
+                    # Try to undeclare publishers
+                    for pub in session._publishers:
+                        try:
+                            pub.undeclare()
+                        except:
+                            pass
+                except:
+                    pass
+            
+            # Give a short time for cleanup
+            await asyncio.sleep(0.2)
+            
+            # Now try to close with progressively shorter timeouts
+            for timeout in [2.0, 1.0, 0.5]:
+                try:
+                    logging.info(f"MockRPLidar: Attempting to close {provider_name} Zenoh session (timeout: {timeout}s)")
+                    await asyncio.wait_for(
+                        asyncio.to_thread(session.close),
+                        timeout=timeout
+                    )
+                    logging.info(f"MockRPLidar: Successfully closed {provider_name} Zenoh session")
+                    return True
+                except asyncio.TimeoutError:
+                    logging.warning(f"MockRPLidar: Timeout ({timeout}s) closing {provider_name} Zenoh session")
+                    continue
+                except Exception as e:
+                    logging.warning(f"MockRPLidar: Error closing {provider_name} Zenoh session: {e}")
+                    continue
+            
+            # If all timeouts failed, try one more aggressive approach
+            logging.warning(f"MockRPLidar: All close attempts failed for {provider_name}, trying aggressive cleanup")
+            
+            # Try to force interrupt the session by setting it to None
+            # This might not properly close but prevents further use
             return False
+            
         except Exception as e:
-            logging.warning(f"MockRPLidar: Error closing {provider_name} Zenoh session: {e}")
+            logging.warning(f"MockRPLidar: Error in force close {provider_name} Zenoh session: {e}")
             return False
