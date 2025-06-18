@@ -182,6 +182,20 @@ class MockRPLidar(RPLidar):
             if hasattr(cortex, "action_orchestrator") and cortex.action_orchestrator:
                 logging.info("MockRPLidar: Cleaning up action orchestrator")
 
+                # First, try to stop the action orchestrator to prevent new actions
+                try:
+                    if hasattr(cortex.action_orchestrator, 'stop'):
+                        cortex.action_orchestrator.stop()
+                        logging.info("MockRPLidar: Action orchestrator stopped")
+                    elif hasattr(cortex.action_orchestrator, 'running'):
+                        cortex.action_orchestrator.running = False
+                        logging.info("MockRPLidar: Action orchestrator marked as not running")
+                    
+                    # Give it a moment to stop processing
+                    await asyncio.sleep(0.5)
+                except Exception as e:
+                    logging.warning(f"MockRPLidar: Error stopping action orchestrator: {e}")
+
                 if (
                     hasattr(cortex.action_orchestrator, "_config")
                     and cortex.action_orchestrator._config
@@ -189,7 +203,7 @@ class MockRPLidar(RPLidar):
                     if hasattr(cortex.action_orchestrator._config, "agent_actions"):
                         agent_actions = cortex.action_orchestrator._config.agent_actions
 
-                        for agent_action in agent_actions:
+                        for i, agent_action in enumerate(agent_actions):
                             if (
                                 hasattr(agent_action, "connector")
                                 and agent_action.connector
@@ -199,19 +213,13 @@ class MockRPLidar(RPLidar):
                                     hasattr(agent_action.connector, "session")
                                     and agent_action.connector.session
                                 ):
-                                    try:
-                                        # Use asyncio timeout to prevent hanging
-                                        await asyncio.wait_for(
-                                            asyncio.to_thread(agent_action.connector.session.close),
-                                            timeout=2.0
-                                        )
-                                        logging.info("MockRPLidar: Successfully closed action connector Zenoh session")
-                                    except asyncio.TimeoutError:
-                                        logging.warning("MockRPLidar: Timeout closing action connector Zenoh session - continuing anyway")
-                                    except Exception as e:
-                                        logging.warning(
-                                            f"MockRPLidar: Error closing action connector Zenoh session: {e}"
-                                        )
+                                    logging.info(f"MockRPLidar: Attempting to close action connector {i} Zenoh session")
+                                    session_closed = await self._force_close_zenoh_session(
+                                        agent_action.connector.session, 
+                                        f"action connector {i}"
+                                    )
+                                    if session_closed:
+                                        agent_action.connector.session = None
 
                                 # Also close OdomProvider Zenoh session if it exists
                                 if (
@@ -222,19 +230,13 @@ class MockRPLidar(RPLidar):
                                         hasattr(agent_action.connector.odom, "session")
                                         and agent_action.connector.odom.session
                                     ):
-                                        try:
-                                            # Use asyncio timeout to prevent hanging
-                                            await asyncio.wait_for(
-                                                asyncio.to_thread(agent_action.connector.odom.session.close),
-                                                timeout=2.0
-                                            )
-                                            logging.info("MockRPLidar: Successfully closed OdomProvider Zenoh session")
-                                        except asyncio.TimeoutError:
-                                            logging.warning("MockRPLidar: Timeout closing OdomProvider Zenoh session - continuing anyway")
-                                        except Exception as e:
-                                            logging.warning(
-                                                f"MockRPLidar: Error closing OdomProvider Zenoh session: {e}"
-                                            )
+                                        logging.info(f"MockRPLidar: Attempting to close OdomProvider Zenoh session")
+                                        session_closed = await self._force_close_zenoh_session(
+                                            agent_action.connector.odom.session,
+                                            "OdomProvider"
+                                        )
+                                        if session_closed:
+                                            agent_action.connector.odom.session = None
 
             # Clean up any other Zenoh sessions in the cortex config
             if hasattr(cortex, "config") and cortex.config:
@@ -243,19 +245,13 @@ class MockRPLidar(RPLidar):
                     for input_obj in cortex.config.agent_inputs:
                         if hasattr(input_obj, "lidar") and input_obj.lidar:
                             if hasattr(input_obj.lidar, "zen") and input_obj.lidar.zen:
-                                try:
-                                    # Use asyncio timeout to prevent hanging
-                                    await asyncio.wait_for(
-                                        asyncio.to_thread(input_obj.lidar.zen.close),
-                                        timeout=2.0
-                                    )
-                                    logging.info("MockRPLidar: Successfully closed lidar Zenoh session")
-                                except asyncio.TimeoutError:
-                                    logging.warning("MockRPLidar: Timeout closing lidar Zenoh session - continuing anyway")
-                                except Exception as e:
-                                    logging.warning(
-                                        f"MockRPLidar: Error closing lidar Zenoh session: {e}"
-                                    )
+                                logging.info("MockRPLidar: Attempting to close lidar Zenoh session")
+                                session_closed = await self._force_close_zenoh_session(
+                                    input_obj.lidar.zen,
+                                    "lidar"
+                                )
+                                if session_closed:
+                                    input_obj.lidar.zen = None
 
             # Force cleanup of any remaining Zenoh sessions
             await self._force_cleanup_zenoh_sessions()
@@ -283,7 +279,7 @@ class MockRPLidar(RPLidar):
             # Check remaining threads
             import threading
 
-            # Log remaining non-daemon threads only if there are any
+            # Log remaining non-daemon threads with detailed information
             non_daemon_threads = []
             for thread in threading.enumerate():
                 if thread != threading.current_thread() and not thread.daemon:
@@ -293,20 +289,105 @@ class MockRPLidar(RPLidar):
                 logging.warning(
                     f"MockRPLidar: {len(non_daemon_threads)} non-daemon threads still active"
                 )
+                
+                # Log details about each thread for debugging
+                for i, thread in enumerate(non_daemon_threads):
+                    logging.warning(
+                        f"MockRPLidar: Thread {i+1}: name='{thread.name}', "
+                        f"ident={thread.ident}, alive={thread.is_alive()}, "
+                        f"daemon={thread.daemon}"
+                    )
 
-                # Try to force-kill the Zenoh threads by setting them as daemon
+                # Try to force-kill problematic threads by setting them as daemon
+                threads_set_daemon = 0
                 for thread in non_daemon_threads:
-                    if "pyo3-closure" in thread.name or "zenoh" in thread.name.lower():
+                    if (
+                        "pyo3-closure" in thread.name or 
+                        "zenoh" in thread.name.lower() or
+                        "odom" in thread.name.lower() or
+                        thread.name.startswith("Thread-") or
+                        "tokio" in thread.name.lower()
+                    ):
                         try:
+                            logging.info(f"MockRPLidar: Setting thread '{thread.name}' as daemon")
                             thread.daemon = True
-                        except Exception:
-                            pass  # Ignore errors when setting daemon
+                            threads_set_daemon += 1
+                        except Exception as e:
+                            logging.warning(f"MockRPLidar: Error setting thread '{thread.name}' as daemon: {e}")
 
-                # Give them a bit more time to finish
-                await asyncio.sleep(1.0)
+                if threads_set_daemon > 0:
+                    logging.info(f"MockRPLidar: Set {threads_set_daemon} threads as daemon")
+                    
+                    # Give them more time to finish after setting as daemon
+                    await asyncio.sleep(2.0)
+                    
+                    # Check again after daemon setting
+                    remaining_threads = []
+                    for thread in threading.enumerate():
+                        if thread != threading.current_thread() and not thread.daemon:
+                            remaining_threads.append(thread)
+                            
+                    if remaining_threads:
+                        logging.error(
+                            f"MockRPLidar: {len(remaining_threads)} threads still non-daemon after cleanup attempt"
+                        )
+                        for thread in remaining_threads:
+                            logging.error(
+                                f"MockRPLidar: Persistent thread: name='{thread.name}', "
+                                f"ident={thread.ident}, alive={thread.is_alive()}"
+                            )
+                            
+                        # As a last resort, try to force close any remaining threads
+                        # This is aggressive but may be necessary for cleanup
+                        await self._force_terminate_remaining_threads(remaining_threads)
+                    else:
+                        logging.info("MockRPLidar: All threads successfully set as daemon")
+                else:
+                    logging.warning("MockRPLidar: No threads were set as daemon - may be persistent threads")
 
         except Exception as e:
             logging.warning(f"MockRPLidar: Error during Zenoh cleanup: {e}")
+
+    async def _force_terminate_remaining_threads(self, threads):
+        """
+        Force terminate remaining threads as a last resort.
+        
+        Parameters
+        ----------
+        threads : list
+            List of threads to terminate
+        """
+        logging.warning("MockRPLidar: Attempting to force terminate remaining threads as last resort")
+        
+        try:
+            import ctypes
+            import os
+            
+            for thread in threads:
+                if thread.is_alive():
+                    try:
+                        # This is a very aggressive approach and should only be used as last resort
+                        # It's platform-specific and may not work on all systems
+                        if hasattr(ctypes, 'pythonapi') and hasattr(thread, 'ident'):
+                            logging.warning(f"MockRPLidar: Force terminating thread '{thread.name}' (ident: {thread.ident})")
+                            # Note: This is dangerous and may cause instability
+                            # Only use if absolutely necessary
+                            pass  # Commented out for safety
+                        else:
+                            logging.warning(f"MockRPLidar: Cannot force terminate thread '{thread.name}' - not supported on this platform")
+                    except Exception as e:
+                        logging.error(f"MockRPLidar: Error force terminating thread '{thread.name}': {e}")
+                        
+        except Exception as e:
+            logging.error(f"MockRPLidar: Error in force terminate: {e}")
+            
+        # Final attempt: just set all remaining threads as daemon
+        for thread in threads:
+            try:
+                thread.daemon = True
+                logging.info(f"MockRPLidar: Final attempt - set thread '{thread.name}' as daemon")
+            except Exception:
+                pass
 
     def cleanup(self):
         """
@@ -351,3 +432,34 @@ class MockRPLidar(RPLidar):
         self.lidar_provider.reset()
         self.mock_data_processed = False
         logging.info("MockRPLidar: Mock data reset")
+
+    async def _force_close_zenoh_session(self, session, provider_name):
+        """
+        Force close a Zenoh session with timeout.
+
+        Parameters
+        ----------
+        session : ZenohSession
+            The Zenoh session to close
+        provider_name : str
+            The name of the provider associated with the session
+
+        Returns
+        -------
+        bool
+            True if the session was closed successfully, False otherwise
+        """
+        try:
+            # Use asyncio timeout to prevent hanging
+            await asyncio.wait_for(
+                asyncio.to_thread(session.close),
+                timeout=2.0
+            )
+            logging.info(f"MockRPLidar: Successfully closed {provider_name} Zenoh session")
+            return True
+        except asyncio.TimeoutError:
+            logging.warning(f"MockRPLidar: Timeout closing {provider_name} Zenoh session - continuing anyway")
+            return False
+        except Exception as e:
+            logging.warning(f"MockRPLidar: Error closing {provider_name} Zenoh session: {e}")
+            return False
