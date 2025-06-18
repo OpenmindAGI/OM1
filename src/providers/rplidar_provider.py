@@ -499,6 +499,8 @@ class RPLidarProvider:
         """
         self.running = False
 
+        logging.info(f"RPLidarProvider.stop: self.running: {self.running}")
+
         if self._rplidar_processor_thread:
             logging.info("Stopping RPLidar processor thread")
             if not self.use_zenoh:

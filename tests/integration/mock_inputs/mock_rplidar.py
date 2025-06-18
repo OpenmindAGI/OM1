@@ -296,8 +296,12 @@ class MockRPLidar(RPLidar):
         try:
             self.running = False
 
+            logging.info(
+                f"MockRPLidar.cleanup: hasattr(self, 'lidar'), self.lidar: {hasattr(self, 'lidar')}, {self.lidar}"
+            )
             # Clean up the lidar provider
             if hasattr(self, "lidar") and self.lidar:
+                logging.info("MockRPLidar.cleanup: Stopping lidar provider")
                 self.lidar.stop()
 
             logging.info("MockRPLidar.cleanup: Cleanup completed successfully")
