@@ -194,16 +194,23 @@ class MockRPLidar(RPLidar):
                                 hasattr(agent_action, "connector")
                                 and agent_action.connector
                             ):
-                                # Close Zenoh sessions in action connectors
+                                # Close Zenoh sessions in action connectors with timeout
                                 if (
                                     hasattr(agent_action.connector, "session")
                                     and agent_action.connector.session
                                 ):
                                     try:
-                                        agent_action.connector.session.close()
+                                        # Use asyncio timeout to prevent hanging
+                                        await asyncio.wait_for(
+                                            asyncio.to_thread(agent_action.connector.session.close),
+                                            timeout=2.0
+                                        )
+                                        logging.info("MockRPLidar: Successfully closed action connector Zenoh session")
+                                    except asyncio.TimeoutError:
+                                        logging.warning("MockRPLidar: Timeout closing action connector Zenoh session - continuing anyway")
                                     except Exception as e:
                                         logging.warning(
-                                            f"MockRPLidar: Error closing Zenoh session: {e}"
+                                            f"MockRPLidar: Error closing action connector Zenoh session: {e}"
                                         )
 
                                 # Also close OdomProvider Zenoh session if it exists
@@ -216,7 +223,14 @@ class MockRPLidar(RPLidar):
                                         and agent_action.connector.odom.session
                                     ):
                                         try:
-                                            agent_action.connector.odom.session.close()
+                                            # Use asyncio timeout to prevent hanging
+                                            await asyncio.wait_for(
+                                                asyncio.to_thread(agent_action.connector.odom.session.close),
+                                                timeout=2.0
+                                            )
+                                            logging.info("MockRPLidar: Successfully closed OdomProvider Zenoh session")
+                                        except asyncio.TimeoutError:
+                                            logging.warning("MockRPLidar: Timeout closing OdomProvider Zenoh session - continuing anyway")
                                         except Exception as e:
                                             logging.warning(
                                                 f"MockRPLidar: Error closing OdomProvider Zenoh session: {e}"
@@ -230,7 +244,14 @@ class MockRPLidar(RPLidar):
                         if hasattr(input_obj, "lidar") and input_obj.lidar:
                             if hasattr(input_obj.lidar, "zen") and input_obj.lidar.zen:
                                 try:
-                                    input_obj.lidar.zen.close()
+                                    # Use asyncio timeout to prevent hanging
+                                    await asyncio.wait_for(
+                                        asyncio.to_thread(input_obj.lidar.zen.close),
+                                        timeout=2.0
+                                    )
+                                    logging.info("MockRPLidar: Successfully closed lidar Zenoh session")
+                                except asyncio.TimeoutError:
+                                    logging.warning("MockRPLidar: Timeout closing lidar Zenoh session - continuing anyway")
                                 except Exception as e:
                                     logging.warning(
                                         f"MockRPLidar: Error closing lidar Zenoh session: {e}"
