@@ -105,14 +105,6 @@ class MockRPLidar(RPLidar):
 
         provider.start = mock_start
 
-        # Override the stop method to be a no-op for mock
-        def mock_stop():
-            """Mock stop method for graceful cleanup."""
-            provider.running = False
-            logging.info("MockRPLidar: RPLidarProvider stop() called (no-op for mock)")
-
-        provider.stop = mock_stop
-
         return provider
 
     def _extract_lidar_config(self, config: SensorConfig) -> dict:
