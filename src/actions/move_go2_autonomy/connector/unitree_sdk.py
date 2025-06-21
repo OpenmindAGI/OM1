@@ -7,6 +7,9 @@ from typing import List, Optional
 
 from actions.base import ActionConfig, ActionConnector, MoveCommand
 from actions.move_go2_autonomy.interface import MoveInput
+from providers.intel_depth_camera_obstacle_provider import (
+    IntelDepthCameraObstacleProvider,
+)
 from providers.odom_provider import OdomProvider, RobotState
 from providers.rplidar_provider import RPLidarProvider
 from providers.unitree_go2_state_provider import UnitreeGo2StateProvider
@@ -32,6 +35,7 @@ class MoveUnitreeSDKConnector(ActionConnector[MoveInput]):
 
         self.lidar = RPLidarProvider()
         self.unitree_go2_state = UnitreeGo2StateProvider()
+        self.intel_depth_camera_obstacle = IntelDepthCameraObstacleProvider()
 
         # create sport client
         self.sport_client = None
@@ -235,6 +239,13 @@ class MoveUnitreeSDKConnector(ActionConnector[MoveInput]):
                 # Phase 2: Move towards the target position, if needed
                 if goal_dx == 0:
                     logging.info("No movement required, processing next AI command")
+                    self.clean_abort()
+                    return
+
+                if self.intel_depth_camera_obstacle.obstacle_detected():
+                    logging.warning(
+                        "Obstacle detected by Intel Depth Camera, aborting movement"
+                    )
                     self.clean_abort()
                     return
 
