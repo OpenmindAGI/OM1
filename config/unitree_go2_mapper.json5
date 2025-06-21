@@ -18,24 +18,24 @@
         "log_file": true
       }
     },
-    {
-      "type": "UnitreeGo2Battery"
-    },
+    //{
+    //  "type": "UnitreeGo2Battery"
+    //},
     //{
     //  "type": "GoogleASRInput"
     //},
-    {
-      "type": "Gps",
-    },
-    {
-      "type": "Rtk",
-    },
-    {
-      "type": "Odom",
-    },
-    {
-      "type": "RPLidar",
-    }
+    //{
+    //  "type": "Gps",
+    //},
+    //{
+    //  "type": "Rtk",
+    //},
+    //{
+    //  "type": "Odom",
+    //},
+    //{
+    //  "type": "RPLidar",
+    //}
   ],
   "cortex_llm": {
     "type": "OpenAILLM",
@@ -45,12 +45,12 @@
     }
   },
   "agent_actions": [
-    {
-      "name": "move_game_controller",
-      "llm_label": "external movement controller",
-      "connector": "go2_game_controller",
-      "exclude_from_prompt": true
-    },
+    //{
+    //  "name": "move_game_controller",
+    //  "llm_label": "external movement controller",
+    //  "connector": "go2_game_controller",
+    //  "exclude_from_prompt": true
+    //},
     //{
     //  "name": "move_go2_autonomy",
     //  "llm_label": "move",
@@ -66,42 +66,43 @@
     //}
   ],
   "backgrounds": [
-    {
-      "type": "Gps",
-      config: {
-        "serial_port": "/dev/cu.usbmodem101",
-      }
-    },
+    //{
+    //  "type": "Gps",
+    //  config: {
+    //    "serial_port": "/dev/cu.usbmodem101",
+    //  }
+    //},
     {
       "type": "Rtk",
       config: {
-        "serial_port": "/dev/cu.usbmodem21201",
+        //"serial_port": "/dev/cu.usbmodem21201",
+        "serial_port": "/dev/cu.usbmodem84301",
       }
     },
-    {
-      "type": "Odom",
-        "config": {
-          "use_zenoh": false,
-          "URID": "", // only needed for Zenoh
-        }
-    },
-    {
-      "type": "RPLidar",
-      "config": {
-        "serial_port": "/dev/cu.usbserial-0001",
-        "half_width_robot": 0.21,
-        "relevant_distance_max": 1.1,
-        "relevant_distance_min": 0.20,
-        "sensor_mounting_angle": 172.0,
-        "angles_blanked": [],
-        "log_file": true,
-      }
-    },
+    //{
+    //  "type": "Odom",
+    //    "config": {
+    //      "use_zenoh": false,
+    //      "URID": "", // only needed for Zenoh
+    //    }
+    //},
+    //{
+    //  "type": "RPLidar",
+    //  "config": {
+    //    "serial_port": "/dev/cu.usbserial-0001",
+    //    "half_width_robot": 0.21,
+    //    "relevant_distance_max": 1.1,
+    //    "relevant_distance_min": 0.20,
+    //    "sensor_mounting_angle": 172.0,
+    //    "angles_blanked": [],
+    //    "log_file": true,
+    //  }
+    //},
     {
       "type": "RFmapper",
     },
-    {
-      "type": "UnitreeGo2State",
-    }
+    //{
+    //  "type": "UnitreeGo2State",
+    //}
   ]
 }

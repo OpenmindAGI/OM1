@@ -205,6 +205,8 @@ class GpsProvider:
     def _run(self):
         """
         Main loop for the GPS provider.
+        WARNING: this assumes that the data from the Arduino are arriving
+        relatively slowly.
         """
         while self.running:
             if self.serial_connection:
