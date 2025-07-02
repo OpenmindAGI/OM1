@@ -21,7 +21,9 @@ activated, even if they were not. I'm rejecting all RC data with values >2000.
 A typical range for a valid RC signal is 174 to 1800 - this is true for both 
 sticks and switches.
 
-Also, the CRC for packets 0x16 does not seem to be right?
+ran like this:
+
+uv run parse_crsf_radio.py
 
 """
 
@@ -63,13 +65,13 @@ def crc8_data(data) -> int:
 
 
 def crsf_validate_frame(frame) -> bool:
-    print(f"\nfull frame: {frame.hex()}")
-    print(f"payload len: {len(frame[2:-1])}")
-    print(f"payload: {frame[2:-1].hex()}")
-    checksum = crc8_data(frame[2:-1])
-    print(f"CRC calculated: {hex(checksum)}")
-    print(f"CRC at data end: {hex(frame[-1])}")
-    return True  # crc8_data(frame[2:-1]) == frame[-1]
+    # print(f"\nfull frame: {frame.hex()}")
+    # print(f"payload len: {len(frame[2:-1])}")
+    # print(f"payload: {frame[2:-1].hex()}")
+    # checksum = crc8_data(frame[2:-1])
+    # print(f"CRC calculated: {hex(checksum)}")
+    # print(f"CRC at data end: {hex(frame[-1])}")
+    return crc8_data(frame[2:-1]) == frame[-1]
 
 
 def signed_byte(b):
@@ -98,17 +100,18 @@ def handleCrsfPacket(ptype, data):
         rssi1 = signed_byte(data[3])
         rssi2 = signed_byte(data[4])
         lq = data[5]
-        # snr = signed_byte(data[6])
-        # antenna = data[7]
+        snr = signed_byte(data[6])
+        antenna = data[7]
         mode = data[8]
-        # power = data[9]
+        power = data[9]
         # telemetry strength
-        # downlink_rssi = signed_byte(data[10])
-        # downlink_lq = data[11]
-        # downlink_snr = signed_byte(data[12])
+        downlink_rssi = signed_byte(data[10])
+        downlink_lq = data[11]
+        downlink_snr = signed_byte(data[12])
         print(
-            f"RSSI={rssi1}/{rssi2}dBm LQ={lq:03} mode={mode}"
-        )  # ant={antenna} snr={snr} power={power} drssi={downlink_rssi} dlq={downlink_lq} dsnr={downlink_snr}")
+            f"RSSI={rssi1}/{rssi2}dBm LQ={lq:03} mode={mode} "
+            f"ant={antenna} snr={snr} power={power} drssi={downlink_rssi} dlq={downlink_lq} dsnr={downlink_snr}"
+        )
     elif ptype == PacketsTypes.ATTITUDE:
         pitch = int.from_bytes(data[3:5], byteorder="big", signed=True) / 10000.0
         roll = int.from_bytes(data[5:7], byteorder="big", signed=True) / 10000.0
@@ -183,7 +186,9 @@ def handleCrsfPacket(ptype, data):
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-P", "--port", default="/dev/cu.usbserial-0001", required=False)
+parser.add_argument(
+    "-P", "--port", default="/dev/cu.usbserial-B003ABY3", required=False
+)
 parser.add_argument("-b", "--baud", default=420000, required=False)
 parser.add_argument(
     "-t",
@@ -198,9 +203,6 @@ args = parser.parse_args()
 with serial.Serial(
     args.port,
     args.baud,
-    # parity=serial.PARITY_ODD,
-    # stopbits=serial.STOPBITS_TWO,
-    # bytesize=serial.SEVENBITS,
     timeout=1,
 ) as ser:
     input = bytearray()
@@ -215,13 +217,10 @@ with serial.Serial(
                 single = input[:expected_len]  # copy out this whole packet
                 input = input[expected_len:]  # and remove it from the buffer
                 if single[0] == PacketsTypes.SYNC_BYTE:
-                    # try CRC but this is currently failing
-                    # the CRC in the data is not very dynamic?
-                    crsf_validate_frame(single)
-                    # if not crsf_validate_frame(single): # single[-1] != crc:
-                    #     packet = ' '.join(map(hex, single))
-                    #     print(f"crc error: {packet}")
-                    # else:
-                    handleCrsfPacket(single[2], single)
+                    if not crsf_validate_frame(single):
+                        packet = " ".join(map(hex, single))
+                        print(f"crc error: {packet}")
+                    else:
+                        handleCrsfPacket(single[2], single)
             else:
                 break
