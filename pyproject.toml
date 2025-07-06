@@ -45,6 +45,7 @@ dependencies = [
     "pydub>=0.25.1",
     "pynput>=1.8.1",
     "dimo-python-sdk @ git+https://github.com/openminddev/dimo-python-sdk.git@6b47fcd28654a4145cedee649a0999a8eb08a2f6",
+    "x402 @ git+https://github.com/OpenmindAGI/x402.git@adc2ecf860693dbdc93294d4c425aed4bd2e8ffd#subdirectory=python",
 ]
 
 [project.optional-dependencies]
