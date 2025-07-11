@@ -35,6 +35,7 @@ dependencies = [
     "torch",
     "torchvision",
     "pyserial",
+    "py-mjpeg",
     "fastapi>=0.110.0",
     "uvicorn>=0.27.1",
     "websockets>=12.0",
@@ -45,6 +46,7 @@ dependencies = [
     "pydub>=0.25.1",
     "pynput>=1.8.1",
     "dimo-python-sdk @ git+https://github.com/openminddev/dimo-python-sdk.git@6b47fcd28654a4145cedee649a0999a8eb08a2f6",
+    "nest-asyncio>=1.6.0",
 ]
 
 [project.optional-dependencies]
@@ -66,7 +68,7 @@ dev = [
 pythonpath = ["src"]
 asyncio_mode = "auto"
 addopts = "-m \"not integration\""
-norecursedirs = ["src/unitree", "system_hw_test", "gazebo"]
+norecursedirs = ["src/unitree", "system_hw_test", "gazebo", "src/ubtech"]
 markers = [
     "integration: marks tests as integration tests",
 ]
@@ -74,20 +76,20 @@ markers = [
 [tool.black]
 line-length = 88
 include = '\.pyi?$'
-exclude = "(.venv)|(/src/unitree)|(/gazebo)"
+exclude = "(.venv)|(/src/unitree)|(/src/ubtech)|(/gazebo)"
 
 [tool.isort]
 profile = "black"
 multi_line_output = 3
 line_length = 88
 sources = ["src", "tests"]
-skip_glob = [".venv*", "/src/unitree", "/gazebo"]
+skip_glob = [".venv*", "/src/unitree", "/gazebo", "/src/ubtech"]
 
 [tool.ruff]
 line-length = 88
 indent-width = 4
 src = ["src"]
-exclude = ["src/unitree","gazebo"]
+exclude = ["src/unitree","gazebo", "src/ubtech"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]

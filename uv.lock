@@ -2165,6 +2165,15 @@ wheels = [
 ]
 
 [[package]]
+name = "nest-asyncio"
+version = "1.6.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/83/f8/51569ac65d696c8ecbee95938f89d4abf00f47d58d48f6fbabfe8f0baefe/nest_asyncio-1.6.0.tar.gz", hash = "sha256:6f172d5449aca15afd6c646851f4e31e02c598d553a667e38cafa997cfec55fe", size = 7418, upload-time = "2024-01-21T14:25:19.227Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a0/c4/c2971a3ba4c6103a3d10c4b0f24f461ddc027f0f09763220cf35ca1401b3/nest_asyncio-1.6.0-py3-none-any.whl", hash = "sha256:87af6efd6b5e897c81050477ef65c62e2b2f35d51703cae01aff2905b1852e1c", size = 5195, upload-time = "2024-01-21T14:25:17.223Z" },
+]
+
+[[package]]
 name = "networkx"
 version = "3.4.2"
 source = { registry = "https://pypi.org/simple" }
@@ -2358,12 +2367,14 @@ dependencies = [
     { name = "json5" },
     { name = "jsonschema" },
     { name = "matplotlib" },
+    { name = "nest-asyncio" },
     { name = "numpy" },
     { name = "om1-modules" },
     { name = "openai" },
     { name = "opencv-python" },
     { name = "osascript" },
     { name = "pillow" },
+    { name = "py-mjpeg" },
     { name = "pyaudio" },
     { name = "pycdr2" },
     { name = "pydub" },
@@ -2418,12 +2429,14 @@ requires-dist = [
     { name = "json5" },
     { name = "jsonschema" },
     { name = "matplotlib" },
+    { name = "nest-asyncio", specifier = ">=1.6.0" },
     { name = "numpy" },
     { name = "om1-modules", git = "https://github.com/OpenmindAGI/om1-modules.git?rev=935586164bb46bf3e1c1c9ee1c9043df182ec5f9" },
     { name = "openai", specifier = ">=1.59.5" },
     { name = "opencv-python" },
     { name = "osascript" },
     { name = "pillow", specifier = ">=11.1.0" },
+    { name = "py-mjpeg" },
     { name = "pyaudio" },
     { name = "pycdr2" },
     { name = "pydub", specifier = ">=0.25.1" },
@@ -2878,6 +2891,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/37/a8/d832f7293ebb21690860d2e01d8115e5ff6f2ae8bbdc953f0eb0fa4bd2c7/py-cpuinfo-9.0.0.tar.gz", hash = "sha256:3cdbbf3fac90dc6f118bfd64384f309edeadd902d7c8fb17f02ffa1fc3f49690", size = 104716, upload-time = "2022-10-25T20:38:06.303Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e0/a9/023730ba63db1e494a271cb018dcd361bd2c917ba7004c3e49d5daf795a2/py_cpuinfo-9.0.0-py3-none-any.whl", hash = "sha256:859625bc251f64e21f077d099d4162689c762b5d6a4c3c97553d56241c9674d5", size = 22335, upload-time = "2022-10-25T20:38:27.636Z" },
+]
+
+[[package]]
+name = "py-mjpeg"
+version = "1.0.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/51/ac/b6290270824da9f6bf0b1b58a056bddb0ba6b592af827988f7eb108aefba/py-mjpeg-1.0.1.tar.gz", hash = "sha256:037474d24e4a5eb17be3999a271369263e71ff058d8730f6cdd3aa629a756cef", size = 7028, upload-time = "2022-10-21T03:18:37.676Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f2/35/55b6843a53c9c80209d6aff5154cbe277c5b51490c2455a6de39c0176aba/py_mjpeg-1.0.1-py3-none-any.whl", hash = "sha256:3ee431681858aa143e1d7866612bc91e00bb465d009a048cc1bb839addf1e1bc", size = 7843, upload-time = "2022-10-21T03:18:35.955Z" },
 ]
 
 [[package]]
