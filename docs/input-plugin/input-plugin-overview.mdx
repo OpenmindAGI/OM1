@@ -7,7 +7,7 @@ description: "Input plugin overview"
 
 The Input Plugins in OM1 provide the sensory capabilities that allow AI agents to perceive and interact with their environment. These plugins capture, process, and format various types of input data from different sources, making them available to the agent's runtime core for decision-making.
 
-[All the input plugins codes](https://github.com/OpenmindAGI/OM1/tree/main/src/inputs)
+[All the input plugins codes](https://github.com/openmind/OM1/tree/main/src/inputs)
 
 ## Input Plugin Architecture
 
@@ -74,8 +74,8 @@ classDiagram
     Sensor <|-- UnitreeGo2LowState
 ```
 
-- [class `Sensor`](https://github.com/OpenmindAGI/OM1/blob/8c73b76b54d1c379998be5f75a6b04e43e6a4701/src/inputs/base/__init__.py#L23)
-- [class `FuserInput`](https://github.com/OpenmindAGI/OM1/blob/8c73b76b54d1c379998be5f75a6b04e43e6a4701/src/inputs/base/loop.py#L8)
+- [class `Sensor`](https://github.com/openmind/OM1/blob/8c73b76b54d1c379998be5f75a6b04e43e6a4701/src/inputs/base/__init__.py#L23)
+- [class `FuserInput`](https://github.com/openmind/OM1/blob/8c73b76b54d1c379998be5f75a6b04e43e6a4701/src/inputs/base/loop.py#L8)
 
 ### Data Flow Diagram
 
@@ -172,9 +172,9 @@ flowchart TD
 
 ## Other Input Plugins
 
-- [Google ASR](https://github.com/OpenmindAGI/OM1/blob/main/src/inputs/plugins/google_asr.py)
-- [Riva ASR](https://github.com/OpenmindAGI/OM1/blob/main/src/inputs/plugins/riva_asr.py)
-- [RPLidar](https://github.com/OpenmindAGI/OM1/blob/main/src/inputs/plugins/rplidar.py)
-- [VLM_COCO_Local](https://github.com/OpenmindAGI/OM1/blob/main/src/inputs/plugins/vlm_coco_local.py)
-- [VLM_Villa](https://github.com/OpenmindAGI/OM1/blob/main/src/inputs/plugins/vlm_vila.py)
-- [Arduino GPS](https://github.com/OpenmindAGI/OM1/blob/main/src/inputs/plugins/gps_mag_serial_reader.py)
+- [Google ASR](https://github.com/openmind/OM1/blob/main/src/inputs/plugins/google_asr.py)
+- [Riva ASR](https://github.com/openmind/OM1/blob/main/src/inputs/plugins/riva_asr.py)
+- [RPLidar](https://github.com/openmind/OM1/blob/main/src/inputs/plugins/rplidar.py)
+- [VLM_COCO_Local](https://github.com/openmind/OM1/blob/main/src/inputs/plugins/vlm_coco_local.py)
+- [VLM_Villa](https://github.com/openmind/OM1/blob/main/src/inputs/plugins/vlm_vila.py)
+- [Arduino GPS](https://github.com/openmind/OM1/blob/main/src/inputs/plugins/gps_mag_serial_reader.py)
