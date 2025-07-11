@@ -118,7 +118,7 @@ class SpeakElevenLabsTTSConnector(ActionConnector[SpeakInput]):
 
         new_state = self.audio_status
         new_state.header = self.prepare_header()
-        new_state.STATUS_SPEAKER = AudioStatus.STATUS_SPEAKER.ACTIVE.value
+        new_state.status_speaker = AudioStatus.STATUS_SPEAKER.ACTIVE.value
         new_state.sentence_to_speak = String(string_to_speak)
         new_state.sentence_counter = self.sentence_counter
 
