@@ -2,13 +2,13 @@ import logging
 import threading
 import time
 
+import zenoh
+
 from actions.base import ActionConfig, ActionConnector
 from actions.move_game_controller.interface import IDLEInput
 from providers.odom_provider import OdomProvider, RobotState
 from providers.unitree_go2_state_provider import UnitreeGo2StateProvider
 from unitree.unitree_sdk2py.go2.sport.sport_client import SportClient
-
-import zenoh
 from zenoh_idl.status_msgs import AudioStatus
 
 try:
@@ -44,7 +44,7 @@ class Go2GameControllerConnector(ActionConnector[IDLEInput]):
         self.yaw_correction = getattr(config, "yaw_correction", 0.0)
         self.lateral_correction = getattr(config, "lateral_correction", 0.0)
 
-        self.topic = 'robot/status/audio'
+        self.topic = "robot/status/audio"
         self.session = None
         try:
             self.session = zenoh.open(zenoh.Config())
@@ -97,7 +97,7 @@ class Go2GameControllerConnector(ActionConnector[IDLEInput]):
 
     def audio_message(self, data):
         self.audio_status = AudioStatus.deserialize(data.payload.to_bytes())
-        logging.info(f"TTS Zenoh Received: {self.audio_status} {time.time()}") 
+        logging.info(f"TTS Zenoh Received: {self.audio_status} {time.time()}")
 
     def _init_controller(self) -> None:
         """

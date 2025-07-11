@@ -1,10 +1,10 @@
 from dataclasses import dataclass
-from typing import List
 
 from pycdr2 import Enum, IdlStruct
-from pycdr2.types import array, float32, float64, int8, sequence, uint8, uint16, uint32
+from pycdr2.types import int8, uint32
 
 from .std_msgs import Header, String
+
 
 @dataclass
 class AudioStatus(IdlStruct, typename="AudioStatus"):
@@ -24,9 +24,10 @@ class AudioStatus(IdlStruct, typename="AudioStatus"):
     sentence_to_speak: String
     sentence_counter: uint32
 
+
 @dataclass
 class CameraStatus(IdlStruct, typename="CameraStatus"):
-    
+
     class STATUS(Enum):
         DISABLED = 0
         ENABLED = 1
@@ -34,9 +35,10 @@ class CameraStatus(IdlStruct, typename="CameraStatus"):
     header: Header
     status: int8
 
+
 @dataclass
 class MotionStatus(IdlStruct, typename="MotionStatus"):
-    
+
     class CONTROL(Enum):
         DISABLED = 0
         AI = 1
