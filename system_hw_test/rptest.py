@@ -22,7 +22,18 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     "--serial", help="serial port to use, when using the low level driver", type=str
 )
-parser.add_argument("--URID", help="your robot's URID, when using Zenoh", type=str)
+parser.add_argument(
+    "--zenoh", help="use zenoh to connect to the robot", action="store_true"
+)
+parser.add_argument(
+    "--multicast", help="multicast address for zenoh", type=str, default=None
+)
+parser.add_argument(
+    "--URID", help="your robot's URID, when using Zenoh", type=str, default=""
+)
+parser.add_argument(
+    "--type", help="the type of the robot (go2 or tb4)", type=str, default="go2"
+)
 print(parser.format_help())
 
 args = parser.parse_args()
@@ -88,7 +99,7 @@ angles_blanked = []
 # Figure 2 - the zoom and the possible paths
 centerZoom = ax2.plot([0], [0], "o", color="blue")[0]  # the robot
 
-if args.URID:
+if args.type == "tb4":
     sensor_mounting_angle = 270.0
     angles_blanked = [[-180.0, -160.0], [110.0, 180.0]]
     circleZoom = ax2.add_patch(
@@ -425,17 +436,35 @@ if __name__ == "__main__":
             lidar.disconnect()
             time.sleep(0.5)
             sys.exit(0)
-    elif args.URID:
-        URID = args.URID
-        print(f"Using Zenoh to connect to robot using {URID}")
+
+        sys.exit(0)
+
+    if args.zenoh:
+        print("Using Zenoh to connect to robot")
         print("[INFO] Opening zenoh session...")
         conf = zenoh.Config()
+        if args.multicast:
+            conf.insert_json5(
+                "scouting", f'{{"multicast": {{"address": "{args.multicast}"}}}}'
+            )
+
         z = zenoh.open(conf)
 
-        print("[INFO] Creating Subscribers")
-        scans = z.declare_subscriber(f"{URID}/pi/scan", zenoh_scan)
+        if args.type == "go2":
+            print("[INFO] Creating Subscribers for Go2")
+            scans = z.declare_subscriber("scan", zenoh_scan)
+
+        if args.type == "tb4":
+            print("[INFO] Creating Subscribers for TB4")
+            scans = z.declare_subscriber(f"{args.URID}/pi/scan", zenoh_scan)
+
+        if args.type != "go2" and args.type != "tb4":
+            print(f"[ERROR] Unsupported robot type: {args.type}")
+            sys.exit(1)
 
         ani = FuncAnimation(fig, lambda _: None)
         plot.show()
-    else:
-        print("No sensor")
+
+        sys.exit(0)
+
+    raise ValueError("You must specify either --serial or --zenoh to run this script.")

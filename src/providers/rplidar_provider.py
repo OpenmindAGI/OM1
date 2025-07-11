@@ -141,8 +141,24 @@ class RPLidarProvider:
         Regions of the scan to disregard, runs from -180 to +180 deg
     relevant_distance_max: float = 1.1
         Only consider barriers within this range, in m
+    relevant_distance_min: float = 0.08
+        Only consider barriers above this range, in m
     sensor_mounting_angle: float = 180.0
         The angle of the sensor zero relative to the way in which it's mounted
+    URID: str = ""
+        The URID of the robot, used for Zenoh communication
+    multicast_address: str = ""
+        The multicast address for Zenoh communication
+    machine_type: str = "go2"
+        The type of the robot, e.g., "go2" or "tb4"
+    use_zenoh: bool = False
+        Whether to use Zenoh for communication
+    simple_paths: bool = False
+        Whether to use simple paths for path planning
+    rplidar_config: RPLidarConfig = RPLidarConfig()
+        Configuration for the RPLidar sensor
+    log_file: bool = False
+        Whether to log data to a local file
     """
 
     # Constants
@@ -164,6 +180,8 @@ class RPLidarProvider:
         relevant_distance_min: float = DEFAULT_RELEVANT_DISTANCE_MIN,
         sensor_mounting_angle: float = DEFAULT_SENSOR_MOUNTING_ANGLE,
         URID: str = "",
+        multicast_address: str = "",
+        machine_type: str = "go2",
         use_zenoh: bool = False,
         simple_paths: bool = False,
         rplidar_config: RPLidarConfig = RPLidarConfig(),
@@ -182,6 +200,8 @@ class RPLidarProvider:
         self.relevant_distance_min = relevant_distance_min
         self.sensor_mounting_angle = sensor_mounting_angle
         self.URID = URID
+        self.multicast_address = multicast_address
+        self.machine_type = machine_type
         self.use_zenoh = use_zenoh
         self.simple_paths = simple_paths
         self.rplidar_config = rplidar_config
@@ -245,12 +265,33 @@ class RPLidarProvider:
         if self.use_zenoh:
             logging.info("Connecting to the RPLIDAR via Zenoh")
             try:
-                self.zen = zenoh.open(zenoh.Config())
+                config = zenoh.Config()
+                if self.multicast_address:
+                    config.insert_json5(
+                        "scouting",
+                        f'{{"multicast": {{"address": "{self.multicast_address}"}}}}',
+                    )
+
+                self.zen = zenoh.open(config)
                 logging.info(f"Zenoh move client opened {self.zen}")
-                logging.info(
-                    f"TurtleBot4 RPLIDAR listener starting with URID: {self.URID}"
-                )
-                self.zen.declare_subscriber(f"{self.URID}/pi/scan", self.listen_scan)
+
+                if self.machine_type == "tb4":
+                    logging.info(
+                        f"{self.machine_type} RPLIDAR listener starting with URID: {self.URID}"
+                    )
+                    self.zen.declare_subscriber(
+                        f"{self.URID}/pi/scan", self.listen_scan
+                    )
+
+                if self.machine_type == "go2":
+                    logging.info(f"{self.machine_type} RPLIDAR listener starting")
+                    self.zen.declare_subscriber("scan", self.listen_scan)
+
+                if self.machine_type != "tb4" and self.machine_type != "go2":
+                    raise ValueError(
+                        f"Unsupported machine type: {self.machine_type}. Supported types are 'tb4' and 'go2'."
+                    )
+
             except Exception as e:
                 logging.error(f"Error opening Zenoh client: {e}")
 
@@ -304,6 +345,10 @@ class RPLidarProvider:
         This method initializes the RPLidar processing thread and the serial data processing thread.
         """
         self.running = True
+
+        if self.use_zenoh:
+            logging.info("RPLidar using Zenoh, no serial port required")
+            return
 
         if (
             not self._rplidar_processor_thread
