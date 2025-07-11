@@ -10,7 +10,8 @@
       },
       storages: {
         robot: {                   // configure a "robot" storage
-          key_expr: "robot/**",    // which subscribes and replies to query on robot/**
+          key_expr: "robot/**",    // which subscribes and replies to queries on robot/**
+          strip_prefix: "robot",
           volume: {
             id: "fs",
             dir: "robot"
