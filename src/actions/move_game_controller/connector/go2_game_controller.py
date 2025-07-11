@@ -2,11 +2,14 @@ import logging
 import threading
 import time
 
+import zenoh
+
 from actions.base import ActionConfig, ActionConnector
 from actions.move_game_controller.interface import IDLEInput
 from providers.odom_provider import OdomProvider, RobotState
 from providers.unitree_go2_state_provider import UnitreeGo2StateProvider
 from unitree.unitree_sdk2py.go2.sport.sport_client import SportClient
+from zenoh_idl.status_msgs import AudioStatus
 
 try:
     import hid
@@ -40,6 +43,15 @@ class Go2GameControllerConnector(ActionConnector[IDLEInput]):
         self.turn_speed = getattr(config, "speed_yaw", 0.6)
         self.yaw_correction = getattr(config, "yaw_correction", 0.0)
         self.lateral_correction = getattr(config, "lateral_correction", 0.0)
+
+        self.topic = "robot/status/audio"
+        self.session = None
+        try:
+            self.session = zenoh.open(zenoh.Config())
+            self.session.declare_subscriber(self.topic, self.audio_message)
+            logging.info("Game Controller Zenoh client opened")
+        except Exception as e:
+            logging.error(f"Error opening Game Controller Zenoh client: {e}")
 
         self.gamepad = None
         self.sony_dualsense = False
@@ -82,6 +94,10 @@ class Go2GameControllerConnector(ActionConnector[IDLEInput]):
         self.unitree_state_provider = UnitreeGo2StateProvider()
 
         self.thread_lock = threading.Lock()
+
+    def audio_message(self, data):
+        self.audio_status = AudioStatus.deserialize(data.payload.to_bytes())
+        logging.info(f"TTS Zenoh Received: {self.audio_status} {time.time()}")
 
     def _init_controller(self) -> None:
         """

@@ -119,15 +119,16 @@ class RtkProvider:
                     # round to 1 cm localisation in x,y, and 1 cm in z
                     logging.debug(f"RTK GGA:{msg}")
 
-                    self.lat = round(float(msg.lat), 7)
-                    self.lon = round(float(msg.lon), 7)
-                    self.alt = round(float(msg.alt), 2)
+                    if msg.lat:
+                        self.lat = round(float(msg.lat), 7)
+                        self.lon = round(float(msg.lon), 7)
+                        self.alt = round(float(msg.alt), 2)
 
-                    self.sat = int(msg.numSV)
-                    self.qua = int(msg.quality)
+                        self.sat = int(msg.numSV)
+                        self.qua = int(msg.quality)
 
-                    # the data look something like this: 23:12:25.300000
-                    self.unix_ts = self.utc_time_obj_to_unix(msg.time)
+                        # the data look something like this: 23:12:25.300000
+                        self.unix_ts = self.utc_time_obj_to_unix(msg.time)
                     logging.debug(
                         (
                             f"RTK:{self.lat},{self.lon},ALT:{self.alt},"

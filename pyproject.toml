@@ -17,7 +17,7 @@ dependencies = [
     "json5",
     "jsonschema",
     "pycdr2",
-    "eclipse-zenoh",
+    "eclipse-zenoh>=1.4.0",
     "audiosegment",
     "pyaudio",
     "openai>=1.59.5",
