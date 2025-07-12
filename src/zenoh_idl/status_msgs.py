@@ -8,15 +8,17 @@ from .std_msgs import Header, String
 
 @dataclass
 class AudioStatus(IdlStruct, typename="AudioStatus"):
-
     class STATUS_MIC(Enum):
         DISABLED = 0
-        ENABLED = 1
+        READY = 1
+        ACTIVE = 2
+        UNKOWN = 3
 
     class STATUS_SPEAKER(Enum):
         DISABLED = 0
         READY = 1
         ACTIVE = 2
+        UNKOWN = 3
 
     header: Header
     status_mic: int8
@@ -27,7 +29,6 @@ class AudioStatus(IdlStruct, typename="AudioStatus"):
 
 @dataclass
 class CameraStatus(IdlStruct, typename="CameraStatus"):
-
     class STATUS(Enum):
         DISABLED = 0
         ENABLED = 1
@@ -38,7 +39,6 @@ class CameraStatus(IdlStruct, typename="CameraStatus"):
 
 @dataclass
 class MotionStatus(IdlStruct, typename="MotionStatus"):
-
     class CONTROL(Enum):
         DISABLED = 0
         AI = 1

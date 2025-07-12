@@ -42,7 +42,7 @@ class SpeakElevenLabsTTSConnector(ActionConnector[SpeakInput]):
 
         self.audio_status = AudioStatus(
             header=self.prepare_header(),
-            status_mic=AudioStatus.STATUS_MIC.ENABLED.value,
+            status_mic=AudioStatus.STATUS_MIC.UNKOWN.value,
             status_speaker=AudioStatus.STATUS_SPEAKER.READY.value,
             sentence_to_speak=String(""),
             sentence_counter=self.sentence_counter,
@@ -108,7 +108,7 @@ class SpeakElevenLabsTTSConnector(ActionConnector[SpeakInput]):
         # Block ASR until TTS is done
         # Send message to ASR to blank
         # No idea how to reset this once the speaker is done
-        self.tts.register_tts_state_callback(self.asr.audio_stream.on_tts_state_change)
+        # self.tts.register_tts_state_callback(self.asr.audio_stream.on_tts_state_change)
 
         # Add pending message to TTS
         # The TTS takes the string, sends it to the cloud,
