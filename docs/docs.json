@@ -60,8 +60,7 @@
           {
             "group": "LLM Integration",
             "pages": [
-              "llm/llm-integration",
-              "llm/openai-integration"
+              "llm/llm-integration"
             ]
           },
           {

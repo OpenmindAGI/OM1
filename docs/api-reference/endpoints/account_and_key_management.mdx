@@ -1,0 +1,19 @@
+---
+title: Manage Openmind Account and Keys
+description: "Managing your OpenMind Account and API Keys"
+---
+
+OpenMind provides a secure way to manage your account and API keys. This endpoint allows you to generate new API keys (and delete old keys) that can be used for authentication and authorization in your applications.
+
+```bash
+https://api.openmind.org/api/core
+
+post $core/api_keys/create
+post $core/api_keys/delete
+get $core/account/balance  # get your account balance
+get $core/api_keys         # list API keys 
+```
+
+You can also perform these actions by logging into your account at [portal.openmind.org](https://portal.openmind.org).
+
+*Note*: The JWT token is generated with [Clerk](https://clerk.com/) and is used to authenticate your requests. Ensure you have the necessary permissions to access this endpoint.

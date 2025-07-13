@@ -5,86 +5,44 @@ description: "LLM Integration"
 
 ## LLM Integration
 
-The LLM Integration in OM1 provides the ability to integrate with LLM models. This integration allows AI agents to use LLM models to make decisions and take actions.
+OM1's LLM integration is intended to make it easy to (1) send `input` information to LLMs and then (2) route LLM responses to various system `actions`, such as `speak` and `move`. The system provides a standardized interface for communicating with many different LLM endpoints from all the major providers, such as Anthropic, Google, and OpenAI. The plugins handle authentication, API communication, prompt formatting, response parsing, and conversation history management.
 
-## LLM Integration components
+## LLM Code Location
 
-[github codes](https://github.com/OpenmindAGI/OM1/tree/main/src/llm)
+LLM plugins are located in:
 
-### Class Diagram
+[github LLM](https://github.com/OpenmindAGI/OM1/tree/main/src/llm)
 
-In order to simplify the diagram, we only show the most important classes and their relationships.
+## How it Works
 
-```mermaid
-classDiagram
-    class LLMConfig {
-        +__getitem__(item: str) Any
-        +__setitem__(key: str, value: Any)
-    }
+Each LLM plugin takes fused input data (the `prompt`) and sends it to an LLM (or a system of LLMs), and then waits for the response. The response is then parsed and provided to `runtime/cortex.py` for distribution to the system actions:
 
-    class LLM~R~ {
-        <<abstract>>
-        +async ask(prompt: str, messages: List[Dict[str, str]]) R
-    }
+```python
+response = await self._client.beta.chat.completions.parse(
+    model=self._config.model,
+    messages=[*messages, {"role": "user", "content": prompt}],
+    response_format=self._output_model,
+    timeout=self._config.timeout,
+)
 
-    class Command {
-    }
+message_content = response.choices[0].message.content
+parsed_response = self._output_model.model_validate_json(message_content)
 
-    class CortexOutputModel {
-    }
-
-    class OpenAILLM {
-        +async ask(prompt: str, messages: List[Dict[str, str]]) R
-    }
-
-    class MultiLLM {
-        +async ask(prompt: str, messages: List[Dict[str, str]]) R
-    }
-
-    class RAGMultiLLM {
-        +async ask(prompt: str, messages: List[Dict[str, str]]) R
-    }
-
-    LLMConfig --> LLM
-    LLM --> Command
-    Command --> CortexOutputModel
-    LLM <|-- OpenAILLM
-    LLM <|-- MultiLLM
-    LLM <|-- RAGMultiLLM
+return parsed_response
 ```
 
-### Data Flow
+The standard `pydantic` output model is defined in `src/llm/output_model.py`.
 
-```mermaid
-sequenceDiagram
-    participant Client
-    participant LLM
-    participant LLMConfig
-    participant OutputModel
-    participant IOProvider
+## LLM Configuration
 
-    Note over Client: Initialize LLM
-    Client->>LLMConfig: Create configuration
-    Client->>LLM: Initialize with config
-    
-    loop LLM Interaction
-        Client->>LLM: ask(prompt, messages)
-        LLM->>LLMConfig: Get configuration
-        LLM->>OutputModel: Validate response
-        LLM->>IOProvider: Log interaction
-        LLM-->>Client: Return typed response
-    end
-```
-
-### Example configuration
-
-```
+```json
+# Example configuration
   "cortex_llm": {
-    "type": "OpenAILLM",
+    "type": "OpenAILLM",    // The class name of the LLM plugin you wish to use
     "config": {
-      "base_url": "", // Optional: URL of the LLM endpoint
+      "base_url": "",       // Optional: URL of the LLM endpoint
       "agent_name": "Iris", // Optional: Name of the agent
-      "history_length": 10
+      "history_length": 10  // The number of input->action cycles to provide to the LLM as historical context 
     }
-  },
+  }
 ```
