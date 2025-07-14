@@ -1,5 +1,5 @@
-import time
 import math
+import time
 from dataclasses import dataclass
 
 from pycdr2 import IdlStruct
@@ -35,6 +35,7 @@ class ColorRGBA(IdlStruct, typename="ColorRGBA"):
 @dataclass
 class String(IdlStruct, typename="String"):
     data: str
+
 
 def prepare_header(frame_id: str = "") -> Header:
     """
