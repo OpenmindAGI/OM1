@@ -5,35 +5,33 @@ description: "Actions"
 
 ## Action Plugins
 
-The Action Plugins are a core component of OM1. Actions enable LLMs control physical robot hardware. 
+The Action Plugins are core components of OM1. These plugins map high-level decisions from one or more LLMs into concrete physical or digital actions (e.g. moving a robot or generating speech). This page covers the architecture of a typical Action Plugin, the available action types, and how actions are connected to different hardware and software platforms.
 
-It serves as the output mechanism for the agent, translating high-level decisions from the Large Language Model (LLM) into concrete physical or digital actions (e.g. moving a robot, speech, etc.). This page covers the architecture of the Action Plugin, the available action types, and how actions are connected to different hardware and software platforms.
+[Code](https://github.com/OpenmindAGI/OM1/tree/main/src/actions)
 
-[github codes](https://github.com/OpenmindAGI/OM1/tree/main/src/actions)
+## Action Orchestrator
 
+The Action Orchestrator is the central component that orchestrates the execution of actions. It manages the states, promise queue, and threads for each action.
 
+[Code](https://github.com/OpenmindAGI/OM1/blob/main/src/actions/orchestrator.py)
 
-## Movement through ROS2
+## Movement (Zenoh)
 
-The Movement through ROS2 action plugin allows agents to move a robot in a simulated or real robot using ROS2.
+This plugin is an example of how to use Zenoh to send movement commands to a [TurtleBot 4](https://github.com/OpenmindAGI/OM1/tree/main/src/actions/move_turtle/connector/zenoh.py).
 
-[github example](https://github.com/OpenmindAGI/OM1/blob/main/src/actions/move/connector/ros2.py)
+## Movement (Unitree SDK)
 
-
-## Movement through Zenoh
-
-The Movement through Zenoh action plugin allows agents to move a robot in a simulated or real robot using Zenoh.
-In this page, we will use the [Move Turtle](https://github.com/OpenmindAGI/OM1/tree/main/src/actions/move_turtle) as an example.
+This plugin is an example of how to directly connect to the Unitree python SDK to send movement commands to a [Go2 EDU](https://github.com/OpenmindAGI/OM1/tree/main/src/actions/move_go2_autonomy/connector/unitree_sdk.py).
 
 ## Speech and TTS
 
-The Speech and TTS action plugin allows agents to speak aloud with a text-to-speech (TTS) system.
+The Speech and TTS action plugin allows agents to speak using with a text-to-speech (TTS) system.
 
-[github codes](https://github.com/OpenmindAGI/OM1/blob/main/src/actions/speak/connector/elevenlabs_tts.py)
+[Code](https://github.com/OpenmindAGI/OM1/blob/main/src/actions/speak/connector/elevenlabs_tts.py)
 
-## configuration parameters
+### Configuration parameters
 
-```
+```json
 # Example usage
 config = ActionConfig(
     api_key="your_api_key",
@@ -48,157 +46,15 @@ connector = SpeakElevenLabsTTSConnector(config)
 await connector.connect(SpeakInput(action="Hello, world!"))
 ```
 
-## example configuration
-
-```
-    {
-      "name": "speak",
-      "llm_label": "speak",
-      "implementation": "passthrough",
-      "connector": "elevenlabs_tts",
-      "config": {
-        "voice_id": "i4CzbCVWoqvD0P1QJCUL"
-      }
-    }
-```
-
-## Action Plugin Architecture Class Diagram
-
-In order to simplify the diagram, we only show the most important classes and their relationships.
-
-Core components of the Action Plugin:
-
-```mermaid
-classDiagram
-    class ActionConfig {
-        +__init__(**kwargs)
-    }
-
-    class Interface~IT,OT~ {
-        +IT input
-        +OT output
-    }
-
-    class ActionImplementation~IT,OT~ {
-        <<abstract>>
-        +async execute(input_protocol: IT) OT
-        +tick()
-    }
-
-    class ActionConnector~OT~ {
-        <<abstract>>
-        +async connect(input_protocol: OT)
-        +tick()
-    }
-
-    class AgentAction {
-    }
-
-    class ActionOrchestrator {
-        +start()
-        +async flush_promises()
-        +async promise(commands: List[Command])
-    }
-
-    ActionConfig --> ActionImplementation
-    ActionConfig --> ActionConnector
-    Interface --> ActionImplementation
-    ActionImplementation --> AgentAction
-    ActionConnector --> AgentAction
-    AgentAction --> ActionOrchestrator
-```
-
-## Data Flow
-
-```mermaid
-sequenceDiagram
-    participant Client
-    participant ActionOrchestrator
-    participant AgentAction
-    participant ActionImplementation
-    participant ActionConnector
-
-    Note over Client: Initialize ActionOrchestrator
-    Client->>ActionOrchestrator: Start actions
-    ActionOrchestrator->>AgentAction: Create implementation thread
-    ActionOrchestrator->>AgentAction: Create connector thread
-    
-    loop Action Execution
-        Client->>ActionOrchestrator: promise(commands)
-        ActionOrchestrator->>AgentAction: Find matching action
-        AgentAction->>ActionImplementation: execute(input)
-        ActionImplementation-->>AgentAction: Return response
-        AgentAction->>ActionConnector: connect(response)
-        ActionOrchestrator->>ActionOrchestrator: flush_promises()
-    end
-```
-
-## Action Orchestrator
-
-The Action Orchestrator is the central component that orchestrates the execution of actions. It manages the states, promise queue, and threads for each action.
-
-[github codes](https://github.com/OpenmindAGI/OM1/blob/main/src/actions/orchestrator.py)
-
-### Orchestrator architecture class diagram
-
-In order to simplify the diagram, we only show the most important classes and their relationships.
-
-```mermaid
-classDiagram
-    class ActionOrchestrator {
-        +__init__(config: RuntimeConfig)
-        +start()
-        -_run_implementation_loop(action: AgentAction)
-        -_run_connector_loop(action: AgentAction)
-        +async flush_promises() tuple[List[Any], List[Task]]
-        +async promise(commands: List[Command])
-        -async _promise_action(action: AgentAction, command: Command) Any
-    }
-
-    class RuntimeConfig {
-    }
-
-    class AgentAction {
-    }
-
-    class Command {
-    }
-
-    RuntimeConfig --> ActionOrchestrator
-    ActionOrchestrator --> AgentAction
-    AgentAction --> Command
-```
-
-## Example configuration
-
-```
-  "agent_actions": [
-    {
-      "name": "move",
-      "llm_label": "move",
-      "implementation": "passthrough",
-      "connector": "ros2"
-    },
-    {
-      "name": "speak",
-      "llm_label": "speak",
-      "implementation": "passthrough",
-      "connector": "ros2"
-    }
-  ]
-```
-
 ## Adding New Actions
 
-Actions are the core capabilities of an agent. For example, for a robot, these capabilities are actions such as movement and speech. Each action consists of:
+Each action consists of:
 
 1. Interface (`interface.py`): Defines input/output types.
 2. Implementation (`implementation/`): Business logic, if any. Otherwise, use passthrough.
 3. Connector (`connector/`): Code that connects `OM1` to specific virtual or physical environments, typically through middleware (e.g. custom APIs, `ROS2`, `Zenoh`, or `CycloneDDS`)
 
-Example action structure:
-
-```tree Example Action Structure
+```tree
 actions/
 └── move_{unique_hardware_id}/
     ├── interface.py      # Defines MoveInput/Output

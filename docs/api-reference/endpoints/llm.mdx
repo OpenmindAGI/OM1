@@ -3,38 +3,10 @@ title: LLM Chat Completions
 description: "LLM Endpoints for Robot Control
 ---
 
-# Single-Agent LLM Integration (deprecated)
+# Single-Agent LLM Integration
 
-For testing and introductory educational purposes, we integrates with multiple language models (LLMs) to provide chat completion. The `post /{provider}/chat/completions` endpoint allows you to interact with different LLM providers to generate chat completions.
+For testing and introductory educational purposes, we integrate with multiple language models (LLMs) to provide chat completion via a `post /{provider}/chat/completions` endpoint.
 
 # Multi-Agent LLM Integration (`post /agent`)
 
-The Multi Agent robotics cognition endpoint provides an agent-based architecture. The `post /agent` route sends fused data to a collaborative multi-agent system, providing a powerful way to solve more complex robotics tasks.
-
-## Key Features
-
-- **Collaborative Intelligence**: Multiple agents work together to solve complex problems
-- **Robotic Team Integration**: Harness the power of specialized agents working together
-- **Compatible Interface**: Uses the same patterns as standard LLM implementations
-
-## Getting Started
-
-To try out the multi-agent system:
-
-```bash
-uv run src/run.py multiagent
-```
-
-## Technical Details
-
-Under the hood, MultiLLM sends requests to the agent endpoint at `https://api.openmind.org/api/core/agent`. The system formats your inputs, facilitating communication between specialized agents like navigation and perception. The request includes:
-
-- System prompt context
-- User inputs
-- Available actions for the agents
-
-## Use Cases
-
-- **Robotics Applications**: Interface with physical systems through natural language.
-- **Complex Decision Making**: Combine multiple specialized agents for better reasoning.
-- **Collaborative Problem Solving**: Leverage different agents in a single workflow.
+The Multi-Agent robotics endpoint (accessed via `post /agent`) accepts fused data and routes them to a collaborative multi-agent system, providing a powerful way to solve more complex robotics tasks. For more information, see [developing/5_llms.mdx](../../developing/5_llms.mdx)
