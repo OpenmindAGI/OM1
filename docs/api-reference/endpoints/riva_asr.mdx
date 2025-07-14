@@ -1,23 +1,37 @@
 ---
-title: Riva Speech Recognition and Generation
-description: "Riva Speech Recognition (ASR) and Generation (TTS)"
+title: Riva Speech Recognition
+description: "Riva Speech Recognition (ASR) API Reference"
 ---
 
-To streamline integration with the Riva ASR API, we offer a simple package for seamless interaction within OM1. 
-
-## Endpoint Access
+OpenMind self-hosted Riva ASR API Reference. To streamline integration with the Riva ASR API, we offer a simple package for seamless interaction within OM1.
 
 To minimize latency, the API endpoint utilizes WebSockets for efficient real-time communication.
 
-```bash
+```
 wss://api-asr.openmind.org?api_key=<YOUR_API_KEY>
 ```
 
-## Riva ASR Usage
+## Installation
+
+Install the `OM1` package:
+
+```bash install OM1
+uv pip3 install git+https://github.com/OpenmindAGI/OM1.git
+```
+
+If you don't have `uv` installed, you can install it using the following command:
+
+```bash install OM1
+pip3 install git+https://github.com/OpenmindAGI/OM1.git
+```
+
+## Usage
 
 The following example demonstrates how to interact with the Riva ASR API using the `OM1` package:
 
-```python
+```python usage
+import time
+from om1_utils import ws
 from om1_speech import AudioInputStream
 
 # Initialize the Riva ASR API
@@ -42,7 +56,3 @@ The expected response from the Riva ASR API will be in the following format:
   "asr_reply": "hello world"
 }
 ```
-
-## Riva TTS Endpoint
-
-The `https://api.openmind.org/api/core/riva/tts` endpoint generates speech from text using the Riva Text to Speech (TTS) model.
