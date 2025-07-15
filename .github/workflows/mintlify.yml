@@ -45,7 +45,7 @@ jobs:
         run: |
           BRANCH_NAME="auto/mintlify-update"
           git remote remove origin
-          git remote add origin https://x-access-token:${GH_PAT}@github.com/${{ github.repository }}
+          git remote add origin https://x-access-token:${GH_PAT}@github.com/${{ github.repository }}.git
           git push -u origin $BRANCH_NAME
 
       - name: Create pull request
@@ -58,5 +58,3 @@ jobs:
             --body "This PR updates the mintlify folder based on docs, with .mdx extensions stripped from file contents." \
             --head "auto/mintlify-update" \
             --base "main"
-
-
