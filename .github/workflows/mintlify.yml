@@ -1,0 +1,62 @@
+name: Copy Docs to Mintlify and Create PR
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  update-mintlify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install GitHub CLI
+        run: sudo apt-get update && sudo apt-get install -y gh
+
+      - name: Set up Git
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+
+      - name: Copy docs and clean .mdx references
+        run: |
+          mkdir -p mintlify
+          cp -r docs/* mintlify/
+          find mintlify -type f -exec sed -i 's/\.mdx//g' {} +
+
+      - name: Commit on new branch
+        run: |
+          BRANCH_NAME="auto/mintlify-update"
+          git checkout -b $BRANCH_NAME
+          git add mintlify
+          if git diff --cached --quiet; then
+            echo "SKIP_PR=true" >> $GITHUB_ENV
+          else
+            git commit -m "Automated mintlify folder update"
+          fi
+
+      - name: Override Git remote and push
+        if: env.SKIP_PR != 'true'
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: |
+          BRANCH_NAME="auto/mintlify-update"
+          git remote remove origin
+          git remote add origin https://x-access-token:${GH_PAT}@github.com/${{ github.repository }}
+          git push -u origin $BRANCH_NAME
+
+      - name: Create pull request
+        if: env.SKIP_PR != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          gh pr create \
+            --title "Automated mintlify update" \
+            --body "This PR updates the mintlify folder based on docs, with .mdx extensions stripped from file contents." \
+            --head "auto/mintlify-update" \
+            --base "main"
+
+
