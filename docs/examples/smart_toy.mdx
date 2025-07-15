@@ -5,81 +5,20 @@ description: "Combining Inputs, an LLM, and Outputs to create a smart, engaging 
 
 ## LLM Model
 
-This example takes two inputs, emotional state and voice inputs, sends them to an LLM, and produces speech outputs and physical movements. The overall behavior of the system is configured in `/config/cubly.json5`
+This example takes two inputs, emotional state and voice inputs, sends them to an LLM, and produces speech outputs and physical movements. The overall behavior of the system is configured in `/config/cubly.json5`.
 
 ## Emotion Detection with Cubly
 
-### Command
-
-```bash LLM Models
+Run
+```bash
 uv run src/run.py cubly
-```
-
-### Response
-
-Here is typical debug log from the running system:
-
-```
-WARNING:root:Unitree SDK not found. Please install the Unitree SDK to use this plugin.
-WARNING:root:Unitree SDK not found. Please install the Unitree SDK to use this plugin.
-2025-02-22 09:11:07.365 Python[4339:86735] WARNING: AVCaptureDeviceTypeExternal is deprecated for Continuity Cameras. Please use AVCaptureDeviceTypeContinuityCamera and add NSCameraUseContinuityCameraDeviceType to your Info.plist.
-INFO:root:Found cam(0)
-INFO:om1_speech:Found 7 audio devices
-INFO:om1_speech:Default input device: MacBook Pro Microphone (1)
-INFO:om1_speech:Selected input device: MacBook Pro Microphone (1)
-INFO:om1_utils:WebSocket client thread started
-INFO:om1_speech:Started audio processing thread
-INFO:om1_speech:Started audio stream with device 1
-INFO:om1_utils:Registered message callback
-INFO:root:Initializing OpenAI client with {'base_url': 'https://api.openmind.org/api/core/openai', 'api_key': 'openmind_free'}
-INFO:root:Initializing WebSim...
-INFO:root:Starting WebSim server thread...
-INFO:om1_utils:Connected to wss://api-asr.openmind.org
-INFO:om1_utils:Connection established
-INFO:root:WebSim server started successfully - Open http://localhost:8000 in your browser
-INFO:om1_speech:Found 7 audio devices
-INFO:om1_speech:Device 0: LG FHD
-INFO:om1_speech:Max Output Channels: 2
-INFO:om1_speech:Selected output device: LG FHD at index 0
-INFO:om1_speech:Successfully opened audio stream
-INFO:root:EmotionCapture: I do not see anyone, so I can't estimate their emotion.
-INFO:root:Detected ASR message: yeah
-INFO:root:Detected ASR message: so you fix
-INFO:root:Detected ASR message: fix the light mode
-INFO:root:EmotionCapture: I see a person. Their emotion is neutral.
-INFO:root:EmotionCapture: I see a person. Their emotion is happy.
-INFO:httpx:HTTP Request: POST https://api.openmind.org/api/core/openai/chat/completions "HTTP/1.1 401 Unauthorized"
-ERROR:root:Error asking LLM: Error code: 401 - {'error': 'API key not found'}
-WARNING:root:No output from LLM
-INFO:root:EmotionCapture: I see a person. Their emotion is neutral.
-INFO:httpx:HTTP Request: POST https://api.openmind.org/api/core/openai/chat/completions "HTTP/1.1 401 Unauthorized"
-INFO:root:EmotionCapture: I see a person. Their emotion is neutral.
-ERROR:root:Error asking LLM: Error code: 401 - {'error': 'API key not found'}
-WARNING:root:No output from LLM
-INFO:root:Detected ASR message: gussie motion is neutral
-INFO:root:EmotionCapture: I see a person. Their emotion is neutral.
-INFO:httpx:HTTP Request: POST https://api.openmind.org/api/core/openai/chat/completions "HTTP/1.1 401 Unauthorized"
-ERROR:root:Error asking LLM: Error code: 401 - {'error': 'API key not found'}
-WARNING:root:No output from LLM
-INFO:root:EmotionCapture: I see a person. Their emotion is neutral.
-INFO:root:EmotionCapture: I see a person. Their emotion is neutral.
-INFO:httpx:HTTP Request: POST https://api.openmind.org/api/core/openai/chat/completions "HTTP/1.1 401 Unauthorized"
-ERROR:root:Error asking LLM: Error code: 401 - {'error': 'API key not found'}
-WARNING:root:No output from LLM
-INFO:root:EmotionCapture: I see a person. Their emotion is neutral.
-INFO:root:Detected ASR message: piko found
 ```
 
 You should see your webcam light turn on and Cubly should speak to you from your default laptop speaker. You can see what is happening in the `WebSim` simulator window. 
 
 * There will be an initial delay for your system to download various packages and AI/ML models. 
-
 * Arduino based movement generation only works if you actually have a suitable actuator connected to an Arduino, which is to your computer via a USB serial dongle. On Mac, you can determine the correct serial port name to use via `ls /dev/cu.usb*`. If you do not specify your computer's serial port, the example will provide logging data that simulates what it would send.
-
 * The **emotion estimation input** is provided by webcam data feeding into `cv2.CascadeClassifier(haarcascade_frontalface_default)`. See `/inputs/plugins/webcam_to_face_emotion`.
-
 * The **voice input** originates from the default microphone, which sends to data to cloud instance of Nvidia's RIVA. See `/inputs/plugins/asr`.
-
 * The **voice output** uses a cloud text to speech endpoint, which sends audio data to the default speaker. See `/actions/speak/connector/tts`.
-
 * The **Arduino serial movement actions** are sent to serial com port `COM1`, flowing to a connected Arduino, which can then generate servo commands. See `/actions/move_serial_arduino/connector/serial_arduino`.

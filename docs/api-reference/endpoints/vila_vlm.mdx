@@ -3,35 +3,21 @@ title: VILA VLM
 description: "VILA VLM API Reference"
 ---
 
-OpenMind self-hosted VILA VLM API Reference. To streamline integration with the VILA VLM API, we offer a simple package for seamless interaction within OM1.
+To streamline integration with the VILA VLM API, we provide a simple wrapper. 
+
+## Endpoint Access
 
 To minimize latency, the API endpoint utilizes WebSockets for efficient real-time communication.
 
-```
+```bash
 wss://api-vila.openmind.org?api_key=<YOUR_API_KEY>
-```
-
-## Installation
-
-Install the `OM1` package:
-
-```bash install OM1
-uv pip3 install git+https://github.com/OpenmindAGI/OM1.git
-```
-
-If you don't have `uv` installed, you can install it using the following command:
-
-```bash install OM1
-pip3 install git+https://github.com/OpenmindAGI/OM1.git
 ```
 
 ## Usage
 
-The following example demonstrates how to interact with the VILA VLM API using the `OM1` package:
+This example demonstrates how to interact with the VILA VLM API:
 
-```python usage
-import time
-from om1_utils import ws
+```python
 from om1_vlm import VideoStream
 
 # Initialize the VILA VLM API
@@ -51,7 +37,7 @@ while True:
 
 The expected response from the VILA VLM API will be in the following format:
 
-```json response
+```json
 {
   "vlm_reply": "The most interesting aspect in this series of images is the man's constant motion of speaking and looking in different directions while sitting in front of a laptop."
 }
