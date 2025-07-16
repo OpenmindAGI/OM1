@@ -90,7 +90,8 @@
                     {
                         "group": "API Reference",
                         "pages": [
-                            "api-reference/introduction"
+                            "api-reference/introduction",
+                            "api-reference/account_and_key_management"
                         ]
                     },
                     {
