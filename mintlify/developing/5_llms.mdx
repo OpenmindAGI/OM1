@@ -1,0 +1,76 @@
+---
+title: LLMs
+description: "LLM Integration"
+---
+
+OM1's LLM integration is intended to make it easy to (1) send `input` information to LLMs and then (2) route LLM responses to various system `actions`, such as `speak` and `move`. The system provides a standardized interface for communicating with many different LLM endpoints from all the major providers including Anthropic, Google, DeepSeek, and OpenAI. The plugins handle authentication, API communication, prompt formatting, response parsing, and conversation history management.
+
+## LLM Plugin Examples
+
+LLM plugins are located in `src/llm/plugins`: [**Code**](https://github.com/openmind/OM1/tree/main/src/llm/plugins).
+
+## How it Works - Single-Agent LLM Integration
+
+For testing and introductory educational purposes, we integrate with multiple language models (LLMs) to provide chat completion via a `post /{provider}/chat/completions` endpoint. Each LLM plugin takes fused input data (the `prompt`) and sends it to an LLM (or a system of LLMs), and then waits for the response. The response is then parsed and provided to `runtime/cortex.py` for distribution to the system actions:
+
+```python
+response = await self._client.beta.chat.completions.parse(
+    model=self._config.model,
+    messages=[*messages, {"role": "user", "content": prompt}],
+    response_format=self._output_model,
+    timeout=self._config.timeout,
+)
+
+message_content = response.choices[0].message.content
+parsed_response = self._output_model.model_validate_json(message_content)
+
+return parsed_response
+```
+
+The standard `pydantic` output model is defined in `src/llm/output_model.py`.
+
+## LLM Configuration
+
+```bash
+  "cortex_llm": {
+    "type": "OpenAILLM",    // The class name of the LLM plugin you wish to use
+    "config": {
+      "base_url": "",       // Optional: URL of the LLM endpoint
+      "agent_name": "Iris", // Optional: Name of the agent
+      "history_length": 10  // The number of input->action cycles to provide to the LLM as historical context 
+    }
+  }
+```
+
+# Multi-Agent LLM Integration (`post /agent`)
+
+The Multi-Agent robotics endpoint (accessed via `post /agent`) accepts fused data and routes them to a collaborative multi-agent system, providing a powerful way to solve more complex robotics tasks.
+
+## Key Features
+
+- **Collaborative Intelligence**: Multiple specialized agents work together to solve complex problems
+- **Dynamic Timescales**: Depending on the robot's immedaite situation, the LLMs will respond quickly (within 300 ms for `emergency actions`) or more slowly (within 2 seconds)   
+- **Compatible Interface**: Uses the same pattern as standard single-agent LLM implementations
+
+## Getting Started
+
+To try out the multi-agent system:
+
+```bash
+uv run src/run.py multiagent
+```
+
+## Technical Details
+
+The `MultiLLM` module sends requests to the endpoint at `https://api.openmind.org/api/core/agent`. Like for the single agent LLM integration, the request includes:
+
+- System prompt context
+- User inputs
+- Available actions for the agents
+
+This information then flows to three interacting LLMs, which work together to decide on response priority and specific response actions.  
+
+## Use Cases
+
+- **Robotics**: Interface with and control physical systems through natural language.
+- **Complex Decision Making**: Combine multiple specialized agents for better reasoning.
