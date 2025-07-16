@@ -14,7 +14,7 @@
     color: #E83362;
     text-align: center;
     line-height: -1.2;
-    
+
 }
 
 .hero-p {
@@ -25,5 +25,6 @@
 .hero-cards {
     margin: 1em auto 1em;
     width: 50%;
+    max-width: 800px;
 }
 
