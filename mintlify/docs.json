@@ -29,7 +29,8 @@
                         "pages": [
                             "developing/0_introduction",
                             "developing/1_get-started",
-                            "developing/2_architecture"
+                            "developing/2_architecture",
+                            "developing/3_configuration"
                         ]
                     },
                     {
@@ -91,35 +92,19 @@
                         "group": "API Reference",
                         "pages": [
                             "api-reference/introduction",
-                            "api-reference/endpoints/account_and_key_management",
-                            "api-reference/authentication",
-                            "api-reference/api-price"
                         ]
                     },
-                  {
-                    "group": "Account Endpoints",
-                    "pages": [
-                      "api-reference/endpoints/account_balance"
-                    ]
-                  },
-                  {
-                    "group": "API Key Endpoints",
-                    "pages": [
-                      "api-reference/endpoints/list_api_keys",
-                      "api-reference/endpoints/create_api_keys",
-                      "api-reference/endpoints/delete_api_keys"
-                    ]
-                  },
-                  {
-                    "group": "OM Core Endpoints",
-                    "pages": [
-                      "api-reference/endpoints/llm",
-                      "api-reference/endpoints/multi_llm",
-                      "api-reference/endpoints/elevenlabs_tts",
-                      "api-reference/endpoints/riva_tts",
-                      "api-reference/endpoints/google_asr"
-                    ]
-                  }
+                    {
+                        "group": "OM Core Endpoints",
+                        "pages": [
+                            "api-reference/endpoints/account_and_key_management",
+                            "api-reference/endpoints/elevenlabs_tts",
+                            "api-reference/endpoints/google_asr",
+                            "api-reference/endpoints/llm",
+                            "api-reference/endpoints/riva",
+                            "api-reference/endpoints/vila_vlm"
+                        ]
+                    }
                 ]
             }
         ]
