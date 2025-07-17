@@ -1,6 +1,6 @@
 ---
 title: x402 Integration
-description: "x402 - An open protocol for internet-native payments"
+description: "x402 - An open protocol for internet-native micropayments payments"
 ---
 
 ## Overview
@@ -9,27 +9,29 @@ description: "x402 - An open protocol for internet-native payments"
 
 ## Integration
 
-OM1 has a built-in connector for x402. You can use it by adding the following to your config:	
+OM1 has a built-in x402 input and action modules. You can give your robot full economic autonomy by adding x402 input and action modules to its `.config` file.
 
-Here is an example of x402 as input:
+So the robot knows its wallet balance, add the `X402Input`:
 
 ```
   "agent_inputs": [
     {
       "type": "X402Input"
-    }, ... ...
+    },
   ]
 ```
 
-Here is an example of x402 as action:	
+So that the robot can autonomously buy things it wants, such as electricity, transportation (e.g. Waymo rides) and compute, add the `x402_command`:	
 
 ```
   "agent_actions": [
     {
       "name": "x402_command",
-      "llm_label": "move",	
+      "llm_label": "Your payment wallet, which allows you to pay for things you would like to buy",	
       "implementation": "passthrough",
       "connector": "x402"
-    }, ... ...
+    }
   ]
 ```
+
+**CAUTION**: Suitably configured system prompts will result in autonomous (and inherently unpredictable) real world actions by your robot to increase its wallet balance. 
