@@ -3,7 +3,7 @@ title: Introduction
 description: "OM1, a modular AI runtime for agents and robots"
 ---
 
-<img src="../assets/openmind-intro-cover.png" alt="Hero" style="width:50%;">
+![Logo](../assets/openmind-intro-cover.png)
 
 ## OM1 Capabilities
 
@@ -51,6 +51,17 @@ uv run ruff check . --fix && uv run black . && uv run isort .
 ```
 
 To automatically run these checks before committing, install [pre-commit](https://pre-commit.com/) and execute `pre-commit install`. This ensures that pre-commit checks run before each commit. Additionally, you can manually trigger all checks by running `pre-commit run --all-files`.
+
+### Updating the docs
+
+After you have updated the docs, make sure to run:
+
+```bash
+chmod +x mintlify.sh # first time only
+./mintlify.sh
+```
+
+to update the mintlify files too.
 
 ### Unit Testing
 
