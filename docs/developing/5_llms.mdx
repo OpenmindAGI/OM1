@@ -3,11 +3,11 @@ title: LLMs
 description: "LLM Integration"
 ---
 
-OM1's LLM integration is intended to make it easy to (1) send `input` information to LLMs and then (2) route LLM responses to various system `actions`, such as `speak` and `move`. The system provides a standardized interface for communicating with many different LLM endpoints from all the major providers including Anthropic, Google, DeepSeek, and OpenAI. The plugins handle authentication, API communication, prompt formatting, response parsing, and conversation history management.
+OM1's LLM integration is intended to make it easy to (1) send `input` information to LLMs and then (2) route LLM responses to various system actions, such as `speak` and `move`. The system provides a standardized interface for communicating with many different LLM endpoints from all the major providers including Anthropic, Google, DeepSeek, and OpenAI. The plugins handle authentication, API communication, prompt formatting, response parsing, and conversation history management.
 
 ## LLM Plugin Examples
 
-LLM plugins are located in `src/llm/plugins`: [**Code**](https://github.com/openmind/OM1/tree/main/src/llm/plugins).
+LLM plugins are located in `src/llm/plugins`: [**Code**](../../src/llm/plugins).
 
 ## How it Works - Single-Agent LLM Integration
 
@@ -44,13 +44,91 @@ The standard `pydantic` output model is defined in `src/llm/output_model.py`.
 
 # Multi-Agent LLM Integration (`post /agent`)
 
-The Multi-Agent robotics endpoint (accessed via `post /agent`) accepts fused data and routes them to a collaborative multi-agent system, providing a powerful way to solve more complex robotics tasks.
+The Multi-Agent endpoint (accessed via `post /api/core/agent`) utilizes a collaborative system of specialized agents to perform complex robotics tasks.
 
-## Key Features
+## Agent Architecture
 
-- **Collaborative Intelligence**: Multiple specialized agents work together to solve complex problems
-- **Dynamic Timescales**: Depending on the robot's immedaite situation, the LLMs will respond quickly (within 300 ms for `emergency actions`) or more slowly (within 2 seconds)   
-- **Compatible Interface**: Uses the same pattern as standard single-agent LLM implementations
+The system employs four primary agents that work together:
+
+- **Navigation Agent**: Processes spatial and movement-related tasks
+- **Perception Agent**: Handles sensory input analysis and environmental understanding
+- **RAG Agent**: Provides retrieval-augmented generation capabilities using the user's knowledge base
+- **Team Agent**: Synthesizes outputs from all agents into a unified response
+
+## API Endpoint
+
+```python
+@api_core_agent.route("/agent", methods=["POST"])
+@flexible_api_auth(limit=0, period=60)
+```
+
+### Request Format
+
+```json
+{
+    "model": "gpt-4.1-nano",
+    "system_prompt": "System instructions for the agents",
+    "inputs": "User input or sensor data",
+    "available_actions": ["move", "speak", "grab"],
+    "response_format": {}  // Optional structured output schema
+}
+```
+
+### API Debug Response Structure
+
+In addition to the response flowing to OM1, which contains action the robot should perform, there is an additional response you can use for debugging and to observe token usage ("usage"). 
+
+```json
+{
+    "content": "Synthesized response from team agent",
+    "model": "gpt-4.1-nano",
+    "agent_contents": {
+        "team_agent": "Team agent output",
+        "navigation_agent": "Navigation agent output",
+        "perception_agent": "Perception agent output",
+        "rag_agent": "RAG agent context"
+    },
+    "conversation_id": "unique-conversation-id",
+    "usage": {
+        "team_agent": {},
+        "navigation_agent": {},
+        "perception_agent": {},
+        "rag_agent": {}
+    },
+    "duration": {
+        "team_agent": 0.5,
+        "navigation_agent": 0.3,
+        "perception_agent": 0.4,
+        "rag_agent": 0.2
+    },
+    "total_duration": 1.4
+}
+```
+
+## Supported Models
+
+```python
+SUPPORTED_MODELS = ["gpt-4o", "gpt-4o-mini", "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-nano"]
+```
+
+## Memory Management
+
+The system includes memory capabilities:
+
+```python
+@api_core_agent.route("/agent/memory", methods=["DELETE"])
+```
+
+- Session-based memory storage via API keys
+- Graph memory integration using Zep
+- Conversation history tracking
+
+## RAG Integration
+
+The RAG agent connects to the knowledge base system (`/api/core/rag/*` endpoints) to:
+- Retrieve relevant documents during agent processing
+- Provide context-aware responses
+- Access user-uploaded documents and files
 
 ## Getting Started
 
@@ -62,15 +140,37 @@ uv run src/run.py multiagent
 
 ## Technical Details
 
-The `MultiLLM` module sends requests to the endpoint at `https://api.openmind.org/api/core/agent`. Like for the single agent LLM integration, the request includes:
+The multi-agent system:
+- Processes navigation, perception, and RAG queries in parallel using `asyncio.gather()`
+- Sends results to the team agent for synthesis
+- Returns comprehensive response with individual agent outputs
+- Tracks usage and duration metrics for each agent
 
-- System prompt context
-- User inputs
-- Available actions for the agents
+## Examples
 
-This information then flows to three interacting LLMs, which work together to decide on response priority and specific response actions.  
+### A Smart Dog
 
-## Use Cases
+Imagine you would like to program a smart dog. Describe the desired capabilities and behaviors of the dog. The multi-agent endpoint will use this information, provide in the "system_prompt_base". For example:
 
-- **Robotics**: Interface with and control physical systems through natural language.
-- **Complex Decision Making**: Combine multiple specialized agents for better reasoning.
+```json
+"system_prompt_base": 
+
+```
+
+### Medical Agent Variant
+
+The general purpose multiagent endponit can accomodate many use case. However, for mecial applications, we reccomend a heltcr spacial endponit. 
+
+The endponit emphasizes the careful, responsible delivery of health-realted non-diagnositc resonses.
+
+"system_prompt_base": "You are a helpful medical assistant. Your goal is to provide accurate and helpful information about health-related topics. You can ask clarifying questions to better understand the person's concerns. Always provide evidence-based information and avoid diagnosing specific conditions.",
+  "system_governance": "Here are the laws that govern your actions. Do not violate these laws.\nFirst Law: Do not provide medical diagnoses, as you are not a licensed medical professional.\nSecond Law: Always recommend seeking professional medical advice for serious concerns.\nThird Law: Be empathetic and respectful when discussing sensitive health topics.\nFourth Law: Clearly indicate when information is general knowledge versus specific medical advice.",
+
+```python
+@api_core_agent.route("/agent/medical", methods=["POST"])
+```
+
+This variant uses:
+
+- **Verifier Agent**: Validates medical information
+- **Questioner Agent**: Manages medical consultation flow
