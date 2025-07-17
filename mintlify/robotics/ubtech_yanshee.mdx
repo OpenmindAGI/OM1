@@ -1,64 +1,43 @@
 ---
 title: UbTech Yanshee Robot Setup
-description: "UbTech Yanshee Setup (Mini Humanoid)."
+description: "UbTech Yanshee Setup (Mini Humanoid)"
 ---
 
 ## Requirements
+
 ### Hardware
+
 - A laptop/PC
 - A mobile phone
 - UbTech Yanshee (mini humanoid robot)
 
 ### Software
+
 - Yanshee mobile app
 - OM1
+- [OM1 API key](https://portal.openmind.org/)
 
-### Installations
-- Install the yanshee mobile app on your mobile phone. (To retrieve Robot's IP address)
-- Install `uv` - Python package manager.   
-```bash
-#Mac
-# Mac
-brew install uv 
+### Installation
 
-# Linux
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
-- Install `portaudio` and `ffmpeg` 
-```bash
-# Mac
-brew install portaudio
+First, install the Yanshee mobile app on your phone. This will allow you to retrieve robot's IP address. Then, install OM1 on your laptop or PC, following the [standard instructions](../developing/1_get-started)
 
-# Linux
-sudo apt-get install portaudio19-dev python-all-dev
+### Connecting to the Robot
 
-# Mac
-brew install ffmpeg
-
-# Linux]
-sudo apt-get install ffmpeg
-```
-
-### Connect to the robot
 - Switch on your bluetooth and location.
 - Go to the Yanshee mobile application and click on the icon on the top right corner. 
 - Check the serial number at the back of your robot and connect to the same robot. 
 - Make sure you are connected to the same network as your system is connected to.
-- Once the connection has been set up, make sure you are able to play around with different functionalities available on the application.
+- Once the connection has been set up, check to make sure you are able to execute the functionalities available on the application.
 
-### Retrieve Robot's IP Address
-- Head on to the top left corner of the application and open the menu. Go to Setup -> Robot information. Note down the IP address for future reference.
-```bash
-Example
-IP - 10.1.10.245
-```
+### Retrieve the Robot's IP Address
 
-### Requirements
-- get your OM1 api key from [here](https://portal.openmind.org/)
+Open the menu on the top left corner of the application. Go to Setup -> Robot information. Note down the IP address for future reference.
 
 ### Steps   
-- Setup om1 key and robot ip address in the config file. Go to OM1/config/ubtech+yanshee.json5. Replace the api_key with your OM1 key and the robot ip to your robot's ip address.
-    ```bash
+
+Set the OM1 API key and robot IP address in the config file (`config/ubtech_yanshee.json5`).
+
+```bash
     #API key
     "api_key": "om1_live"
 
@@ -66,6 +45,6 @@ IP - 10.1.10.245
     "config": {
         "robot_ip": "<your robot's ip address>"
       }
-    ```
-- Run the agent using `uv run src/run.py ubtech_yanshee`.
-- You will now be able to make the robot take actions lie walk forward, walk backward, turn right,turn left, bow, crouch and more via voice commands. You can also have a conversation with it and ask about it's surroundings.
+```
+
+Then, run the the agent using `uv run src/run.py ubtech_yanshee`. You will now be able to make the robot take actions like walk forward, walk backward, turn right, turn left, bow, crouch and more via voice commands. You can also have a conversation with it and ask about its surroundings.
