@@ -71,7 +71,7 @@
                     {
                         "group": "Tutorials",
                         "pages": [
-                            "examples/0_overview",
+                            "examples/overview",
                             "examples/conversation",
                             "examples/gazebo"
                         ]
