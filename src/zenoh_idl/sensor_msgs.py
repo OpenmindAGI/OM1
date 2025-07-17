@@ -57,7 +57,6 @@ class IMU(IdlStruct, typename="IMU"):
 @dataclass
 class Detection(IdlStruct, typename="Detection"):
     header: Header
-
     orientation: Quaternion
     orientation_covariance: array[float64, 9]
     angular_velocity: Vector3
@@ -89,6 +88,7 @@ class HazardDetectionVector(IdlStruct, typename="HazardDetectionVector"):
 
 @dataclass
 class NavSatStatus(IdlStruct, typename="NavSatStatus"):
+
     class STATUS(Enum):
         NO_FIX = -1  # unable to fix position
         FIX = 0  # unaugmented fix

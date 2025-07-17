@@ -62,14 +62,15 @@
     //  "llm_label": "move",
     //  "connector": "unitree_sdk"
     //},
-    //{
-    // "name": "speak",
-    //  "llm_label": "speak",
-    //  "connector": "elevenlabs_tts",
-    //  "config": {
-    //    "voice_id": "TbMNBJ27fH2U0VgpSNko"
-    //  }
-    //}
+    {
+     "name": "speak",
+      "llm_label": "speak",
+      "connector": "elevenlabs_tts",
+      "config": {
+        "voice_id": "TbMNBJ27fH2U0VgpSNko",
+        "silence_rate": 0
+      }
+    }
   ],
   "backgrounds": [
     {
