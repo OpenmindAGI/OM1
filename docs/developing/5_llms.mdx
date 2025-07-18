@@ -3,15 +3,25 @@ title: LLMs
 description: "LLM Integration"
 ---
 
-OM1's LLM integration is intended to make it easy to (1) send `input` information to LLMs and then (2) route LLM responses to various system actions, such as `speak` and `move`. The system provides a standardized interface for communicating with many different LLM endpoints from all the major providers including Anthropic, Google, DeepSeek, and OpenAI. The plugins handle authentication, API communication, prompt formatting, response parsing, and conversation history management.
+OM1's LLM integration is intended to make it easy to (1) send `input` information to LLMs and then (2) route LLM responses to various system actions, such as `speak` and `move`. The system provides a standardized interface for communicating with many different LLM endpoints from all the major providers including Anthropic, Google, DeepSeek, and OpenAI. 
 
-## LLM Plugin Examples
+The plugins handle authentication, API communication, prompt formatting, response parsing, and conversation history management. LLM plugin examples are located in `src/llm/plugins`: [**Code**](../../src/llm/plugins).
 
-LLM plugins are located in `src/llm/plugins`: [**Code**](../../src/llm/plugins).
+## Endpoint Overview
 
-## How it Works - Single-Agent LLM Integration
+```bash
+# base url = https://api.openmind.org/
 
-For testing and introductory educational purposes, we integrate with multiple language models (LLMs) to provide chat completion via a `post /{provider}/chat/completions` endpoint. Each LLM plugin takes fused input data (the `prompt`) and sends it to an LLM (or a system of LLMs), and then waits for the response. The response is then parsed and provided to `runtime/cortex.py` for distribution to the system actions:
+api/core/{provider}/chat/completions methods=["POST"]   // single agent
+api/core/agent                       methods=["POST"]   // multi agent 
+api/core/agent/memory                methods=["DELETE"] // multi agent memory wipe
+api/core/rag                                            // RAG knowledge base
+api/core/agent/medical               methods=["POST"]   // a healthcare focused multi agent system 
+```
+
+## Single-Agent LLM Integration
+
+For testing and introductory educational purposes, we integrate with multiple language models (LLMs) to provide chat completion via a `post /{provider}/chat/completions` endpoint. Each LLM plugin takes fused input data (the `prompt`) and sends it to an LLM. The response is then parsed and provided to `runtime/cortex.py` for distribution to the system actions:
 
 ```python
 response = await self._client.beta.chat.completions.parse(
@@ -29,7 +39,7 @@ return parsed_response
 
 The standard `pydantic` output model is defined in `src/llm/output_model.py`.
 
-## LLM Configuration
+### Single-Agent LLM Configuration
 
 ```bash
   "cortex_llm": {
@@ -42,36 +52,55 @@ The standard `pydantic` output model is defined in `src/llm/output_model.py`.
   }
 ```
 
-# Multi-Agent LLM Integration (`post /agent`)
+## Multi-Agent LLM Integration
 
-The Multi-Agent endpoint (accessed via `post /api/core/agent`) utilizes a collaborative system of specialized agents to perform complex robotics tasks.
+The Multi-Agent endpoint at `/api/core/agent` utilizes a collaborative system of specialized agents to perform more complex robotics tasks. The multi-agent system:
 
-## Agent Architecture
+- Processes navigation, perception, and RAG queries in parallel using `asyncio.gather()`
+- Sends results to the team agent for synthesis
+- Returns comprehensive response with individual agent outputs
+- Tracks usage and duration metrics for each agent
+
+### Agent Architecture
 
 The system employs four primary agents that work together:
 
 - **Navigation Agent**: Processes spatial and movement-related tasks
 - **Perception Agent**: Handles sensory input analysis and environmental understanding
-- **RAG Agent**: Provides retrieval-augmented generation capabilities using the user's knowledge base
+- **RAG Agent**: Provides retrieval-augmented generation (RAG) capabilities using the user's knowledge base
 - **Team Agent**: Synthesizes outputs from all agents into a unified response
 
-## API Endpoint
+### Main API Endpoint
 
 ```python
-@api_core_agent.route("/agent", methods=["POST"])
-@flexible_api_auth(limit=0, period=60)
-```
+    self.endpoint = "https://api.openmind.org/api/core/agent"
 
-### Request Format
+    headers = {
+        "Authorization": f"Bearer {self._config.api_key}",
+        "Content-Type": "application/json",
+    }
 
-```json
-{
-    "model": "gpt-4.1-nano",
-    "system_prompt": "System instructions for the agents",
-    "inputs": "User input or sensor data",
-    "available_actions": ["move", "speak", "grab"],
-    "response_format": {}  // Optional structured output schema
-}
+    request = {
+        "system_prompt": self.io_provider.fuser_system_prompt,
+        "inputs": self.io_provider.fuser_inputs,
+        "available_actions": self.io_provider.fuser_available_actions,
+        "model": self._config.model,
+        "response_format": self._output_model.model_json_schema(),
+        "structured_outputs": True,
+    }
+
+    logging.debug(f"MultiLLM system_prompt: {request['system_prompt']}")
+    logging.debug(f"MultiLLM inputs: {request['inputs']}")
+    logging.debug(f"MultiLLM available_actions: {request['available_actions']}")
+
+    response = requests.post(
+        self.endpoint,
+        json=request,
+        headers=headers,
+    )
+
+    output = response.json().get("content")
+    return self._output_model.model_validate_json(output)
 ```
 
 ### API Debug Response Structure
@@ -105,32 +134,34 @@ In addition to the response flowing to OM1, which contains actions the robot sho
 }
 ```
 
-## Supported Models
+### Supported Models
 
 ```python
 SUPPORTED_MODELS = ["gpt-4o", "gpt-4o-mini", "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-nano"]
 ```
 
-## Memory Management
+### Memory Management
 
-The system includes memory capabilities:
+The system includes memory capabilities at `/api/core/agent/memory`:
 
 ```python
-@api_core_agent.route("/agent/memory", methods=["DELETE"])
+"/api/core/agent/memory"
+methods=["DELETE"]
 ```
 
 - Session-based memory storage via API keys
 - Graph memory integration using Zep
 - Conversation history tracking
 
-## RAG Integration
+### RAG Integration
 
-The RAG agent connects to the knowledge base system (`/api/core/rag/*` endpoints) to:
+The RAG agent connects to the knowledge base system (`/rag/*`) to:
+
 - Retrieve relevant documents during agent processing
 - Provide context-aware responses
 - Access user-uploaded documents and files
 
-## Getting Started
+### Getting Started
 
 To try out the multi-agent system:
 
@@ -138,38 +169,35 @@ To try out the multi-agent system:
 uv run src/run.py multiagent
 ```
 
-## Technical Details
-
-The multi-agent system:
-- Processes navigation, perception, and RAG queries in parallel using `asyncio.gather()`
-- Sends results to the team agent for synthesis
-- Returns comprehensive response with individual agent outputs
-- Tracks usage and duration metrics for each agent
-
 ## Examples
 
 ### A Smart Dog
 
-Imagine you would like to program a smart dog. Describe the desired capabilities and behaviors of the dog. The multi-agent endpoint will use this information, provided in the "system_prompt_base". For example:
+Imagine you would like to program a smart dog. Describe the desired capabilities and behaviors of the dog in `system_prompt_base`. For example:
 
-```json
+```bash
 "system_prompt_base": "You are an intelligent robotic dog companion designed to be helpful, loyal, and engaging. Your primary goals are to: (1) Provide companionship through interactive play and conversation, (2) Assist with basic household tasks and monitoring, (3) Learn and adapt to your owner's preferences and routines, and (4) Maintain a playful yet responsible demeanor. You can move around, speak clearly, express emotions through body language, and respond to voice commands. Always prioritize safety and be eager to please while maintaining your dog-like personality traits of curiosity, loyalty, and enthusiasm."
 ```
 
-### Medical Agent Variant
+### Medical Robot
 
-The general purpose multiagent endpoint can accommodate many use cases. However, for medical applications, we recommend a healthcare-specific endpoint. 
+To convert the robotic dog (example above) into a four-legged medical doctor, you can change the prompt and route traffic to a specialized healthcare optimized endpoint (`/api/core/agent/medical`). This endpoint emphasizes the careful, responsible delivery of general health-related non-diagnostic responses. A suitable prompt might be:
 
-The endpoint emphasizes the careful, responsible delivery of health-related non-diagnostic responses.
-
-"system_prompt_base": "You are a helpful medical assistant. Your goal is to provide accurate and helpful information about health-related topics. You can ask clarifying questions to better understand the person's concerns. Always provide evidence-based information and avoid diagnosing specific conditions.",
-  "system_governance": "Here are the laws that govern your actions. Do not violate these laws.\nFirst Law: Do not provide medical diagnoses, as you are not a licensed medical professional.\nSecond Law: Always recommend seeking professional medical advice for serious concerns.\nThird Law: Be empathetic and respectful when discussing sensitive health topics.\nFourth Law: Clearly indicate when information is general knowledge versus specific medical advice.",
-
-```python
-@api_core_agent.route("/agent/medical", methods=["POST"])
+```bash
+"system_prompt_base": "You are a helpful medical assistant. Your goal is to provide accurate and helpful information about health-related topics. You can ask clarifying questions to better understand the person's concerns. Always provide evidence-based information and avoid diagnosing specific conditions. In general, prompt humans to see their licensed medical professionals for all important medical and health issues.",
+"system_governance": "Here are the laws that govern your actions. Do not violate these laws.\nFirst Law: Do not provide medical diagnoses, as you are not a licensed medical professional.\nSecond Law: Always recommend seeking professional medical advice for serious concerns.\nThird Law: Be empathetic and respectful when discussing sensitive health topics.\nFourth Law: Clearly indicate when information is general knowledge versus specific medical advice.",
 ```
 
-This variant uses:
+**NOTE: The system does not provide medical diagnoses and is informational only. If you are a human, please seek care from a licensed medical professional for all your important medical issues.**    
+
+```python
+"/api/core/agent/medical"
+methods=["POST"]
+```
+
+This endpoint uses two agents:
 
 - **Verifier Agent**: Validates medical information
 - **Questioner Agent**: Manages medical consultation flow
+
+When you wish to covert the doctor back to a playful dog, just change the system prompt and route queries back to the general `/agent` endpoint.   
