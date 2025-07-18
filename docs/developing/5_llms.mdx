@@ -76,7 +76,7 @@ The system employs four primary agents that work together:
 
 ### API Debug Response Structure
 
-In addition to the response flowing to OM1, which contains action the robot should perform, there is an additional response you can use for debugging and to observe token usage ("usage"). 
+In addition to the response flowing to OM1, which contains actions the robot should perform, there is an additional response you can use for debugging and to observe token usage ("usage"). 
 
 ```json
 {
@@ -150,7 +150,7 @@ The multi-agent system:
 
 ### A Smart Dog
 
-Imagine you would like to program a smart dog. Describe the desired capabilities and behaviors of the dog. The multi-agent endpoint will use this information, provide in the "system_prompt_base". For example:
+Imagine you would like to program a smart dog. Describe the desired capabilities and behaviors of the dog. The multi-agent endpoint will use this information, provided in the "system_prompt_base". For example:
 
 ```json
 "system_prompt_base": 
@@ -159,9 +159,9 @@ Imagine you would like to program a smart dog. Describe the desired capabilities
 
 ### Medical Agent Variant
 
-The general purpose multiagent endponit can accomodate many use case. However, for mecial applications, we reccomend a heltcr spacial endponit. 
+The general purpose multiagent endpoint can accommodate many use cases. However, for medical applications, we recommend a healthcare-specific endpoint. 
 
-The endponit emphasizes the careful, responsible delivery of health-realted non-diagnositc resonses.
+The endpoint emphasizes the careful, responsible delivery of health-related non-diagnostic responses.
 
 "system_prompt_base": "You are a helpful medical assistant. Your goal is to provide accurate and helpful information about health-related topics. You can ask clarifying questions to better understand the person's concerns. Always provide evidence-based information and avoid diagnosing specific conditions.",
   "system_governance": "Here are the laws that govern your actions. Do not violate these laws.\nFirst Law: Do not provide medical diagnoses, as you are not a licensed medical professional.\nSecond Law: Always recommend seeking professional medical advice for serious concerns.\nThird Law: Be empathetic and respectful when discussing sensitive health topics.\nFourth Law: Clearly indicate when information is general knowledge versus specific medical advice.",
