@@ -10,18 +10,18 @@ The plugins handle authentication, API communication, prompt formatting, respons
 ## Endpoint Overview
 
 ```bash
-# base url = https://api.openmind.org/
+# Base URL: https://api.openmind.org/
 
-api/core/{provider}/chat/completions methods=["POST"]   // single agent
-api/core/agent                       methods=["POST"]   // multi agent 
-api/core/agent/memory                methods=["DELETE"] // multi agent memory wipe
-api/core/rag                                            // RAG knowledge base
-api/core/agent/medical               methods=["POST"]   // a healthcare focused multi agent system 
+POST /api/core/{provider}/chat/completions    # Single agent
+POST /api/core/agent                          # Multi agent 
+DELETE /api/core/agent/memory                 # Multi agent memory wipe
+GET /api/core/rag                             # RAG knowledge base
+POST /api/core/agent/medical                  # Healthcare focused multi agent system 
 ```
 
 ## Single-Agent LLM Integration
 
-For testing and introductory educational purposes, we integrate with multiple language models (LLMs) to provide chat completion via a `post /{provider}/chat/completions` endpoint. Each LLM plugin takes fused input data (the `prompt`) and sends it to an LLM. The response is then parsed and provided to `runtime/cortex.py` for distribution to the system actions:
+For testing and introductory educational purposes, we integrate with multiple language models (LLMs) to provide chat completion via a `POST /api/core/{provider}/chat/completions` endpoint. Each LLM plugin takes fused input data (the `prompt`) and sends it to an LLM. The response is then parsed and provided to `runtime/cortex.py` for distribution to the system actions:
 
 ```python
 response = await self._client.beta.chat.completions.parse(
@@ -144,9 +144,8 @@ SUPPORTED_MODELS = ["gpt-4o", "gpt-4o-mini", "gpt-4.1", "gpt-4.1-mini", "gpt-4.1
 
 The system includes memory capabilities at `/api/core/agent/memory`:
 
-```python
-"/api/core/agent/memory"
-methods=["DELETE"]
+```bash
+DELETE /api/core/agent/memory
 ```
 
 - Session-based memory storage via API keys
@@ -155,11 +154,15 @@ methods=["DELETE"]
 
 ### RAG Integration
 
-The RAG agent connects to the knowledge base system (`/rag/*`) to:
+The RAG agent connects to the knowledge base system (`/api/core/rag`) to provide retrieval-augmented generation capabilities. To use RAG with your documents:
 
+1. **Upload Documents**: Visit [https://portal.openmind.org/machines](https://portal.openmind.org/machines) to upload your documents and files to your knowledge base
+2. **Ask Questions**: Once uploaded, you can ask questions about your documents through the multi-agent system at `/api/core/agent`
+
+The RAG agent will:
 - Retrieve relevant documents during agent processing
-- Provide context-aware responses
-- Access user-uploaded documents and files
+- Provide context-aware responses based on your uploaded content
+- Access and search through your user-uploaded documents and files
 
 ### Getting Started
 
@@ -190,9 +193,8 @@ To convert the robotic dog (example above) into a four-legged medical doctor, yo
 
 **NOTE: The system does not provide medical diagnoses and is informational only. If you are a human, please seek care from a licensed medical professional for all your important medical issues.**    
 
-```python
-"/api/core/agent/medical"
-methods=["POST"]
+```bash
+POST /api/core/agent/medical
 ```
 
 This endpoint uses two agents:
